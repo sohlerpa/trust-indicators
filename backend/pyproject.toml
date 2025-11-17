@@ -1,0 +1,21 @@
+[build-system]
+requires = ["hatchling>=1.25.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "trust-indicators-backend"
+version = "0.1.0"
+description = "Backend for a personalised media trust-indicator filter"
+readme = "README.md"
+requires-python = ">=3.11"
+
+dependencies = [
+    "fastapi>=0.115,<0.116",
+]
+
+[project.scripts]
+trust-backend = "app.main:run" # TODO adapt to working entry point as soon as available
+
+[tool.hatch.build.targets.wheel]
+packages = ["app", "modules"]
+sources = ["src"]
