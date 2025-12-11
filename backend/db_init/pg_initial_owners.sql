@@ -10,7 +10,7 @@ INSERT INTO owners (name, owner_type, country) VALUES
 ('Stefan von Holtzbrinck', 'individual', 'Germany'),
 ('Fm. Mohn', 'family', 'Germany'),
 ('Udo Müller', 'individual', 'Germany'),
-('Spiegel-Employees', 'employees'),
+('Spiegel-Employees', 'employees', NULL),
 ('Christiane Schoeller', 'individual', 'Germany'),
 ('Friede Springer', 'individual', 'Germany'),
 ('Dirk Ströer', 'individual', 'Germany');
