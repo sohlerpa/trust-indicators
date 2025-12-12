@@ -11,8 +11,8 @@ def compute_numeric_score(claim_value: float, true_value: float) -> float:
     score = 1.0 - rel_error
 
     if score < 0.0:
-        return 0.0
+        score = 0.0
     if score > 1.0:
-        return 1.0
+        score = 1.0
 
     return score
