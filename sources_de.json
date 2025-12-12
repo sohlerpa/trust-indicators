@@ -1,0 +1,1251 @@
+{
+  "ard.de": {
+    "source_type": "public_service",
+    "org_name": "ARD",
+    "org_wikidata_id": "Q49653",
+    "country": "DE"
+  },
+  "dw.com": {
+    "source_type": "public_service",
+    "org_name": "Deutsche Welle Farsi",
+    "org_wikidata_id": "Q5944134",
+    "country": "DE"
+  },
+  "ndr.de": {
+    "source_type": "public_service",
+    "org_name": "Norddeutscher Rundfunk",
+    "org_wikidata_id": "Q201275",
+    "country": "DE"
+  },
+  "ard-hauptstadtstudio.de": {
+    "source_type": "public_service",
+    "org_name": "ARD-Hauptstadtstudio",
+    "org_wikidata_id": "Q296515",
+    "country": "DE"
+  },
+  "riasberlin.de": {
+    "source_type": "public_service",
+    "org_name": "RIAS Berlin Kommission",
+    "org_wikidata_id": "Q1561210",
+    "country": "DE"
+  },
+  "deutschlandradio.de": {
+    "source_type": "public_service",
+    "org_name": "Deutschlandradio",
+    "org_wikidata_id": "Q702314",
+    "country": "DE"
+  },
+  "tvb.com": {
+    "source_type": "public_service",
+    "org_name": "Television Broadcasts Limited",
+    "org_wikidata_id": "Q1195543",
+    "country": "DE"
+  },
+  "nowtv.com": {
+    "source_type": "public_service",
+    "org_name": "WOW TV",
+    "org_wikidata_id": "Q7065448",
+    "country": "DE"
+  },
+  "zdf.de": {
+    "source_type": "public_service",
+    "org_name": "Zweites Deutsches Fernsehen",
+    "org_wikidata_id": "Q95988259",
+    "country": "DE"
+  },
+  "europe.afn.mil": {
+    "source_type": "public_service",
+    "org_name": "AFN Europe",
+    "org_wikidata_id": "Q127294410",
+    "country": "DE"
+  },
+  "bmz.de": {
+    "source_type": "state",
+    "org_name": "Bundesministerium für wirtschaftliche Zusammenarbeit und Entwicklung",
+    "org_wikidata_id": "Q684357",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "iqwig.de": {
+    "source_type": "state",
+    "org_name": "Institut für Qualität und Wirtschaftlichkeit im Gesundheitswesen",
+    "org_wikidata_id": "Q737480",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "forschungsstiftung.de": {
+    "source_type": "state",
+    "org_name": "Bayerische Forschungsstiftung",
+    "org_wikidata_id": "Q812219",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "lwf.bayern.de": {
+    "source_type": "state",
+    "org_name": "Bayerische Landesanstalt für Wald und Forstwirtschaft",
+    "org_wikidata_id": "Q812238",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "lwg.bayern.de": {
+    "source_type": "state",
+    "org_name": "Bayerische Landesanstalt für Weinbau und Gartenbau",
+    "org_wikidata_id": "Q812241",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "schloesser.bayern.de": {
+    "source_type": "state",
+    "org_name": "Bayerische Verwaltung der staatlichen Schlösser, Gärten und Seen",
+    "org_wikidata_id": "Q812310",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "lgl.bayern.de": {
+    "source_type": "state",
+    "org_name": "Bayerisches Landesamt für Gesundheit und Lebensmittelsicherheit",
+    "org_wikidata_id": "Q812419",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "hdbg.de": {
+    "source_type": "state",
+    "org_name": "Haus der Bayerischen Geschichte",
+    "org_wikidata_id": "Q878087",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "wissenschaftsrat.de": {
+    "source_type": "state",
+    "org_name": "Wissenschaftsrat",
+    "org_wikidata_id": "Q896642",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "bfn.de": {
+    "source_type": "state",
+    "org_name": "Bundesamt für Naturschutz",
+    "org_wikidata_id": "Q1005480",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "bfr.bund.de": {
+    "source_type": "state",
+    "org_name": "Bundesinstitut für Risikobewertung",
+    "org_wikidata_id": "Q1006223",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "bundesprogramm.de": {
+    "source_type": "state",
+    "org_name": "Bundesprogramm Ökologischer Landbau",
+    "org_wikidata_id": "Q1006497",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "zoll.de": {
+    "source_type": "state",
+    "org_name": "Bundeszollverwaltung",
+    "org_wikidata_id": "Q1009333",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "deutsche-rentenversicherung.de": {
+    "source_type": "state",
+    "org_name": "Deutsche Rentenversicherung Westfalen",
+    "org_wikidata_id": "Q1203793",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "drv-bayernsued.de": {
+    "source_type": "state",
+    "org_name": "Deutsche Rentenversicherung Bayern Süd",
+    "org_wikidata_id": "Q1203772",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "deutsche-rentenversicherung-bayernsued.de": {
+    "source_type": "state",
+    "org_name": "Deutsche Rentenversicherung Bayern Süd",
+    "org_wikidata_id": "Q1203772",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "drv-bw.de": {
+    "source_type": "state",
+    "org_name": "Deutsche Rentenversicherung Baden-Württemberg",
+    "org_wikidata_id": "Q1203776",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "drv-nord.de": {
+    "source_type": "state",
+    "org_name": "Deutsche Rentenversicherung Nord",
+    "org_wikidata_id": "Q1203777",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "deutsche-rentenversicherung-nord.de": {
+    "source_type": "state",
+    "org_name": "Deutsche Rentenversicherung Nord",
+    "org_wikidata_id": "Q1203777",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "kbs.de": {
+    "source_type": "state",
+    "org_name": "Deutsche Rentenversicherung Knappschaft-Bahn-See",
+    "org_wikidata_id": "Q1203783",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "drv-nordbayern.de": {
+    "source_type": "state",
+    "org_name": "Deutsche Rentenversicherung Nordbayern",
+    "org_wikidata_id": "Q1203785",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "drv-schwaben.de": {
+    "source_type": "state",
+    "org_name": "Deutsche Rentenversicherung Schwaben",
+    "org_wikidata_id": "Q1203790",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "drv-rlp.de": {
+    "source_type": "state",
+    "org_name": "Deutsche Rentenversicherung Rheinland-Pfalz",
+    "org_wikidata_id": "Q1203792",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "dlr.rlp.de": {
+    "source_type": "state",
+    "org_name": "Dienstleistungszentrum Ländlicher Raum",
+    "org_wikidata_id": "Q1221086",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "aa1.de": {
+    "source_type": "state",
+    "org_name": "Erste Abwicklungsanstalt",
+    "org_wikidata_id": "Q1240928",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "lvwa.sachsen-anhalt.de": {
+    "source_type": "state",
+    "org_name": "Landesverwaltungsamt Sachsen-Anhalt",
+    "org_wikidata_id": "Q1258745",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "drogenbeauftragte.de": {
+    "source_type": "state",
+    "org_name": "Beauftragter der Bundesregierung für Sucht- und Drogenfragen",
+    "org_wikidata_id": "Q1259952",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "soziales.niedersachsen.de": {
+    "source_type": "state",
+    "org_name": "Niedersächsisches Landesamt für Soziales, Jugend und Familie",
+    "org_wikidata_id": "Q1266056",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "eap.brandenburg.de": {
+    "source_type": "state",
+    "org_name": "Einheitlicher Ansprechpartner Brandenburg",
+    "org_wikidata_id": "Q1307737",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "stadt.muenchen.de": {
+    "source_type": "state",
+    "org_name": "Landeshauptstadt München",
+    "org_wikidata_id": "Q1361384",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "bmi.bund.de": {
+    "source_type": "state",
+    "org_name": "Gemeinsames Terrorismusabwehrzentrum",
+    "org_wikidata_id": "Q1411368",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "berlin.de": {
+    "source_type": "state",
+    "org_name": "Forstamt Köpenick",
+    "org_wikidata_id": "Q117188129",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "lbeg.niedersachsen.de": {
+    "source_type": "state",
+    "org_name": "Landesamt für Bergbau, Energie und Geologie",
+    "org_wikidata_id": "Q1448021",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "landesarchiv-bw.de": {
+    "source_type": "state",
+    "org_name": "Generallandesarchiv Karlsruhe",
+    "org_wikidata_id": "Q1501890",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "landkreis-muenchen.de": {
+    "source_type": "state",
+    "org_name": "Landratsamt München",
+    "org_wikidata_id": "Q1519239",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "strassen.nrw.de": {
+    "source_type": "state",
+    "org_name": "Landesbetrieb Straßenbau Nordrhein-Westfalen",
+    "org_wikidata_id": "Q1548258",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "hamburg-port-authority.de": {
+    "source_type": "state",
+    "org_name": "Hamburg Port Authority",
+    "org_wikidata_id": "Q1572929",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "hzdr.de": {
+    "source_type": "state",
+    "org_name": "Helmholtz-Institut Freiberg für Ressourcentechnologie",
+    "org_wikidata_id": "Q1603234",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "hlnug.de": {
+    "source_type": "state",
+    "org_name": "Hessisches Landesamt für Naturschutz, Umwelt und Geologie",
+    "org_wikidata_id": "Q1615981",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "nibis.de": {
+    "source_type": "state",
+    "org_name": "Niedersächsisches Landesinstitut für schulische Qualitätsentwicklung",
+    "org_wikidata_id": "Q1725856",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "lav.rlp.de": {
+    "source_type": "state",
+    "org_name": "Landesarchivverwaltung Rheinland-Pfalz",
+    "org_wikidata_id": "Q1788003",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "lbgr.brandenburg.de": {
+    "source_type": "state",
+    "org_name": "Landesamt für Bergbau, Geologie und Rohstoffe",
+    "org_wikidata_id": "Q1802046",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "lff.bayern.de": {
+    "source_type": "state",
+    "org_name": "Landesamt für Finanzen",
+    "org_wikidata_id": "Q1802053",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "lgrb-bw.de": {
+    "source_type": "state",
+    "org_name": "Landesamt für Geologie, Rohstoffe und Bergbau",
+    "org_wikidata_id": "Q1802056",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "lagb.sachsen-anhalt.de": {
+    "source_type": "state",
+    "org_name": "Landesamt für Geologie und Bergwesen",
+    "org_wikidata_id": "Q1802058",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "schleswig-holstein.de": {
+    "source_type": "state",
+    "org_name": "Landesamt für Umwelt (Schleswig-Holstein)",
+    "org_wikidata_id": "Q118695658",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "lfulg.sachsen.de": {
+    "source_type": "state",
+    "org_name": "Landesamt für Umwelt, Landwirtschaft und Geologie",
+    "org_wikidata_id": "Q1802061",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "lel-bw.de": {
+    "source_type": "state",
+    "org_name": "Landesanstalt für Landwirtschaft, Ernährung und Ländlichen Raum",
+    "org_wikidata_id": "Q1802075",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "msz-cuxhaven.de": {
+    "source_type": "state",
+    "org_name": "Maritimes Sicherheitszentrum",
+    "org_wikidata_id": "Q1899396",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "maxweberstiftung.de": {
+    "source_type": "state",
+    "org_name": "Max Weber Stiftung",
+    "org_wikidata_id": "Q1913589",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "mwvlw.rlp.de": {
+    "source_type": "state",
+    "org_name": "Ministerium für Wirtschaft, Verkehr, Landwirtschaft und Weinbau Rheinland-Pfalz",
+    "org_wikidata_id": "Q1937091",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "wna-hannover.wsv.de": {
+    "source_type": "state",
+    "org_name": "Wasserstraßen-Neubauamt Hannover",
+    "org_wikidata_id": "Q1979253",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "laves.niedersachsen.de": {
+    "source_type": "state",
+    "org_name": "Institut für Bienenkunde Celle",
+    "org_wikidata_id": "Q19964305",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "notare.bayern.de": {
+    "source_type": "state",
+    "org_name": "Notarkasse",
+    "org_wikidata_id": "Q2001861",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "hamburg.de": {
+    "source_type": "state",
+    "org_name": "Personalamt (Hamburg)",
+    "org_wikidata_id": "Q2072142",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "arbeitsagentur.de": {
+    "source_type": "state",
+    "org_name": "Berufspsychologischer Service der Bundesagentur für Arbeit",
+    "org_wikidata_id": "Q2116006",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "stmelf.bayern.de": {
+    "source_type": "state",
+    "org_name": "Amt für Ländliche Entwicklung",
+    "org_wikidata_id": "Q480202",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "anh.wsv.de": {
+    "source_type": "state",
+    "org_name": "Wasserstraßen-Neubauamt Heidelberg",
+    "org_wikidata_id": "Q480205",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "zentrale-stelle.de": {
+    "source_type": "state",
+    "org_name": "Zentrale Stelle der Landesjustizverwaltungen zur Aufklärung nationalsozialistischer Verbrechen",
+    "org_wikidata_id": "Q190357",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "auslandsschulwesen.de": {
+    "source_type": "state",
+    "org_name": "Zentralstelle für das Auslandsschulwesen",
+    "org_wikidata_id": "Q190809",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "diz-bayern.de": {
+    "source_type": "state",
+    "org_name": "Zentrum für Hochschuldidaktik",
+    "org_wikidata_id": "Q191207",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "aevwl.de": {
+    "source_type": "state",
+    "org_name": "Ärzteversorgung Westfalen-Lippe",
+    "org_wikidata_id": "Q256651",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "generalbundesanwalt.de": {
+    "source_type": "state",
+    "org_name": "Generalbundesanwalt beim Bundesgerichtshof",
+    "org_wikidata_id": "Q449319",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "auswaertiges-amt.de": {
+    "source_type": "state",
+    "org_name": "Auswärtiges Amt",
+    "org_wikidata_id": "Q56034",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "zfu.de": {
+    "source_type": "state",
+    "org_name": "Staatliche Zentralstelle für Fernunterricht",
+    "org_wikidata_id": "Q2324544",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "stadt-koeln.de": {
+    "source_type": "state",
+    "org_name": "Stadtverwaltung Köln",
+    "org_wikidata_id": "Q2328360",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "studentenwerk-pb.de": {
+    "source_type": "state",
+    "org_name": "Studentenwerk Paderborn",
+    "org_wikidata_id": "Q2358355",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "gdws.wsv.bund.de": {
+    "source_type": "state",
+    "org_name": "Wasserstraßen- und Schifffahrtsverwaltung des Bundes",
+    "org_wikidata_id": "Q2550674",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "wna-berlin.de": {
+    "source_type": "state",
+    "org_name": "Wasserstraßen-Neubauamt Berlin",
+    "org_wikidata_id": "Q2551565",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "wna-aschaffenburg.wsv.de": {
+    "source_type": "state",
+    "org_name": "Wasserstraßen-Neubauamt Aschaffenburg",
+    "org_wikidata_id": "Q2551566",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "wna-datteln.wsv.de": {
+    "source_type": "state",
+    "org_name": "Wasserstraßen-Neubauamt Datteln",
+    "org_wikidata_id": "Q2551569",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "wna-helmstedt.wsv.de": {
+    "source_type": "state",
+    "org_name": "Wasserstraßen-Neubauamt Helmstedt",
+    "org_wikidata_id": "Q2551571",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "wsv.de": {
+    "source_type": "state",
+    "org_name": "Wasserstraßen-Neubauamt Magdeburg",
+    "org_wikidata_id": "Q2551573",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "cvua-mel.de": {
+    "source_type": "state",
+    "org_name": "Chemisches und Veterinäruntersuchungsamt Münsterland-Emscher-Lippe",
+    "org_wikidata_id": "Q15794007",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "dzhw.eu": {
+    "source_type": "state",
+    "org_name": "DZHW - Deutsches Zentrum für Hochschul- und Wissenschaftsforschung",
+    "org_wikidata_id": "Q15805617",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "feuerwehr-kiel.de": {
+    "source_type": "state",
+    "org_name": "Feuerwehr Kiel",
+    "org_wikidata_id": "Q15809603",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "kek-spk.de": {
+    "source_type": "state",
+    "org_name": "Koordinierungsstelle für die Erhaltung des schriftlichen Kulturguts",
+    "org_wikidata_id": "Q15824236",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "lia.nrw.de": {
+    "source_type": "state",
+    "org_name": "Landesinstitut für Arbeitsschutz und Arbeitsgestaltung Nordrhein-Westfalen",
+    "org_wikidata_id": "Q15825119",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "iclei-europe.org": {
+    "source_type": "state",
+    "org_name": "ICLEI European Secretariat",
+    "org_wikidata_id": "Q30254634",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "ftk.de": {
+    "source_type": "state",
+    "org_name": "Forschungsinstitut für Telekommunikation und Kooperation e. V.",
+    "org_wikidata_id": "Q30256768",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "wrs.region-stuttgart.de": {
+    "source_type": "state",
+    "org_name": "Wirtschaftsförderung Region Stuttgart",
+    "org_wikidata_id": "Q30285496",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "stadtwerke-bad-urach.de": {
+    "source_type": "state",
+    "org_name": "Stadtwerke Bad Urach",
+    "org_wikidata_id": "Q30291822",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "kulturgutverluste.de": {
+    "source_type": "state",
+    "org_name": "Stiftung Deutsches Zentrum Kulturgutverluste",
+    "org_wikidata_id": "Q18333276",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "nlga.niedersachsen.de": {
+    "source_type": "state",
+    "org_name": "Niedersächsisches Landesgesundheitsamt",
+    "org_wikidata_id": "Q24026708",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "kosit.de": {
+    "source_type": "state",
+    "org_name": "Koordinierungsstelle für IT-Standards",
+    "org_wikidata_id": "Q25385700",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "dakks.de": {
+    "source_type": "state",
+    "org_name": "Deutsche Akkreditierungsstelle",
+    "org_wikidata_id": "Q26897764",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "graefenberg.de": {
+    "source_type": "state",
+    "org_name": "Stadt Gräfenberg -Tourismusamt-",
+    "org_wikidata_id": "Q27967430",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "bingen.de": {
+    "source_type": "state",
+    "org_name": "Amt für Touristik, Veranstaltungsmanagement und Städtepartnerschaften Abteilung Touristinformation",
+    "org_wikidata_id": "Q28015981",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "iqsh.de": {
+    "source_type": "state",
+    "org_name": "Institut für Qualitätsentwicklung an Schulen Schleswig-Holstein",
+    "org_wikidata_id": "Q28758377",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "ofd.hessen.de": {
+    "source_type": "state",
+    "org_name": "Oberfinanzdirektion Frankfurt am Main",
+    "org_wikidata_id": "Q28840693",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "finanzamt-chemnitz-mitte.de": {
+    "source_type": "state",
+    "org_name": "Finanzamt Chemnitz-Mitte",
+    "org_wikidata_id": "Q28841498",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "muenchhausenland.de": {
+    "source_type": "state",
+    "org_name": "Samtgemeindeverwaltung Bodenwerder-Polle",
+    "org_wikidata_id": "Q29075937",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "feuerwehr-bruehl.de": {
+    "source_type": "state",
+    "org_name": "Feuerwehr Brühl",
+    "org_wikidata_id": "Q50038478",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "government-mv.de": {
+    "source_type": "state",
+    "org_name": "Ministerium für Bildung, Wissenschaft und Kultur",
+    "org_wikidata_id": "Q50041103",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "bundesbau-bw.de": {
+    "source_type": "state",
+    "org_name": "Bundesbau Baden-Württemberg",
+    "org_wikidata_id": "Q55222948",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "verpackungsregister.org": {
+    "source_type": "state",
+    "org_name": "Zentrale Stelle Verpackungsregister",
+    "org_wikidata_id": "Q55520418",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "kulturforum-witten.de": {
+    "source_type": "state",
+    "org_name": "Kulturforum Witten",
+    "org_wikidata_id": "Q56611920",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "amt-marne-nordsee.de": {
+    "source_type": "state",
+    "org_name": "Rathaus Marne",
+    "org_wikidata_id": "Q58394789",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "gesundheitsamt-bw.de": {
+    "source_type": "state",
+    "org_name": "Landesgesundheitsamt Baden-Württemberg",
+    "org_wikidata_id": "Q59536686",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "stiftung-innovation.rlp.de": {
+    "source_type": "state",
+    "org_name": "Stiftung Rheinland-Pfalz für Innovation",
+    "org_wikidata_id": "Q30296758",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "nncn.de": {
+    "source_type": "state",
+    "org_name": "Bernstein Center for Computational Neuroscience Tübingen",
+    "org_wikidata_id": "Q30297605",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "lzg.nrw.de": {
+    "source_type": "state",
+    "org_name": "Landeszentrum Gesundheit Nordrhein-Westfalen",
+    "org_wikidata_id": "Q31837374",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "denkmalpflege-bw.de": {
+    "source_type": "state",
+    "org_name": "Landesdenkmalamt Baden Württemberg",
+    "org_wikidata_id": "Q33121459",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "mkw.nrw": {
+    "source_type": "state",
+    "org_name": "Ministerium für Innovation, Wissenschaft und Forschung d. Landes Nordrhein-Westfalen",
+    "org_wikidata_id": "Q33122145",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "embl-hamburg.de": {
+    "source_type": "state",
+    "org_name": "Europäisches Laboratorium für Molekularbiologie",
+    "org_wikidata_id": "Q33534136",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "archivverbund-bautzen.de": {
+    "source_type": "state",
+    "org_name": "Stadtarchiv Bautzen",
+    "org_wikidata_id": "Q47458987",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "mannheim.de": {
+    "source_type": "state",
+    "org_name": "Stadtverwaltung Mannheim",
+    "org_wikidata_id": "Q48753607",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "lbv.landbw.de": {
+    "source_type": "state",
+    "org_name": "Landesamt für Besoldung und Versorgung Baden-Württemberg",
+    "org_wikidata_id": "Q48754312",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "gifhorn.de": {
+    "source_type": "state",
+    "org_name": "Kreis- und Stadtarchäologie Gifhorn",
+    "org_wikidata_id": "Q105688938",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "men.niedersachsen.de": {
+    "source_type": "state",
+    "org_name": "Mess- und Eichwesen Niedersachsen",
+    "org_wikidata_id": "Q107315660",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "landkreis-freising.de": {
+    "source_type": "state",
+    "org_name": "Landratsamt Freising",
+    "org_wikidata_id": "Q107658460",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "wwa-ro.bayern.de": {
+    "source_type": "state",
+    "org_name": "Wasserwirtschaftsamt Rosenheim",
+    "org_wikidata_id": "Q108284912",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "wwa-don.bayern.de": {
+    "source_type": "state",
+    "org_name": "Wasserwirtschaftsamt Donauwörth",
+    "org_wikidata_id": "Q108284919",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "stuttgart.de": {
+    "source_type": "state",
+    "org_name": "Stadtverwaltung Stuttgart",
+    "org_wikidata_id": "Q108315630",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "bundespolizei.de": {
+    "source_type": "state",
+    "org_name": "Bundespolizeidirektion",
+    "org_wikidata_id": "Q123488645",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "rp-darmstadt.hessen.de": {
+    "source_type": "state",
+    "org_name": "Regierungspräsidium Darmstadt",
+    "org_wikidata_id": "Q124354306",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "rp-giessen.hessen.de": {
+    "source_type": "state",
+    "org_name": "Regierungspräsidium Gießen",
+    "org_wikidata_id": "Q124354380",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "rp-kassel.hessen.de": {
+    "source_type": "state",
+    "org_name": "Regierungspräsidium Kassel",
+    "org_wikidata_id": "Q124354468",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "hannover.de": {
+    "source_type": "state",
+    "org_name": "Presseamt Hannover",
+    "org_wikidata_id": "Q136658635",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "d-nrw.de": {
+    "source_type": "state",
+    "org_name": "D-NRW AöR",
+    "org_wikidata_id": "Q124452565",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "frankfurt.de": {
+    "source_type": "state",
+    "org_name": "Gesundheitsamt Frankfurt",
+    "org_wikidata_id": "Q97041661",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "euramet.org": {
+    "source_type": "state",
+    "org_name": "European Metrology Programme for Innovation and Research",
+    "org_wikidata_id": "Q124845615",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "cvua-freiburg.de": {
+    "source_type": "state",
+    "org_name": "Chemisches und Veterinäruntersuchungsamt Freiburg",
+    "org_wikidata_id": "Q125762017",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "cvua-sigmaringen.de": {
+    "source_type": "state",
+    "org_name": "Chemisches und Veterinäruntersuchungsamt Sigmaringen",
+    "org_wikidata_id": "Q125762027",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "irights-lab.de": {
+    "source_type": "state",
+    "org_name": "iRights.Lab",
+    "org_wikidata_id": "Q126478611",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "krebsregister-bw.de": {
+    "source_type": "state",
+    "org_name": "Krebsregister Baden-Württemberg",
+    "org_wikidata_id": "Q128123074",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "laendernotarkasse.de": {
+    "source_type": "state",
+    "org_name": "Ländernotarkasse",
+    "org_wikidata_id": "Q130245325",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "fawf.wald.rlp.de": {
+    "source_type": "state",
+    "org_name": "Forschungsanstalt für Waldökologie und Forstwirtschaft Rheinland-Pfalz",
+    "org_wikidata_id": "Q130314546",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "international-climate-initiative.com": {
+    "source_type": "state",
+    "org_name": "Internationale Klimaschutzinitiative",
+    "org_wikidata_id": "Q130456968",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "llg.sachsen-anhalt.de": {
+    "source_type": "state",
+    "org_name": "Landesanstalt für Landwirtschaft und Gartenbau",
+    "org_wikidata_id": "Q77076943",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "zentrum-digitalisierung.bayern": {
+    "source_type": "state",
+    "org_name": "Zentrum Digitalisierung.Bayern",
+    "org_wikidata_id": "Q77078511",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "archive.nrw.de": {
+    "source_type": "state",
+    "org_name": "Landesarchiv Nordrhein-Westfalen. Zentrale Dienste",
+    "org_wikidata_id": "Q81522205",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "wissenschaft-haefen.bremen.de": {
+    "source_type": "state",
+    "org_name": "Die Senatorin für Wissenschaft und Häfen",
+    "org_wikidata_id": "Q94646065",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "rathaus.rostock.de": {
+    "source_type": "state",
+    "org_name": "Kataster-, Vermessungs- und Liegenschaftsamt Rostock",
+    "org_wikidata_id": "Q94995683",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "ozm.bayern.de": {
+    "source_type": "state",
+    "org_name": "Orff-Zentrum München Staatsinstitut für Forschung und Dokumentation",
+    "org_wikidata_id": "Q97940516",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "dnb.de": {
+    "source_type": "state",
+    "org_name": "Nationales ISSN-Zentrum für Deutschland",
+    "org_wikidata_id": "Q108934374",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "md-bund.de": {
+    "source_type": "state",
+    "org_name": "Medizinischer Dienst Bund",
+    "org_wikidata_id": "Q110421055",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "medizinischerdienst.de": {
+    "source_type": "state",
+    "org_name": "Medizinischer Dienst",
+    "org_wikidata_id": "Q110546159",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "bbsr.bund.de": {
+    "source_type": "state",
+    "org_name": "Bundesinstitut für Bau-, Stadt- und Raumforschung",
+    "org_wikidata_id": "Q111431906",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "vermoegenundbau-bw.de": {
+    "source_type": "state",
+    "org_name": "Vermögen und Bau Baden-Württemberg",
+    "org_wikidata_id": "Q115120901",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "xn--l1acti.xn--p1ai": {
+    "source_type": "state",
+    "org_name": "Federal Center of Brain Research and Neurotechnologies",
+    "org_wikidata_id": "Q115768975",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "rp.baden-wuerttemberg.de": {
+    "source_type": "state",
+    "org_name": "Regierungspräsidium Tübingen",
+    "org_wikidata_id": "Q116828860",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "erlangen.de": {
+    "source_type": "state",
+    "org_name": "Stadtverwaltung Erlangen",
+    "org_wikidata_id": "Q121362081",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "report-antisemitism.de": {
+    "source_type": "state",
+    "org_name": "Bundesverband RIAS e.V.",
+    "org_wikidata_id": "Q130537870",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "landtag-niedersachsen.de": {
+    "source_type": "state",
+    "org_name": "Verwaltung des Niedersächsischen Landtages",
+    "org_wikidata_id": "Q131194625",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "bundestag.de": {
+    "source_type": "state",
+    "org_name": "Verwaltung des Deutschen Bundestages",
+    "org_wikidata_id": "Q131195546",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "kmk.org": {
+    "source_type": "state",
+    "org_name": "Sekretariat der Kultusministerkonferenz",
+    "org_wikidata_id": "Q131738099",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "ilsfeld.de": {
+    "source_type": "state",
+    "org_name": "Bürgerbüro Ilsfeld",
+    "org_wikidata_id": "Q131762949",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "umwelt.nrw.de": {
+    "source_type": "state",
+    "org_name": "Ministerium für Umwelt, Naturschutz und Verkehr des Landes NRW",
+    "org_wikidata_id": "Q133003252",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "fh-potsdam.de": {
+    "source_type": "state",
+    "org_name": "Landesfachstelle für Archive und öffentliche Bibliotheken Brandenburg (LFS Bbg)",
+    "org_wikidata_id": "Q133042743",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "deggendorf.de": {
+    "source_type": "state",
+    "org_name": "Stadtverwaltung Deggendorf",
+    "org_wikidata_id": "Q133696112",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "mwsosteuropa.hypotheses.org": {
+    "source_type": "state",
+    "org_name": "Max Weber Netzwerk Osteuropa",
+    "org_wikidata_id": "Q133811532",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "md-bb.org": {
+    "source_type": "state",
+    "org_name": "Medizinischer Dienst Berlin-Brandenburg",
+    "org_wikidata_id": "Q134412949",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "md-nord.de": {
+    "source_type": "state",
+    "org_name": "Medizinischer Dienst Nord",
+    "org_wikidata_id": "Q134426131",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "md-bw.de": {
+    "source_type": "state",
+    "org_name": "Medizinischer Dienst Baden-Württemberg",
+    "org_wikidata_id": "Q134428982",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "md-bayern.de": {
+    "source_type": "state",
+    "org_name": "Medizinischer Dienst Bayern",
+    "org_wikidata_id": "Q134429455",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "md-saarland.de": {
+    "source_type": "state",
+    "org_name": "Medizinischer Dienst Saarland",
+    "org_wikidata_id": "Q134429837",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "md-rlp.de": {
+    "source_type": "state",
+    "org_name": "Medizinischer Dienst Rheinland-Pfalz",
+    "org_wikidata_id": "Q134435254",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "md-hessen.de": {
+    "source_type": "state",
+    "org_name": "Medizinischer Dienst Hessen",
+    "org_wikidata_id": "Q134435323",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "md-mv.de": {
+    "source_type": "state",
+    "org_name": "Medizinischer Dienst Mecklenburg-Vorpommern",
+    "org_wikidata_id": "Q134435511",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "md-niedersachsen.de": {
+    "source_type": "state",
+    "org_name": "Medizinischer Dienst Niedersachsen",
+    "org_wikidata_id": "Q134436022",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "md-bremen.com": {
+    "source_type": "state",
+    "org_name": "Medizinischer Dienst Bremen",
+    "org_wikidata_id": "Q134436246",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "md-nordrhein.de": {
+    "source_type": "state",
+    "org_name": "Medizinischer Dienst Nordrhein",
+    "org_wikidata_id": "Q134436463",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "md-wl.de": {
+    "source_type": "state",
+    "org_name": "Medizinischer Dienst Westfalen-Lippe",
+    "org_wikidata_id": "Q134436470",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "md-th.de": {
+    "source_type": "state",
+    "org_name": "Medizinischer Dienst Thüringen",
+    "org_wikidata_id": "Q134436994",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "md-sachsen.de": {
+    "source_type": "state",
+    "org_name": "Medizinischer Dienst Sachsen",
+    "org_wikidata_id": "Q134437179",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "md-san.de": {
+    "source_type": "state",
+    "org_name": "Medizinischer Dienst Sachsen-Anhalt",
+    "org_wikidata_id": "Q134437184",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "neckarwestheim.de": {
+    "source_type": "state",
+    "org_name": "Friedhofsamt Neckarwestheim",
+    "org_wikidata_id": "Q134612061",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "kompetenzzentrum-wasser-hessen.de": {
+    "source_type": "state",
+    "org_name": "Kompetenzzentrum Wasser Hessen",
+    "org_wikidata_id": "Q136663821",
+    "org_type": "Behörde",
+    "country": "DE"
+  },
+  "tagesschau.de": {
+    "source_type": "public_service",
+    "org_name": "Tagesschau (ARD-aktuell)",
+    "org_wikidata_id": "Q157273",
+    "country": "DE"
+  }
+}
