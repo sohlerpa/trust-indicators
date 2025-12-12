@@ -18,7 +18,6 @@ ContentType = Literal[
     "gossip",
     "review",
     "sponsored",
-    "forum_social",
     "other",
     "error"
 ]
@@ -52,9 +51,7 @@ ToneType = Literal[
 ]
 
 
-# =========================
 # Result schema
-# =========================
 @dataclass
 class ToneClassification:
     content_type: ContentType
@@ -78,6 +75,17 @@ class ToneClassifier:
             self.client = None
 
     def classify_tone(self, text: str) -> ToneClassification:
+        """
+        Sends the text to the Gemini API to determine its content type and tone.
+
+        Args:
+            text (str): The input text to classify.
+
+        Returns:
+            ToneClassification: An object containing the classification, tone,
+                                confidence score, and a rationale string.
+                                Returns an 'error' object if the API call fails.
+        """
 
         # check if client is ready
         if not self.client:
