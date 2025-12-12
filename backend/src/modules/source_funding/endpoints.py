@@ -1,12 +1,12 @@
 from typing import List
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from db_connector import get_db
-from queries import GET_DOMAIN_OWNERS, GET_FEED_OWNERSHIP
+from modules.source_funding.db_connector import get_db
+from modules.source_funding.queries import GET_DOMAIN_OWNERS, GET_FEED_OWNERSHIP
 
-router = APIRouter()
+funding_router = APIRouter()
 
-@router.get("/domain/{domain}/owners")
+@funding_router.get("/domain/{domain}/owners")
 def get_domain_owners(domain: str, db: Session = Depends(get_db)):
     result = db.execute(GET_DOMAIN_OWNERS, {"domain": domain}).fetchall()
     return [
@@ -14,7 +14,7 @@ def get_domain_owners(domain: str, db: Session = Depends(get_db)):
         for row in result
     ]
 
-@router.post("/feed/diversity")
+@funding_router.post("/feed/diversity")
 def feed_diversity(domains: List[str], db: Session = Depends(get_db)):
     result = db.execute(GET_FEED_OWNERSHIP, {"domains": domains}).fetchall()
     return [
