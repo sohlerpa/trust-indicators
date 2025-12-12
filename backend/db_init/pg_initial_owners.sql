@@ -1,0 +1,16 @@
+INSERT INTO owners (name, owner_type, country) VALUES
+('Fm. Augstein', 'family', 'Germany'),
+('Bank of America', 'bank', 'USA'),
+('Fm. Burda', 'family', 'Germany'),
+('Ralph Dommermuth', 'individual', 'Germany'),
+('Philipp Dommermuth', 'individual', 'Germany'),
+('Mathias Döpfner', 'individual', 'Germany'),
+('Fm. Funke', 'family', 'Germany'),
+('Georg-Dieter von Holtzbrinck', 'individual', 'Germany'),
+('Stefan von Holtzbrinck', 'individual', 'Germany'),
+('Fm. Mohn', 'family', 'Germany'),
+('Udo Müller', 'individual', 'Germany'),
+('Spiegel-Employees', 'employees', NULL),
+('Christiane Schoeller', 'individual', 'Germany'),
+('Friede Springer', 'individual', 'Germany'),
+('Dirk Ströer', 'individual', 'Germany');
