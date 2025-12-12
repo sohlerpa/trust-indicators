@@ -1,32 +1,70 @@
 """
 build_sources_from_wikidata.py
 
-Dieses Skript fragt Wikidata per SPARQL ab und baut eine Mapping-Datei:
+Baut aus Wikidata + manuellen Ergänzungen eine Mapping-Datei:
 
     domain -> { source_type, org_name, org_wikidata_id, ... }
 
-Aktuell:
+Kategorien:
 - public_service  = öffentlich-rechtliche Sender in DE
 - state           = staatliche Organisationen in DE (Ministerien, Behörden, Parlamente)
-
-Ergebnis wird als 'sources_de.json' im Repo gespeichert.
 """
 
 import json
 from urllib.parse import urlparse
 
-import requests  # Stelle sicher, dass 'requests' installiert ist
+import requests  # pip install requests
 
 
 WIKIDATA_ENDPOINT = "https://query.wikidata.org/sparql"
 HEADERS = {
-    # Bitte mit deiner Mail / Projektbeschreibung anpassen – Wikidata mag „echte“ User-Agents
     "User-Agent": "trust-indicators-student-project/0.1 (your-email@example.com)"
 }
 
+# 🔹 Manuelle Ergänzungen für Quellen, die in den SPARQL-Queries fehlen
+MANUAL_SOURCES_DE = {
+    "tagesschau.de": {
+        "source_type": "public_service",
+        "org_name": "Tagesschau (ARD-aktuell)",
+        "org_wikidata_id": "Q157273",
+        "country": "DE",
+    },
+    # hier kannst du später weitere ergänzen
+    # "heute.de": {...}
+}
+
+
+def normalize_domain(url_or_host: str) -> str:
+    """
+    Normalisiert URL oder Host auf reine Domain:
+    - entfernt Protokoll (http/https)
+    - entfernt Pfad, Query, Fragment
+    - entfernt führendes 'www.'
+    """
+    text = url_or_host.strip()
+
+    # Falls kein Schema drin ist, eins ergänzen, damit urlparse sauber arbeitet
+    if "://" not in text:
+        text = "http://" + text
+
+    parsed = urlparse(text)
+
+    host = parsed.netloc or parsed.path  # falls jemand nur 'tagesschau.de' ohne Schema angibt
+
+    host = host.lower()
+
+    # Port entfernen
+    if ":" in host:
+        host = host.split(":", 1)[0]
+
+    # www. entfernen
+    if host.startswith("www."):
+        host = host[4:]
+
+    return host
+
 
 def run_sparql(query: str) -> list[dict]:
-    """SPARQL-Query an Wikidata schicken und JSON-Bindings zurückgeben."""
     response = requests.get(
         WIKIDATA_ENDPOINT,
         params={"query": query, "format": "json"},
@@ -38,36 +76,20 @@ def run_sparql(query: str) -> list[dict]:
     return data["results"]["bindings"]
 
 
-def extract_domain(url: str) -> str:
-    """Aus einer URL die Domain extrahieren, z.B. https://www.tagesschau.de -> tagesschau.de"""
-    parsed = urlparse(url)
-    host = parsed.netloc.lower()
-    if host.startswith("www."):
-        host = host[4:]
-    return host
-
-
 def fetch_public_service_de() -> dict:
-    """
-    Öffentlich-rechtliche Medien in Deutschland (public broadcaster, country = Germany).
-    Nutzt:
-      - instance of (P31) = public broadcaster (Q15265344)
-      - country (P17)      = Germany (Q183)
-      - official website (P856)
-    """
     query = """
     SELECT ?org ?orgLabel ?website WHERE {
       ?org wdt:P31 wd:Q15265344 .   # public broadcaster
-      ?org wdt:P17 wd:Q183 .        # country = Germany
+      ?org wdt:P17 wd:Q183 .        # Germany
       ?org wdt:P856 ?website .      # official website
       SERVICE wikibase:label { bd:serviceParam wikibase:language "de,en". }
     }
     """
     rows = run_sparql(query)
-    result = {}
+    result: dict[str, dict] = {}
     for row in rows:
         url = row["website"]["value"]
-        domain = extract_domain(url)
+        domain = normalize_domain(url)
         result[domain] = {
             "source_type": "public_service",
             "org_name": row["orgLabel"]["value"],
@@ -78,14 +100,6 @@ def fetch_public_service_de() -> dict:
 
 
 def fetch_state_orgs_de() -> dict:
-    """
-    Staatliche Organisationen in Deutschland (Behörden, Ministerien, Parlamente).
-
-    Typen (instance of / P31):
-      - government agency (Q327333)
-      - ministry (Q1792450)
-      - parliament (Q35749)
-    """
     query = """
     SELECT ?org ?orgLabel ?website ?type ?typeLabel WHERE {
       VALUES ?type {
@@ -94,16 +108,16 @@ def fetch_state_orgs_de() -> dict:
         wd:Q35749      # parliament
       }
       ?org wdt:P31 ?type .
-      ?org wdt:P17 wd:Q183 .      # country = Germany
-      ?org wdt:P856 ?website .    # official website
+      ?org wdt:P17 wd:Q183 .      # Germany
+      ?org wdt:P856 ?website .
       SERVICE wikibase:label { bd:serviceParam wikibase:language "de,en". }
     }
     """
     rows = run_sparql(query)
-    result = {}
+    result: dict[str, dict] = {}
     for row in rows:
         url = row["website"]["value"]
-        domain = extract_domain(url)
+        domain = normalize_domain(url)
         result[domain] = {
             "source_type": "state",
             "org_name": row["orgLabel"]["value"],
@@ -115,9 +129,6 @@ def fetch_state_orgs_de() -> dict:
 
 
 def build_source_mapping_de() -> dict:
-    """
-    Kombiniert öffentlich-rechtliche + staatliche Quellen in eine Domain-Mapping-Struktur.
-    """
     mapping: dict[str, dict] = {}
 
     print("Hole öffentlich-rechtliche Sender…")
@@ -129,12 +140,15 @@ def build_source_mapping_de() -> dict:
     mapping.update(state_mapping)
     print(f"{len(mapping)} Domains insgesamt nach state-Abfrage.")
 
+    print("Füge manuelle Quellen hinzu…")
+    mapping.update(MANUAL_SOURCES_DE)
+    print(f"{len(mapping)} Domains insgesamt nach manuellen Ergänzungen.")
+
     return mapping
 
 
 def main():
     mapping = build_source_mapping_de()
-
     out_path = "sources_de.json"
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(mapping, f, ensure_ascii=False, indent=2)
@@ -144,4 +158,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-.
