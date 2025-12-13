@@ -10,16 +10,12 @@ from factcheck.article_extractor import fetch_url_text
 from factcheck.claim_extractor import extract_claims
 
 
-def _is_checked_result(r: Dict[str, Any]) -> bool:
-    """
-    True = Ergebnis ist 'wirklich geprüft' (kein unknown, kein error)
-    """
-    if r.get("type") in (None, "unknown"):
-        return False
-    if "error" in r:
-        return False
-    score = r.get("score")
-    return isinstance(score, (int, float))
+def _is_checked_result(r):
+    if r.get("type") == "multi":
+        checks = r.get("checks", [])
+        return any("error" not in c for c in checks)
+    return False
+
 
 
 def analyze_claims(claims: List[str], manager: FactCheckManager) -> Tuple[Dict[str, Any], List[Dict[str, Any]]]:

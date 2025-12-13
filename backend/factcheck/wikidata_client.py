@@ -130,3 +130,28 @@ def get_population(qid: str) -> Optional[int]:
     except (ValueError, TypeError) as e:
         print(f"⚠️ Konnte Population '{pop_value}' nicht in int konvertieren:", e)
         return None
+
+def get_area_km2(qid: str) -> Optional[float]:
+    """
+    Holt die Fläche (P2046) und gibt sie in km² zurück.
+    Wikidata kann Werte mit Einheit liefern; wir normalisieren auf km², wenn möglich.
+    """
+    query = f"""
+    SELECT ?area WHERE {{
+      wd:{qid} p:P2046 ?statement .
+      ?statement ps:P2046 ?area .
+    }}
+    LIMIT 1
+    """
+    data = run_sparql(query)
+    results = data.get("results", {}).get("bindings", [])
+    if not results:
+        return None
+
+    value = results[0]["area"]["value"]
+
+    # value ist oft eine Zahl als String
+    try:
+        return float(value)
+    except Exception:
+        return None
