@@ -53,8 +53,9 @@ def analyze_claims(claims: List[str], manager: FactCheckManager) -> Tuple[Dict[s
         type_counts[t] = type_counts.get(t, 0) + 1
         if t == "unknown":
             unknown_n += 1
-        if "error" in r:
+        if "error" in r and r.get("type") != "unknown":
             error_n += 1
+
 
     summary = {
         "overall_score": overall_score,
