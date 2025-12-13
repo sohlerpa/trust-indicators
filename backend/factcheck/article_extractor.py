@@ -23,5 +23,7 @@ def fetch_url_text(url: str) -> Optional[str]:
         # 200 Zeichen ist nur ein grober Filter
         print("⚠️ Konnte keinen sinnvollen Artikeltext extrahieren.")
         return None
+    print("DEBUG: extracted text length =", len(downloaded.strip()))
+    print("DEBUG: snippet =", downloaded.strip()[:500])
 
     return downloaded.strip()

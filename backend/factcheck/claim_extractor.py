@@ -12,28 +12,26 @@ def split_sentences(text: str) -> List[str]:
     parts = re.split(r"(?<=[.!?])\s+", text)
     return [p.strip() for p in parts if len(p.strip()) > 0]
 
+
 def is_fact_like(sentence: str) -> bool:
     s = sentence.strip()
     low = s.lower()
 
-    # Noise-Filter: typische UI-/Navigationsphrasen raus
-    blacklist = [
-        "interaktive", "karte", "open data", "hier stellen wir", "mehr information",
-        "bitte beachten", "methoden", "dokumentation", "regionalatlas",
-        "tabelle", "publikation", "jahrgänge", "finden sie", "wie funktioniert",
-    ]
-    if any(b in low for b in blacklist):
+    # harte Ausschlüsse: extrem kurz oder reine UI-Fragmente
+    if len(s) < 25:
         return False
 
-    # sehr kurze / fragmentierte Sätze raus
-    if len(s) < 40:
-        return False
-
+    # Wenn eine Zahl drin ist, ist es oft fakt-nah (für MVP)
     has_number = bool(re.search(r"\d", low))
-    has_fact_verbs = any(x in low for x in [" ist ", " hat ", " beträgt", " entspricht", " beläuft", " liegt bei "])
 
-    # Wir wollen lieber “harte” Fakten: Zahl + Faktwort
-    return has_number and has_fact_verbs
+    # oder klassische Fakt-Formulierungen
+    has_fact_verbs = any(x in low for x in [
+        " ist ", " hat ", " beträgt", " betrug ", " liegt bei ", " entspricht",
+        " was ", " is ", " has ", " are "
+    ])
+
+    return has_number or has_fact_verbs
+
 
 
 def extract_claims(text: str, max_claims: int = 25) -> List[str]:
