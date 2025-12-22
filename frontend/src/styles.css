@@ -1,0 +1,184 @@
+:root {
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+}
+
+body {
+    margin: 0;
+    background: #f6f7f9;
+    color: #111;
+}
+
+.page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 18px;
+}
+
+.header {
+    display: grid;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 14px;
+    align-items: start;
+}
+
+.card {
+    background: white;
+    border-radius: 12px;
+    padding: 12px;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, .06);
+}
+
+.list {
+    display: grid;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.item {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: 10px;
+    padding: 10px;
+    border-radius: 10px;
+    text-decoration: none;
+    color: inherit;
+    background: #fafafa;
+}
+
+.item:hover {
+    background: #f1f3f6;
+}
+
+.thumb {
+    width: 110px;
+    height: 70px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.itemTitle {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    font-weight: 600;
+}
+
+.meta {
+    color: #555;
+    margin-top: 6px;
+}
+
+.metaSmall {
+    color: #666;
+    font-size: 12px;
+}
+
+.hint {
+    color: #666;
+    font-size: 14px;
+    padding: 8px 0;
+}
+
+.error {
+    background: #ffe8e8;
+    border: 1px solid #ffb7b7;
+    padding: 10px;
+    border-radius: 10px;
+    margin: 10px 0;
+}
+
+.filters {
+    display: grid;
+    gap: 10px;
+    padding: 12px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, .06);
+}
+
+.filterGroup {
+    display: grid;
+    gap: 6px;
+}
+
+.chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.chip {
+    border: 1px solid #d0d6de;
+    background: white;
+    padding: 6px 10px;
+    border-radius: 999px;
+    cursor: pointer;
+}
+
+.chip.active {
+    border-color: #111;
+}
+
+.badge {
+    width: 12px;
+    height: 12px;
+    border-radius: 999px;
+    display: inline-block;
+    flex: 0 0 12px;
+}
+
+.badge.green {
+    background: #3bb54a;
+}
+
+.badge.orange {
+    background: #f5a623;
+}
+
+.badge.red {
+    background: #d0021b;
+}
+
+.post {
+    background: #fafafa;
+    border-radius: 10px;
+    padding: 10px;
+    display: grid;
+    gap: 6px;
+}
+
+.postHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.hero {
+    width: 100%;
+    max-height: 320px;
+    object-fit: cover;
+    border-radius: 12px;
+    margin: 10px 0;
+}
+
+.badgeRow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 8px 0;
+}
+
+.articleBody {
+    background: white;
+    border-radius: 12px;
+    padding: 14px;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, .06);
+    margin-top: 10px;
+}

@@ -11,17 +11,21 @@ To run the service, you need a Google Gemini API key.
    ```env
    GEMINI_API_KEY=your_api_key_here
    
+## Run the application
+
+To run the application, you have to start both the backend and the frontend separately:
+
+1. start the docker `docker compose up -d`
+2. start the backend `cd backend` & `pip install -e .` & `python run.py`
+3. start the frontend `cd frontend` & `npm install` & `npm run dev`
+   
 ## Architecture
 
 It is divided into a frontend and backend project
 
 ### Source Funding
-1. start the database with ```docker compose up -d```
-2. Go to the src
-```cd backend/src```
-3. Start the service
-```uvicorn app.main:app --reload```
-4. Issue queries via HTTP:
+1. start the service
+2. Issue queries via HTTP:
 - either: GET localhost:8000/domain/zeit.de/owners (or any other domain)
 - or: POST localhost:8000/feed/diversity with body ```["welt.de", "bild.de", "zeit.de", "spiegel.de"]``` (no json object, just plain array)
 
