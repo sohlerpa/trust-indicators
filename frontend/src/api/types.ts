@@ -6,8 +6,10 @@ export type TrustIndicators = {
     fact_checked: boolean;
     tone?: string | null;
     content_type?: string | null;
+    tone_type_rationale?: string | null;
     publisher_type: PublisherType;
     c2pa_present: boolean;
+    funding_info?: string | null;
 };
 
 export type ArticleSummary = {
@@ -22,7 +24,7 @@ export type ArticleSummary = {
 
 export type ArticleDetail = ArticleSummary & {
     author?: string | null;
-    content: string;
+    content_html: string;
 };
 
 export type XPost = {
