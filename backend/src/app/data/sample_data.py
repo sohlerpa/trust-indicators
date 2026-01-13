@@ -68,6 +68,7 @@ def article_summaries() -> list[ArticleSummary]:
         ArticleSummary(
             id=a.id,
             title=a.title,
+            url=a.url,
             source=a.source,
             published_at=a.published_at,
             image_url=a.image_url,

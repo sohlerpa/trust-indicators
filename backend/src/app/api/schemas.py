@@ -19,6 +19,7 @@ class TrustIndicators(BaseModel):
 class ArticleSummary(BaseModel):
     id: str
     title: str
+    url: str
     source: str
     published_at: str
     image_url: Optional[str] = None
