@@ -64,24 +64,26 @@ export default function HomePage() {
 
     return (
         <div className="page">
-            <header className="header">
-                <h1>Personalized Media Experience</h1>
-                <FilterBar value={filters} onChange={setFilters}/>
-            </header>
+            <div className="stack">
+                <header className="header">
+                    <h1>Personalized Media Experience</h1>
+                    <FilterBar value={filters} onChange={setFilters}/>
+                </header>
 
-            {err && <div className="error">Error: {err}</div>}
-            {loading && <div className="hint">Loading…</div>}
+                {err && <div className="error">Error: {err}</div>}
+                {loading && <div className="hint">Loading…</div>}
 
-            <DiversityScore domains={filtered_domains} />
+                <DiversityScore domains={filtered_domains} />
 
-            <div className="grid">
-                <main className="main">
-                    <ArticleList articles={data.articles}/>
-                </main>
+                <div className="grid">
+                    <main className="main">
+                        <ArticleList articles={data.articles}/>
+                    </main>
 
-                <aside className="aside">
-                    <XPostList posts={data.x_posts}/>
-                </aside>
+                    <aside className="aside">
+                        <XPostList posts={data.x_posts}/>
+                    </aside>
+                </div>
             </div>
         </div>
     );
