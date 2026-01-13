@@ -17,7 +17,6 @@ body {
 .header {
     display: grid;
     gap: 12px;
-    margin-bottom: 14px;
 }
 
 .grid {
@@ -25,6 +24,11 @@ body {
     grid-template-columns: 2fr 1fr;
     gap: 14px;
     align-items: start;
+}
+
+.stack {
+    display: grid;
+    gap: 14px;
 }
 
 .card {
@@ -181,4 +185,69 @@ body {
     padding: 14px;
     box-shadow: 0 1px 6px rgba(0, 0, 0, .06);
     margin-top: 10px;
+}
+
+.diversityCard {
+    display: grid;
+    gap: 8px;
+}
+
+.diversityHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-weight: 600;
+}
+
+.diversityValue {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.diversityBar {
+    height: 8px;
+    background: #e6e9ee;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.diversityFill {
+    height: 100%;
+    background: #111;
+    border-radius: 999px;
+}
+
+.diversityTag {
+    font-size: 12px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-weight: 500;
+}
+
+.diversityTag.high {
+    background: #e6f6ea;
+    color: #1c7c3c;
+}
+
+.diversityTag.medium {
+    background: #fff4e5;
+    color: #8a5a00;
+}
+
+.diversityTag.low {
+    background: #fdeaea;
+    color: #a11818;
+}
+
+.diversityFill.high {
+    background: #3bb54a;
+}
+
+.diversityFill.medium {
+    background: #f5a623;
+}
+
+.diversityFill.low {
+    background: #d0021b;
 }

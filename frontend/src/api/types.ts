@@ -13,6 +13,7 @@ export type TrustIndicators = {
 export type ArticleSummary = {
     id: string;
     title: string;
+    url: string;
     source: string;
     published_at: string;
     image_url?: string | null;
@@ -20,7 +21,6 @@ export type ArticleSummary = {
 };
 
 export type ArticleDetail = ArticleSummary & {
-    url?: string | null;
     author?: string | null;
     content: string;
 };

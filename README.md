@@ -26,8 +26,8 @@ It is divided into a frontend and backend project
 ### Source Funding
 1. start the service
 2. Issue queries via HTTP:
-- either: GET localhost:8000/domain/zeit.de/owners (or any other domain)
-- or: POST localhost:8000/feed/diversity with body ```["welt.de", "bild.de", "zeit.de", "spiegel.de"]``` (no json object, just plain array)
+- either: GET localhost:8000/api/domain/zeit.de/owners (or any other domain)
+- or: POST localhost:8000/api/feed/diversity with body ```["welt.de", "bild.de", "zeit.de", "spiegel.de"]``` (no json object, just plain array)
 
 ### Tone & Type Classifier
 You can call the module like in the example:

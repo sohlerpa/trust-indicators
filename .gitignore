@@ -10,5 +10,7 @@ __pycache__/
 
 *.DS_Store
 
+*node_modules
+
 # file for env variables
 .env

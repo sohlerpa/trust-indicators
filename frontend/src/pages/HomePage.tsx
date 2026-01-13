@@ -4,6 +4,7 @@ import type {FeedFilters, FeedResponse} from "../api/types";
 import FilterBar from "../components/FilterBar";
 import ArticleList from "../components/ArticleList";
 import XPostList from "../components/XPostList";
+import DiversityScore from "../components/DiversityScore"
 
 export default function HomePage() {
     const [filters, setFilters] = useState<FeedFilters>({
@@ -19,6 +20,22 @@ export default function HomePage() {
 
     const stableFilters = useMemo(() => filters, [filters]);
 
+    const filtered_domains = useMemo(() => {
+        const domains = data.articles
+            .map(a => a.url)
+            .filter((u): u is string => typeof u === "string" && u.length > 0)
+            .map(u => {
+                try {
+                    return new URL(u).hostname.replace(/^www\./, "");
+                } catch {
+                    return null;
+                }
+            })
+            .filter((d): d is string => d !== null);
+        console.log("filtered_domains:", domains);
+        return domains
+    }, [data.articles]);
+
     useEffect(() => {
         let cancelled = false;
         setLoading(true);
@@ -26,6 +43,11 @@ export default function HomePage() {
 
         getFeed(stableFilters)
             .then((d) => {
+                console.log("RAW FEED RESPONSE:", d);
+                console.log(
+                    "RAW ARTICLE URLS:",
+                    d.articles.map(a => a.url)
+                );
                 if (!cancelled) setData(d);
             })
             .catch((e: unknown) => {
@@ -42,22 +64,26 @@ export default function HomePage() {
 
     return (
         <div className="page">
-            <header className="header">
-                <h1>Personalized Media Experience</h1>
-                <FilterBar value={filters} onChange={setFilters}/>
-            </header>
+            <div className="stack">
+                <header className="header">
+                    <h1>Personalized Media Experience</h1>
+                    <FilterBar value={filters} onChange={setFilters}/>
+                </header>
 
-            {err && <div className="error">Error: {err}</div>}
-            {loading && <div className="hint">Loading…</div>}
+                {err && <div className="error">Error: {err}</div>}
+                {loading && <div className="hint">Loading…</div>}
 
-            <div className="grid">
-                <main className="main">
-                    <ArticleList articles={data.articles}/>
-                </main>
+                <DiversityScore domains={filtered_domains} />
 
-                <aside className="aside">
-                    <XPostList posts={data.x_posts}/>
-                </aside>
+                <div className="grid">
+                    <main className="main">
+                        <ArticleList articles={data.articles}/>
+                    </main>
+
+                    <aside className="aside">
+                        <XPostList posts={data.x_posts}/>
+                    </aside>
+                </div>
             </div>
         </div>
     );

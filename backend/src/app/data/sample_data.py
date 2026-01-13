@@ -60,6 +60,52 @@ ARTICLES: list[ArticleDetail] = [
             c2pa_present=False,
         ),
     ),
+    ArticleDetail(
+        id="a3",
+        title="Mehr als 14 Millionen Deutsche besitzen Aktien",
+        source="spiegel.de",
+        published_at="2026-01-13T13:22:00Z",
+        image_url="https://cdn.prod.www.spiegel.de/images/9f1aa452-5e4a-4239-b481-eba8497b109c_w1920_r1.778_fpx50_fpy53.webp",
+        url="https://www.spiegel.de/wirtschaft/unternehmen/rekordzahlen-des-deutschen-aktieninstituts-mehr-als-14-millionen-deutsche-besitzen-aktien-a-ebc734c3-f3c3-4551-a700-24fcd559ac5e",
+        author="",
+        content=(
+            "Deutschland hat so viele Aktionäre wie nie zuvor: 14,1 Millionen Deutsche besaßen 2025 "
+            "Aktien, ETFs oder Aktienfonds – rund zwei Millionen mehr als im Vorjahr.\n\n"
+            "Im Verlauf des Jahres 2025 besaßen durchschnittlich 14,1 Millionen Menschen in Deutschland "
+            "Aktienfonds, ETFs oder Aktien. Das zeigen Zahlen des Deutschen Aktieninstituts (DAI). "
+            "Nach zwei Jahren mit rückläufigen Aktionärszahlen wurde damit der Rekord von 2022 "
+            "mit seinerzeit fast 12,9 Millionen Aktionärinnen und Aktionären deutlich übertroffen.\n\n"
+            "Damit investierte knapp jede fünfte Person ab 14 Jahren direkt oder indirekt am Aktienmarkt. "
+            "Seit 2020 werden in der DAI-Statistik auch ausländische Aktionäre mit Wohnsitz in Deutschland "
+            "erfasst, was allein für einen Zuwachs von rund 500.000 sorgte.\n\n"
+            "Vor allem das Interesse der jungen Generation trug zum Anstieg bei. 4,9 Millionen Menschen "
+            "unter 40 Jahren besaßen Aktien, ETFs oder Aktienfonds – 1,2 Millionen mehr als im Vorjahr. "
+            "Diese Altersgruppe machte damit rund 60 Prozent des Gesamtanstiegs aus. Auch bei Frauen "
+            "und in Ostdeutschland verzeichnete das Institut ein starkes Wachstum.\n\n"
+            "»Aktienfonds, ETFs und Aktien sind in der Mitte der Gesellschaft verankert«, heißt es vom "
+            "Deutschen Aktieninstitut. Der gesellschaftliche Rückenwind für die Aktie sei so stark wie "
+            "nie zuvor.\n\n"
+            "Das Institut fordert deshalb, die Aktienanlage stärker in allen drei Säulen der Altersvorsorge "
+            "zu verankern. Die derzeitigen Pläne der Bundesregierung zur Ergänzung der Rente durch private "
+            "Aktienvorsorge seien bislang zu zaghaft.\n\n"
+            "Die Aktionärszahlen basieren auf einer repräsentativen Umfrage des Marktforschungsinstituts "
+            "Kantar, bei der jährlich rund 28.000 Menschen in Deutschland ab 14 Jahren zu ihrem "
+            "Anlageverhalten befragt werden.\n\n"
+            "Im internationalen Vergleich investieren Deutsche ihr Vermögen dennoch vergleichsweise "
+            "zurückhaltend am Kapitalmarkt. Einer Studie der Vereinigung für Finanzmärkte in Europa (AFME) "
+            "zufolge investieren Privathaushalte in Deutschland rund 103 Prozent der jährlichen "
+            "Wirtschaftsleistung in Aktien, ETFs oder Fonds – deutlich weniger als etwa in Dänemark "
+            "(194 Prozent) oder den Niederlanden (164 Prozent)."
+        ),
+        trust_indicators=TrustIndicators(
+            badge="green",
+            fact_checked=False,
+            tone="neutral",
+            content_type="news",
+            publisher_type="private",
+            c2pa_present=False,
+        ),
+    )
 ]
 
 
@@ -68,6 +114,7 @@ def article_summaries() -> list[ArticleSummary]:
         ArticleSummary(
             id=a.id,
             title=a.title,
+            url=a.url,
             source=a.source,
             published_at=a.published_at,
             image_url=a.image_url,

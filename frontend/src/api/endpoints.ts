@@ -1,4 +1,4 @@
-import {apiGet} from "./client";
+import {apiGet, apiPost} from "./client";
 import type {FeedFilters, FeedResponse, ArticleDetail, XPost} from "./types";
 
 function qs(filters: FeedFilters): string {
@@ -23,4 +23,19 @@ export function getArticle(id: string) {
 
 export function getXPosts() {
     return apiGet<XPost[]>(`/api/xposts`);
+}
+
+export type DiversityRow = {
+    owner: string;
+    influence: number;
+};
+
+export function getFeedDiversity(domains: string[]) {
+    return apiPost<DiversityRow[]>(
+        "/api/feed/diversity",
+        {
+            method: "POST",
+            body: JSON.stringify(domains),
+        }
+    );
 }
