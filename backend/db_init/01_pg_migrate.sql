@@ -37,3 +37,30 @@ CREATE TABLE articles (
     content_html TEXT,
     created_at TIMESTAMP DEFAULT now()
 );
+
+CREATE TABLE article_llm_analysis (
+    article_id TEXT PRIMARY KEY
+        REFERENCES articles(id) ON DELETE CASCADE,
+
+    badge TEXT NOT NULL DEFAULT 'grey',
+    fact_checked BOOLEAN,
+    tone TEXT,
+    content_type TEXT,
+    tone_type_rationale TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT now(),
+    updated_at TIMESTAMP NOT NULL DEFAULT now()
+);
+
+CREATE TABLE article_c2pa_assets (
+    id SERIAL PRIMARY KEY,
+
+    article_id TEXT NOT NULL
+        REFERENCES articles(id) ON DELETE CASCADE,
+
+    src TEXT NOT NULL,
+    c2pa_present BOOLEAN NOT NULL,
+    issuer TEXT,
+    title TEXT,
+    is_ai_generated BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP NOT NULL DEFAULT now()
+);

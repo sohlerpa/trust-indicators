@@ -9,6 +9,7 @@ from src.modules.author_expertise.author_expertise_classifier import assess_auth
 from src.modules.provenance_media.extractor import c2pa_for_image_url
 from src.modules.source_funding.queries import GET_DOMAIN_OWNERS, GET_DOMAIN_PUBLISHER_TYPE
 from src.modules.tone.tone_classifier import classify_tone
+from src.app.models.article import get_or_create_trust_indicators
 
 
 def extract_img_srcs(content_html: str, article_url: str, api_base_url: str) -> list[str]:
@@ -107,7 +108,7 @@ def to_article_summary_out(a: ArticleRecord, db: Session, feed_mode=True) -> Art
         source=a.source,
         published_at=a.published_at,
         image_url=a.image_url,
-        trust_indicators=compute_trust_indicators_for_article(a, db, feed_mode),
+        trust_indicators=get_or_create_trust_indicators(a, db),
     )
 
 
