@@ -159,11 +159,14 @@ def assess_author_expertise(
         api_key_env: str = "GEMINI_API_KEY",
 ) -> AuthorExpertiseResult | None:
     if not isinstance(text, str) or not text.strip():
-        raise ValueError("text must be a non-empty string")
+        print("text must be a non-empty string")
+        return None
     if not isinstance(author, str) or not author.strip():
-        raise ValueError("author must be a non-empty string")
+        print("author must be a non-empty string")
+        return None
     if not isinstance(article_url, str) or not article_url.strip():
-        raise ValueError("article_url must be a non-empty string")
+        print("article_url must be a non-empty string")
+        return None
 
     print(f"Running author expertise check for {author}, {article_url}")
 
