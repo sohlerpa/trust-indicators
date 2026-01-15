@@ -10,12 +10,21 @@ export type TrustIndicators = {
     publisher_type: PublisherType;
     c2pa_present: boolean;
     owners?: OwnerInfo[];
+    c2pa_info?: ImageProvenance[];
 };
 
 export type OwnerInfo = {
     owner: string;
     percent: number;
 };
+
+export type ImageProvenance = {
+    src: string;
+    c2pa_present: boolean;
+    issuer: string | null;
+    title: string | null;
+    is_ai_generated: boolean;
+}
 
 export type ArticleSummary = {
     id: string;

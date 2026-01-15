@@ -48,6 +48,7 @@ ARTICLES: list[ArticleRecord] = [
                      "<p>Die litauische Regierung sieht dahinter eine „hybride Attacke“ der belarussischen Führung in Minsk. Mit der Sperrung wollte Vilnius Minsk zwingen, die Ballonflüge zu stoppen.</p>"
                      "︎<p>Auch die Grenze zwischen beiden Ländern war wochenlang geschlossen. Lkw kamen seit Ende Oktober nicht durch. Erst am 19. November öffnete das kleine Litauen (2,9 Mio. Einwohner) die Grenze wieder.</p>"
                      "︎<p>Und: Kinder machen schon in der Schule ihren „Drohnenführerschein“.</p>"
+                     '<img src="https://www.bild.de/ig/eb26e079-d2a1-45f7-b899-da4edf1c024f/mobile/mobile">'
                      "<p>Im November beschloss Litauens „Rat für staatliche Verteidigung“ außerdem ein 500-Mio.-Euro-Paket zum Schutz vor russischen Spionage- und Kamikaze-Drohnen und zur Abwehr staatlich organisierter belarusischer Schmuggler-Ballons – ein Riesenposten im Haushalt des kleinen Landes (mehr als 5 Prozent des Litauen-BIPs von etwa 78 Mrd. Euro 2024).</p>"
                      "<p>Vize-Verteidigungsminister Tomas Godliauskas erklärte damals BILD, dass die Drohnen- und Ballongefahr aus Putins Reich „nicht nur theoretisch, sondern ganz praktisch unser Leben bereits erschwert und unterbricht“. Darum müsse die Politik sofort handeln, um die Bevölkerung, die kritische Infrastruktur und den Luftverkehr im Land zu schützen.</p>"
         ,
@@ -117,6 +118,22 @@ ARTICLES: list[ArticleRecord] = [
             "in einem psychiatrischen Krankenhaus untergebracht werden.</p>"
         ),
     ),
+    ArticleRecord(
+        id="a5",
+        title="C2PA Test-Article",
+        source="spiegel.de",
+        published_at=datetime(2026, 1, 15, 13, 22, 00),
+        image_url=HttpUrl(
+            "https://cdn.prod.www.spiegel.de/images/9f1aa452-5e4a-4239-b481-eba8497b109c_w1920_r1.778_fpx50_fpy53.webp"),
+        url=HttpUrl(
+            "https://www.spiegel.de/wirtschaft/unternehmen/rekordzahlen-des-deutschen-aktieninstituts-mehr-als-14-millionen-deutsche-besitzen-aktien-a-ebc734c3-f3c3-4551-a700-24fcd559ac5e"),
+        author="Paul Sohler",
+        content_html="<p>This is a test for C2PA</p>"
+        "<p>new paragraph</p>"
+        '<img src="/assets/cute_dog.png" />'
+        "<p>Next picture without any siganture:</p>"
+        '<img src="/assets/sample.png" />'
+    )
 ]
 
 X_POSTS: list[XPostRecord] = [

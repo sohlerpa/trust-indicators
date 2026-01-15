@@ -1,4 +1,7 @@
 import json
+import os
+import tempfile
+import requests
 from dataclasses import dataclass, field
 from typing import Optional, List, Tuple
 
@@ -125,3 +128,23 @@ class ProvenanceMediaModule:
         except Exception:
             # Generic catch-all for C2PA parsing errors
             return C2PAManifestInfo(manifest_found=False)
+
+
+def c2pa_for_image_url(url: str) -> C2PAManifestInfo:
+    # download to temp file
+    suffix = os.path.splitext(url.split("?")[0])[1] or ".img"
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+        tmp_path = tmp.name
+        with requests.get(url, stream=True, timeout=10) as r:
+            r.raise_for_status()
+            for chunk in r.iter_content(chunk_size=1024 * 64):
+                if chunk:
+                    tmp.write(chunk)
+
+    try:
+        return ProvenanceMediaModule.extract_c2pa_info(tmp_path)
+    finally:
+        try:
+            os.remove(tmp_path)
+        except OSError:
+            pass

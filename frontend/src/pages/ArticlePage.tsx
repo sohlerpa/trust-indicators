@@ -83,7 +83,38 @@ export default function ArticlePage() {
                     </div>
                     <div className="card metaCard">
                         <h2>C2PA</h2>
-                        <p>Insert C2PA Info</p>
+
+                        {article.trust_indicators.c2pa_info?.length ? (
+                            <ul className="c2paList">
+                                {article.trust_indicators.c2pa_info.map((i) => (
+                                    <li key={i.src} className="c2paItem">
+                                        <img
+                                            src={i.src}
+                                            alt={i.title ?? "Image"}
+                                            className="c2paThumb"
+                                        />
+
+                                        {i.c2pa_present ? (
+                                            <div className="c2paMeta">
+                                                <div className="c2paStatus ok">✓ C2PA Manifest present</div>
+                                                <div><strong>Title:</strong> {i.title ?? "-"}</div>
+                                                <div><strong>Issuer:</strong> {i.issuer ?? "-"}</div>
+                                                <div>
+                                                    <strong>AI generated:</strong>{" "}
+                                                    {i.is_ai_generated ? "yes" : "no"}
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="c2paMeta">
+                                                <div className="c2paStatus error">✕ No C2PA data</div>
+                                            </div>
+                                        )}
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <p>-</p>
+                        )}
                     </div>
                 </div>
             </div>

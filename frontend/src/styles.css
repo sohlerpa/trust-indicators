@@ -201,6 +201,14 @@ body {
 
 }
 
+.articleBody img {
+    max-width: 90%;
+    height: auto;
+    display: block;
+    margin: 2rem auto;
+    border-radius: 12px;
+}
+
 .diversityCard {
     display: grid;
     gap: 8px;
@@ -279,4 +287,52 @@ body {
 
 .ownerPercent {
     font-variant-numeric: tabular-nums;
+}
+
+
+.c2paList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.c2paItem {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    padding: 12px 0;
+}
+
+.c2paItem:not(:last-child) {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.c2paThumb {
+    width: 56px;
+    height: 56px;
+    object-fit: cover;
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+
+.c2paMeta {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.c2paStatus {
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.c2paStatus.ok {
+    color: #2e7d32;
+}
+
+.c2paStatus.error {
+    color: #c62828;
 }
