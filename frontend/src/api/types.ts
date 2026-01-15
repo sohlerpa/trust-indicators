@@ -8,6 +8,7 @@ export type TrustIndicators = {
     content_type?: string | null;
     tone_type_rationale?: string | null;
     publisher_type: PublisherType;
+    publisher_country?: string;
     c2pa_present: boolean;
     owners?: OwnerInfo[];
 };
@@ -20,6 +21,7 @@ export type OwnerInfo = {
 export type ArticleSummary = {
     id: string;
     title: string;
+    preview: string;
     url: string;
     source: string;
     published_at: string;

@@ -2,6 +2,7 @@ import {useEffect, useState} from "react";
 import {Link, useParams} from "react-router-dom";
 import {getArticle} from "../api/endpoints";
 import type {ArticleDetail} from "../api/types";
+import CountryFlag from "../components/CountryFlag";
 
 export default function ArticlePage() {
     const {id} = useParams();
@@ -62,7 +63,10 @@ export default function ArticlePage() {
                     </div>
                     <div className="card metaCard">
                         <h2>Publisher</h2>
-                        <p>{article.source} ({article.trust_indicators.publisher_type})</p>
+                        <p style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                            <CountryFlag code={article.trust_indicators.publisher_country} />
+                            {article.source} ({article.trust_indicators.publisher_type})
+                        </p>
                     </div>
                     <div className="card metaCard">
                         <h2>Main Owners</h2>

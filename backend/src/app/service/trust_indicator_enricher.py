@@ -14,12 +14,13 @@ def compute_trust_indicators_for_article(a: ArticleRecord, db: Session) -> Trust
         for row in owners_db_result
     ]
 
-    publisher_type_db_result = db.execute(GET_DOMAIN_PUBLISHER_TYPE, {"domain": a.source}).fetchone()
-    publisher_type = (
-        publisher_type_db_result.publisher_type
-        if publisher_type_db_result
-        else "unknown"
-    )
+    publisher_type_db_result = db.execute(
+        GET_DOMAIN_PUBLISHER_TYPE,
+        {"domain": a.source}
+    ).fetchone()
+
+    publisher_type = publisher_type_db_result.publisher_type if publisher_type_db_result else "unknown"
+    publisher_country = publisher_type_db_result.country if publisher_type_db_result else None
 
     return TrustIndicators(
         badge="red",  # TODO
@@ -28,6 +29,7 @@ def compute_trust_indicators_for_article(a: ArticleRecord, db: Session) -> Trust
         content_type=tone_classification.content_type,
         tone_type_rationale=tone_classification.rationale,
         publisher_type=publisher_type,
+        publisher_country=publisher_country,
         c2pa_present=False,  # TODO
         owners=owners
     )
@@ -50,6 +52,7 @@ def to_article_summary_out(a: ArticleRecord, db: Session) -> ArticleSummaryOut:
     return ArticleSummaryOut(
         id=a.id,
         title=a.title,
+        preview=a.preview,
         url=a.url,
         source=a.source,
         published_at=a.published_at,
