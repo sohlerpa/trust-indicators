@@ -153,6 +153,8 @@ def assess_author_expertise(
     if not isinstance(article_url, str) or not article_url.strip():
         raise ValueError("article_url must be a non-empty string")
 
+    print(f"running author expertise check for {author}, {article_url}")
+
     article_url = article_url.strip()
     parsed = urlparse(article_url)
     if parsed.scheme not in {"http", "https"} or not parsed.netloc:
@@ -168,6 +170,7 @@ def assess_author_expertise(
 
 
     # ---- Step 1: Field map + search queries
+    print("Author expertise: step 1")
     prompt1 = f"""
     You are helping determine whether an article's author is an expert in the article's field.
     
@@ -209,6 +212,7 @@ def assess_author_expertise(
 
 
     # ---- Step 2: Grounded evidence memo
+    print("Author expertise: step 2")
     grounding_tool = types.Tool(google_search=types.GoogleSearch())
 
     prompt2 = f"""
@@ -252,6 +256,7 @@ def assess_author_expertise(
 
 
     # ---- Step 3: Memo into strict JSON
+    print("Author expertise: step 3")
     prompt3 = f"""
     Convert the following evidence memo into JSON that matches the schema precisely.
     
@@ -289,6 +294,7 @@ def assess_author_expertise(
 
 
     # ---- Step 4: Final assessment
+    print("Author expertise: step 4")
     prompt4 = f"""
     You are producing a final assessment: Is the author an expert in the field?
     
@@ -335,8 +341,8 @@ def assess_author_expertise(
         },
     )
     step4 = Step4_FinalAssessment.model_validate_json(_response_text(response4))
-    if debug:
-        print(f"Step4:\n{step4}\n")
+
+    print(f"Results of author assessment:\n{step4}\n")
 
     return AuthorExpertiseResult(
         author=author,

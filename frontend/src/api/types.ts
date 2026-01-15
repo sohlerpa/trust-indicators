@@ -12,6 +12,7 @@ export type TrustIndicators = {
     c2pa_present: boolean;
     owners?: OwnerInfo[];
     c2pa_info?: ImageProvenance[];
+    author_expertise?: AuthorExpertise;
 };
 
 export type OwnerInfo = {
@@ -25,6 +26,16 @@ export type ImageProvenance = {
     issuer: string | null;
     title: string | null;
     is_ai_generated: boolean;
+}
+
+export type AuthorExpertise = {
+    author: string | null;
+    article_url: string | null;
+    publisher_domain: string | null;
+    field: string | null;
+    label: string | null;
+    confidence: number;
+    explanation: string | null;
 }
 
 export type ArticleSummary = {

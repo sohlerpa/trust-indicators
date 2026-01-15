@@ -53,31 +53,139 @@ export default function ArticlePage() {
                 <div className="card">
                     <div className="card metaCard">
                         <h2>Style</h2>
-                        <p>Content Tone: {article.trust_indicators.tone ?? "-"}</p>
-                        <p>Content Type: {article.trust_indicators.content_type ?? "-"}</p>
-                        <p>{article.trust_indicators.tone_type_rationale ?? "-"}</p>
+
+                        {(() => {
+                            const tone = article.trust_indicators.tone ?? "-";
+                            const type = article.trust_indicators.content_type ?? "-";
+                            const rationale = article.trust_indicators.tone_type_rationale ?? "-";
+
+                            return (
+                                <div className="metaBox">
+                                    <div className="metaRow">
+                                        <div className="metaLeft">
+                                            <span className="metaDot"/>
+                                            <span className="metaLabel capitalize">{tone}</span>
+                                        </div>
+
+                                        <span className="pill">{type}</span>
+                                    </div>
+
+                                    <p className="metaExplanation">{rationale}</p>
+                                </div>
+                            );
+                        })()}
                     </div>
                     <div className="card metaCard">
                         <h2>Fact-Checking</h2>
                         <p>{String(article.trust_indicators.fact_checked)}</p>
                     </div>
                     <div className="card metaCard">
+                        <h2>Author Expertise</h2>
+
+                        {(() => {
+                            const ae = article.trust_indicators.author_expertise;
+
+                            const label = (ae?.label ?? "uncertain") as
+                                | "field_expert"
+                                | "not_field_expert"
+                                | "uncertain";
+
+                            const labelText =
+                                label === "field_expert"
+                                    ? "Field expert"
+                                    : label === "not_field_expert"
+                                        ? "Not a field expert"
+                                        : "Uncertain";
+
+                            const confidence = Math.max(0, Math.min(1, ae?.confidence ?? 0));
+                            const pct = Math.round(confidence * 100);
+
+                            return (
+                                <div className="expertBox">
+                                    <div className="metaRow">
+                                        <div className="metaLeft">
+                                            <span className={`expertDot ${label}`}/>
+                                            <span className="metaLabel">{labelText}</span>
+                                        </div>
+
+                                        <span
+                                            className={`confidencePill ${label}`}
+                                            title={`Confidence: ${pct}%`}
+                                            aria-label={`Confidence: ${pct}%`}
+                                        >
+                                            {pct}%
+                                        </span>
+                                    </div>
+
+                                    <div className="expertMeta">
+                                        <div>
+                                            Author: <strong>{ae?.author ?? "-"}</strong>
+                                        </div>
+                                        <div>
+                                            Field: <strong>{ae?.field ?? "-"}</strong>
+                                        </div>
+                                    </div>
+
+                                    <div
+                                        className="confidenceBar"
+                                        title={`Confidence: ${pct}%`}
+                                        aria-label={`Confidence: ${pct}%`}
+                                    >
+                                        <div
+                                            className={`confidenceFill ${label}`}
+                                            style={{width: `${pct}%`}}
+                                        />
+                                    </div>
+
+                                    <p className="metaExplanation">
+                                        {ae?.explanation ?? "-"}
+                                    </p>
+                                </div>
+                            );
+                        })()}
+                    </div>
+                    <div className="card metaCard">
                         <h2>Publisher</h2>
-                        <p style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                            <CountryFlag code={article.trust_indicators.publisher_country} />
-                            {article.source} ({article.trust_indicators.publisher_type})
-                        </p>
+
+                        {(() => {
+                            const source = article.source;
+                            const type = article.trust_indicators.publisher_type ?? "-";
+                            const country = article.trust_indicators.publisher_country;
+                            const cc = country ? country.toUpperCase() : "-";
+
+                            return (
+                                <div className="metaRow">
+                                    <div className="metaLeft">
+                                        <span className="metaFlag" title={cc} aria-label={cc}>
+                                            <CountryFlag code={country}/>
+                                        </span>
+                                        <span className="metaLabel">{source}</span>
+                                    </div>
+
+                                    <span className="pill">{type}</span>
+                                </div>
+                            );
+                        })()}
                     </div>
                     <div className="card metaCard">
                         <h2>Main Owners</h2>
+
                         {article.trust_indicators.owners?.length ? (
-                            <ul className="ownersList">
+                            <ul className="ownersNiceList">
                                 {article.trust_indicators.owners.map((o) => (
-                                    <li key={o.owner} className="ownerRow">
-                                        <span className="ownerName">{o.owner}  </span>
-                                        <span className="ownerPercent">
-                        ({o.percent.toFixed(1)}%)
-                    </span>
+                                    <li key={o.owner} className="metaRow">
+                                        <div className="metaLeft">
+                                            <span className="metaDot"/>
+                                            <span className="metaLabel">{o.owner}</span>
+                                        </div>
+
+                                        <span
+                                            className="pill"
+                                            title={`${o.percent.toFixed(1)}%`}
+                                            aria-label={`${o.percent.toFixed(1)}%`}
+                                        >
+                                            {o.percent.toFixed(1)}%
+                                        </span>
                                     </li>
                                 ))}
                             </ul>
