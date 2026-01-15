@@ -20,7 +20,7 @@ class TrustIndicators(BaseModel):
     content_type: Optional[ContentType] = None
     tone_type_rationale: Optional[str] = None
     publisher_type: PublisherType = "unknown"
-    publisher_country: str = "unknown"
+    publisher_country: Optional[str] = None
     c2pa_present: bool = False
     owners: list[OwnerInfo] = []
 
