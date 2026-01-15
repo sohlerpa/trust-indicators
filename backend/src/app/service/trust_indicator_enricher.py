@@ -5,13 +5,13 @@ from sqlalchemy.orm import Session
 
 from src.app.api.schemas import ArticleSummaryOut, ArticleDetailOut, XPostOut
 from src.app.models.models import ArticleRecord, TrustIndicators, XPostRecord, OwnerInfo, ImageProvenance
-from src.modules.author_expertise.author_expertise_classifier import assess_author_expertise, AuthorExpertiseResult
+from src.modules.author_expertise.author_expertise_classifier import assess_author_expertise
 from src.modules.provenance_media.extractor import c2pa_for_image_url
 from src.modules.source_funding.queries import GET_DOMAIN_OWNERS, GET_DOMAIN_PUBLISHER_TYPE
 from src.modules.tone.tone_classifier import classify_tone
 
 
-def extract_img_srcs(content_html: str, article_url: str, api_base_url: str) -> list[str]:
+def extract_img_srcs(content_html: str, article_url: str, api_base_url: str, main_image_url: str=None) -> list[str]:
     """
     - Absolute URLs (https://...) stay as-is
     - Root-relative paths are resolved against api_base_url
@@ -19,6 +19,9 @@ def extract_img_srcs(content_html: str, article_url: str, api_base_url: str) -> 
     """
     soup = BeautifulSoup(content_html or "", "html.parser")
     srcs: list[str] = []
+
+    if main_image_url:
+        srcs.append(main_image_url)
 
     for img in soup.find_all(["img", "iframe"]):
         src = (img.get("src") or "").strip()
@@ -53,10 +56,11 @@ def compute_trust_indicators_for_article(a: ArticleRecord, db: Session, feed_mod
     publisher_type = publisher_type_db_result.publisher_type if publisher_type_db_result else "unknown"
     publisher_country = publisher_type_db_result.country if publisher_type_db_result else None
 
-    img_urls = extract_img_srcs(a.content_html, article_url=str(a.url), api_base_url="http://localhost:8000")
+    img_urls = extract_img_srcs(a.content_html, article_url=str(a.url), api_base_url="http://localhost:8000", main_image_url=str(a.image_url))
     images: list[ImageProvenance] = []
     for u in img_urls:
         info = c2pa_for_image_url(u)
+        if not info: continue
         images.append(
             ImageProvenance(
                 src=u,
@@ -67,9 +71,9 @@ def compute_trust_indicators_for_article(a: ArticleRecord, db: Session, feed_mod
             )
         )
 
-    if feed_mode:
+    if feed_mode: # if called in the feed
         author_expertise = None
-    else:
+    else: # if called by a single article
         author_expertise = assess_author_expertise(a.content_html, a.author, str(a.url))
 
     return TrustIndicators(

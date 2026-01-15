@@ -24,13 +24,14 @@ class AuthorExpertiseResult(BaseModel):
     explanation: str
 
 
-
 class Step1_FieldMap(BaseModel):
     primary_field: str = Field(description="Main field of expertise implied by the article (e.g., Climate science).")
     subfields: List[str] = Field(description="More specific subfields (e.g., climate attribution, carbon cycle).")
     key_terms: List[str] = Field(description="Key technical terms present / expected for the topic.")
-    author_disambiguation_hints: List[str] = Field(description="Hints to disambiguate the author in search (orgs, locations, middle initial, etc.).")
-    suggested_search_queries: List[str] = Field(description="8-14 search queries to verify whether the author is a credentialed expert in this field.")
+    author_disambiguation_hints: List[str] = Field(
+        description="Hints to disambiguate the author in search (orgs, locations, middle initial, etc.).")
+    suggested_search_queries: List[str] = Field(
+        description="8-14 search queries to verify whether the author is a credentialed expert in this field.")
 
 
 class EvidenceItem(BaseModel):
@@ -38,15 +39,18 @@ class EvidenceItem(BaseModel):
     support_summary: str = Field(description="Why the source supports the claim.")
     source_title: Optional[str] = Field(default=None, description="Title of the supporting source or page.")
     source_url: Optional[str] = Field(default=None, description="URL of the supporting source or page.")
-    credibility: Literal["high", "medium", "low"] = Field(description="Credibility of the source (e.g., university page=high; random blog=low).")
+    credibility: Literal["high", "medium", "low"] = Field(
+        description="Credibility of the source (e.g., university page=high; random blog=low).")
     confidence: float = Field(ge=0.0, le=1.0, description="Confidence this item is correct.")
 
 
 class Step3_CredentialCheck(BaseModel):
     author: str
     field: str
-    found_person_matches: List[str] = Field(description="Possible matches for the author identity (e.g., 'Dr. X at University Y').")
-    is_same_person_likely: Literal["yes", "no", "uncertain"] = Field(description="Whether evidence likely refers to the same author (name collisions are common).")
+    found_person_matches: List[str] = Field(
+        description="Possible matches for the author identity (e.g., 'Dr. X at University Y').")
+    is_same_person_likely: Literal["yes", "no", "uncertain"] = Field(
+        description="Whether evidence likely refers to the same author (name collisions are common).")
     evidence: List[EvidenceItem] = Field(description="Evidence items grounded in search.")
     gaps: List[str] = Field(description="What information is missing to be confident (e.g., no verified affiliation).")
     credentialed_expert_assessment: Literal["yes", "no", "uncertain"]
@@ -64,17 +68,21 @@ class Step4_FinalAssessment(BaseModel):
     credentialed_confidence: float = Field(ge=0.0, le=1.0)
 
     # Text-only quality signals
-    article_expert_like: Literal["yes", "no", "uncertain"] = Field(description="Whether the article reads like it was written by a domain expert (text-only signals).")
+    article_expert_like: Literal["yes", "no", "uncertain"] = Field(
+        description="Whether the article reads like it was written by a domain expert (text-only signals).")
     article_quality_confidence: float = Field(ge=0.0, le=1.0)
-    rubric_scores: dict = Field(description="A dict of rubric scores 0..1, e.g. {'accuracy':0.8,'use_of_uncertainty':0.6,'use_of_sources':0.4}")
-    red_flags: List[str] = Field(description="Potential misconceptions, overclaims, bad reasoning, missing nuance, etc.")
-    strengths: List[str] = Field(description="Signals of competence: correct framing, good uncertainty, good sourcing, etc.")
+    rubric_scores: dict = Field(
+        description="A dict of rubric scores 0..1, e.g. {'accuracy':0.8,'use_of_uncertainty':0.6,'use_of_sources':0.4}")
+    red_flags: List[str] = Field(
+        description="Potential misconceptions, overclaims, bad reasoning, missing nuance, etc.")
+    strengths: List[str] = Field(
+        description="Signals of competence: correct framing, good uncertainty, good sourcing, etc.")
 
     # Combined decision
-    final_label: Literal["field_expert", "not_field_expert", "uncertain"] = Field(description="Combined judgment: field_expert requires external credential evidence; otherwise uncertain.")
+    final_label: Literal["field_expert", "not_field_expert", "uncertain"] = Field(
+        description="Combined judgment: field_expert requires external credential evidence; otherwise uncertain.")
     final_confidence: float = Field(ge=0.0, le=1.0)
     explanation: str = Field(description="Short, user-facing explanation of why.")
-
 
 
 def _response_text(resp) -> str:
@@ -108,33 +116,39 @@ def _generate_with_retry(
 ):
     """
     Synchronous call that waits for a response.
-    Retries transient errors (notably 503 overloaded) with exponential backoff + jitter.
+    Retries transient errors (503 overloaded, 5xx, 429) with exponential backoff + jitter.
+    Returns None if all retries fail.
     """
     last_exc: Exception | None = None
 
     for attempt in range(max_retries):
         try:
-            return client.models.generate_content(
+            resp = client.models.generate_content(
                 model=model,
                 contents=contents,
                 config=config,
             )
-        except genai_errors.ServerError as e:
-            # 503 UNAVAILABLE / overloaded is transient
-            last_exc = e
-        except genai_errors.APIError as e:
-            # Retry only on likely-transient API errors (5xx / 429)
+            # Sometimes you can get an "empty" response object; treat as failure
+            if not _response_text(resp):
+                last_exc = RuntimeError("Empty response text from Gemini")
+            else:
+                return resp
+
+        except (genai_errors.ServerError, genai_errors.APIError) as e:
             last_exc = e
             status = getattr(e, "status_code", None)
+            # don't retry non-transient 4xx (except 429)
             if status is not None and status < 500 and status != 429:
-                raise  # don't retry non-transient 4xx
+                break
 
-        # backoff + jitter
         sleep = min(max_sleep_s, base_sleep_s * (2 ** attempt))
-        sleep = sleep * (0.7 + 0.6 * random.random())  # jitter in [0.7, 1.3]
+        sleep = sleep * (0.7 + 0.6 * random.random())
         time.sleep(sleep)
 
-    raise RuntimeError(f"Gemini generate_content failed after {max_retries} retries") from last_exc
+    if last_exc and isinstance(last_exc, Exception):
+        if os.getenv("DEBUG_GEMINI_ERRORS") == "1":
+            print(f"Gemini call failed: {last_exc!r}")
+    return None
 
 
 def assess_author_expertise(
@@ -143,9 +157,7 @@ def assess_author_expertise(
         article_url: str,
         model: str = "gemini-2.5-flash",
         api_key_env: str = "GEMINI_API_KEY",
-        debug: bool = False,
-) -> AuthorExpertiseResult:
-
+) -> AuthorExpertiseResult | None:
     if not isinstance(text, str) or not text.strip():
         raise ValueError("text must be a non-empty string")
     if not isinstance(author, str) or not author.strip():
@@ -153,7 +165,7 @@ def assess_author_expertise(
     if not isinstance(article_url, str) or not article_url.strip():
         raise ValueError("article_url must be a non-empty string")
 
-    print(f"running author expertise check for {author}, {article_url}")
+    print(f"Running author expertise check for {author}, {article_url}")
 
     article_url = article_url.strip()
     parsed = urlparse(article_url)
@@ -167,7 +179,6 @@ def assess_author_expertise(
     if not os.getenv(api_key_env):
         raise EnvironmentError(f"Missing environment variable {api_key_env}")
     client = genai.Client()
-
 
     # ---- Step 1: Field map + search queries
     print("Author expertise: step 1")
@@ -206,10 +217,12 @@ def assess_author_expertise(
             "response_json_schema": Step1_FieldMap.model_json_schema(),
         },
     )
-    step1 = Step1_FieldMap.model_validate_json(_response_text(response1))
-    if debug:
-        print(f"Step1:\n{step1}\n")
-
+    if response1 is None:
+        return None
+    try:
+        step1 = Step1_FieldMap.model_validate_json(_response_text(response1))
+    except Exception:
+        return None
 
     # ---- Step 2: Grounded evidence memo
     print("Author expertise: step 2")
@@ -248,12 +261,12 @@ def assess_author_expertise(
         contents=prompt2,
         config=types.GenerateContentConfig(tools=[grounding_tool]),
     )
-    grounded_notes = _response_text(resp2)
-    if not grounded_notes:
-        grounded_notes = "No grounded memo text returned by the model."
-    if debug:
-        print(f"Grounded memo:\n{grounded_notes}\n")
+    if resp2 is None:
+        return None
 
+    grounded_notes = _response_text(resp2).strip()
+    if not grounded_notes:
+        return None
 
     # ---- Step 3: Memo into strict JSON
     print("Author expertise: step 3")
@@ -288,10 +301,12 @@ def assess_author_expertise(
             "response_json_schema": Step3_CredentialCheck.model_json_schema(),
         },
     )
-    step3 = Step3_CredentialCheck.model_validate_json(_response_text(response3))
-    if debug:
-        print(f"Step3:\n{step3}\n")
-
+    if response3 is None:
+        return None
+    try:
+        step3 = Step3_CredentialCheck.model_validate_json(_response_text(response3))
+    except Exception:
+        return None
 
     # ---- Step 4: Final assessment
     print("Author expertise: step 4")
@@ -340,7 +355,12 @@ def assess_author_expertise(
             "response_json_schema": Step4_FinalAssessment.model_json_schema(),
         },
     )
-    step4 = Step4_FinalAssessment.model_validate_json(_response_text(response4))
+    if response4 is None:
+        return None
+    try:
+        step4 = Step4_FinalAssessment.model_validate_json(_response_text(response4))
+    except Exception:
+        return None
 
     print(f"Results of author assessment:\n{step4}\n")
 
