@@ -37,3 +37,16 @@ CREATE TABLE articles (
     content_html TEXT,
     created_at TIMESTAMP DEFAULT now()
 );
+
+CREATE TABLE article_llm_analysis (
+    article_id TEXT PRIMARY KEY
+        REFERENCES articles(id) ON DELETE CASCADE,
+
+    badge TEXT NOT NULL DEFAULT 'grey',
+    fact_checked BOOLEAN,
+    tone TEXT,
+    content_type TEXT,
+    tone_type_rationale TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT now(),
+    updated_at TIMESTAMP NOT NULL DEFAULT now()
+);

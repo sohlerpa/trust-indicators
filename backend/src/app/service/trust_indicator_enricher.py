@@ -8,7 +8,8 @@ from src.app.models.models import ArticleRecord, TrustIndicators, XPostRecord, O
 from src.modules.author_expertise.author_expertise_classifier import assess_author_expertise, AuthorExpertiseResult
 from src.modules.provenance_media.extractor import c2pa_for_image_url
 from src.modules.source_funding.queries import GET_DOMAIN_OWNERS, GET_DOMAIN_PUBLISHER_TYPE
-from src.modules.tone.tone_classifier import classify_tone
+from src.modules.tone.tone_classifier import classify_tone, ToneClassification
+from src.app.models.article import get_or_create_db_trust_indicators
 
 
 def extract_img_srcs(content_html: str, article_url: str, api_base_url: str) -> list[str]:
@@ -85,9 +86,62 @@ def compute_trust_indicators_for_article(a: ArticleRecord, db: Session, feed_mod
         author_expertise=author_expertise,
     )
 
+def enrich_trust_indicators_for_article(
+    ti: TrustIndicators,
+    a: ArticleRecord,
+    db: Session,
+    feed_mode: bool = True,
+) -> TrustIndicators:
+    owners_db_result = db.execute(GET_DOMAIN_OWNERS, {"domain": a.source}).fetchall()
+    ti.owners = [
+        OwnerInfo(owner=row.name, percent=float(row.ownership_percent))
+        for row in owners_db_result
+    ]
+
+    publisher_type_db_result = db.execute(
+        GET_DOMAIN_PUBLISHER_TYPE,
+        {"domain": a.source}
+    ).fetchone()
+
+    ti.publisher_type = (
+        publisher_type_db_result.publisher_type
+        if publisher_type_db_result
+        else "unknown"
+    )
+    ti.publisher_country = (
+        publisher_type_db_result.country
+        if publisher_type_db_result
+        else None
+    )
+
+    img_urls = extract_img_srcs(
+        a.content_html,
+        article_url=str(a.url),
+        api_base_url="http://localhost:8000",
+    )
+
+    ti.c2pa_info = [
+        ImageProvenance(
+            src=u,
+            c2pa_present=info.manifest_found,
+            issuer=info.issuer,
+            title=info.title,
+            is_ai_generated=info.is_ai_generated,
+        )
+        for u in img_urls
+        for info in [c2pa_for_image_url(u)]
+    ]
+
+    if not feed_mode:
+        ti.author_expertise = assess_author_expertise(
+            a.content_html, a.author, str(a.url)
+        )
+
+    return ti
+
 
 def compute_trust_indicators_for_xpost(p: XPostRecord) -> TrustIndicators:
-    tone_classification = classify_tone(p.text)
+    tone_classification = ToneClassification(content_type="news", tone="neutral", confidence=0.0, rationale="rationale text") #classify_tone(p.text) TODO
     return TrustIndicators(
         badge="red",  # TODO
         fact_checked=False,  # TODO
@@ -99,6 +153,9 @@ def compute_trust_indicators_for_xpost(p: XPostRecord) -> TrustIndicators:
 
 
 def to_article_summary_out(a: ArticleRecord, db: Session, feed_mode=True) -> ArticleSummaryOut:
+    ti = get_or_create_db_trust_indicators(a, db)
+    ti = enrich_trust_indicators_for_article(ti, a, db, feed_mode)
+
     return ArticleSummaryOut(
         id=a.id,
         title=a.title,
@@ -107,7 +164,7 @@ def to_article_summary_out(a: ArticleRecord, db: Session, feed_mode=True) -> Art
         source=a.source,
         published_at=a.published_at,
         image_url=a.image_url,
-        trust_indicators=compute_trust_indicators_for_article(a, db, feed_mode),
+        trust_indicators=ti,
     )
 
 

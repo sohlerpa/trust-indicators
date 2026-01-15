@@ -6,6 +6,8 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 from src.app.models.models import ArticleRecord
 
+from src.app.models.models import TrustIndicators, ImageProvenance
+from src.modules.tone.tone_classifier import classify_tone
 
 Base = declarative_base()
 
@@ -74,6 +76,90 @@ def get_article_by_id(db: Session, article_id: str) -> ArticleRecord | None:
         preview=row.preview or "",
         content_html=row.content_html,
     )
+
+def get_article_llm_analysis(db: Session, article_id: str):
+    return db.execute(
+        text("SELECT * FROM article_llm_analysis WHERE article_id = :id"),
+        {"id": article_id},
+    ).fetchone()
+
+def insert_article_llm_analysis(db: Session, article_id: str, ti: TrustIndicators):
+    db.execute(
+        text("""
+        INSERT INTO article_llm_analysis (
+            article_id,
+            badge,
+            fact_checked,
+            tone,
+            content_type,
+            tone_type_rationale
+        ) VALUES (
+            :article_id,
+            :badge,
+            :fact_checked,
+            :tone,
+            :content_type,
+            :rationale
+        )
+        """),
+        {
+            "article_id": article_id,
+            "badge": ti.badge,
+            "fact_checked": ti.fact_checked,
+            "tone": ti.tone,
+            "content_type": ti.content_type,
+            "rationale": ti.tone_type_rationale,
+        },
+    )
+
+def get_or_create_db_trust_indicators(
+    article: ArticleRecord,
+    db: Session,
+) -> TrustIndicators:
+    row = get_article_llm_analysis(db, article.id)
+
+    if row:
+        print(f"using cached analysis from DB for article {article.id}")
+        # FAST PATH (no LLM, no C2PA)
+
+        return TrustIndicators(
+            badge=row.badge,
+            fact_checked=row.fact_checked,
+            tone=row.tone,
+            content_type=row.content_type,
+            tone_type_rationale=row.tone_type_rationale,
+            c2pa_info=[]
+        )
+
+    # SLOW PATH (first time only)
+    print(f"generating new analysis for article {article.id}")
+    tone = classify_tone(article.content_html)
+
+    if tone.tone == "error" or tone.content_type == "error":
+        return TrustIndicators(
+            badge="red",
+            fact_checked=False,
+            tone=None,
+            content_type=None,
+            tone_type_rationale=None,
+            c2pa_info=[]
+        )
+
+    ti = TrustIndicators(
+        badge="red",  # temp
+        fact_checked=False,
+        tone=tone.tone,
+        content_type=tone.content_type,
+        tone_type_rationale=tone.rationale,
+        c2pa_info=[],
+    )
+
+    if tone.tone != "error" and tone.content_type != "error":
+        insert_article_llm_analysis(db, article.id, ti)
+        db.commit()
+
+    return ti
+
 
 def extract_source(url: str) -> str:
     netloc = urlparse(url).netloc.lower()
