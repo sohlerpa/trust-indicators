@@ -7,7 +7,7 @@ from src.modules.author_expertise.author_expertise_classifier import AuthorExper
 from src.modules.tone.tone_classifier import ToneType, ContentType
 
 PublisherType = Literal["public", "private", "unknown"]
-Badge = Literal["green", "orange", "red"]
+Badge = Literal["green", "orange", "red", "grey"]
 
 
 class OwnerInfo(BaseModel):
