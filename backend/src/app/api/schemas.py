@@ -9,12 +9,11 @@ from src.app.models.models import TrustIndicators
 class ArticleSummaryOut(BaseModel):
     id: str
     title: str
-    preview: str
+    preview: Optional[str] = ""
     url: HttpUrl
     source: str
     published_at: datetime
     image_url: Optional[HttpUrl] = None
-
     trust_indicators: TrustIndicators
 
 
