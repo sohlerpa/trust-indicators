@@ -1,7 +1,7 @@
 from typing import List
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from src.modules.source_funding.db_connector import get_db
+from src.app.service.db_connector import get_db
 from src.modules.source_funding.queries import GET_DOMAIN_OWNERS, GET_FEED_OWNERSHIP
 
 router = APIRouter()

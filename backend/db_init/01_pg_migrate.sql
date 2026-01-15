@@ -25,3 +25,15 @@ CREATE TABLE IF NOT EXISTS company_ownership (
     ownership_percent NUMERIC,
     PRIMARY KEY (company_id, owner_id)
 );
+
+CREATE TABLE articles (
+    id TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    url TEXT NOT NULL,
+    author TEXT,
+    published_at TIMESTAMP NOT NULL,
+    image_url TEXT,
+    preview TEXT,
+    content_html TEXT,
+    created_at TIMESTAMP DEFAULT now()
+);

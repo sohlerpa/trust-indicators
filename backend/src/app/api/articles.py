@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from src.app.api.schemas import ArticleDetailOut
 from src.app.data.sample_data import get_article_by_id
 from src.app.service.trust_indicator_enricher import to_article_detail_out
-from src.modules.source_funding.db_connector import get_db
+from src.app.service.db_connector import get_db
 
 router = APIRouter()
 
