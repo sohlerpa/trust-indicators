@@ -1,7 +1,9 @@
 from fastapi import APIRouter, Query
 from typing import List, Optional
-from app.api.schemas import FeedResponse, ArticleSummary, XPost
-from app.data.sample_data import article_summaries, X_POSTS
+
+from src.app.api.schemas import FeedResponse, ArticleSummaryOut, XPostOut
+from src.app.data.sample_data import X_POSTS, ARTICLES
+from src.app.service.trust_indicator_enricher import to_article_summary_out, to_xpost_out
 
 router = APIRouter()
 
@@ -13,13 +15,16 @@ def get_feed(
         content_type: Optional[List[str]] = Query(default=None),
         publisher_type: Optional[List[str]] = Query(default=None),
 ):
-    articles = article_summaries()
-    x_posts = X_POSTS
-
-    # TODO here, we have to run the checks on the articles (enrich it with trust indicators)
     # TODO maybe we can filter for something already or do some pre processing that we don't have to run everything on all posts/articles?
 
-    def matches(ind):
+    articles_raw = ARTICLES
+    x_raw = X_POSTS
+
+    # enrich with trust indicators
+    articles: list[ArticleSummaryOut] = [to_article_summary_out(a) for a in articles_raw]
+    x_posts: list[XPostOut] = [to_xpost_out(p) for p in x_raw]
+
+    def matches(ind) -> bool:
         if fact_checked is not None and ind.fact_checked != fact_checked:
             return False
         if tone and (ind.tone not in tone):
@@ -30,7 +35,7 @@ def get_feed(
             return False
         return True
 
-    filtered_articles: list[ArticleSummary] = [a for a in articles if matches(a.trust_indicators)]
-    filtered_x: list[XPost] = [p for p in x_posts if matches(p.indicators)]
-
-    return FeedResponse(articles=filtered_articles, x_posts=filtered_x)
+    return FeedResponse(
+        articles=[a for a in articles if matches(a.trust_indicators)],
+        x_posts=[p for p in x_posts if matches(p.indicators)],
+    )
