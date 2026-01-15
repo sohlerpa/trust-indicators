@@ -15,7 +15,8 @@ ARTICLES: list[ArticleRecord] = [
         url=HttpUrl(
             "https://www.tagesspiegel.de/politik/riester-rente-20-so-soll-die-private-altersvorsorge-kunftig-funktionieren-15030828.html"),
         author="Felix Kiefer",
-        content_html="<p>Nach dem Beschluss der Rentenreform hat Finanzminister Klingbeil sein Konzept für ein neues Altersvorsorgedepot vorgelegt. Für Verbraucher soll alles einfacher werden. Was ändert sich?</p>"
+        preview="Nach dem Beschluss der Rentenreform hat Finanzminister Klingbeil sein Konzept für ein neues Altersvorsorgedepot vorgelegt. Für Verbraucher soll alles einfacher werden. Was ändert sich?",
+        content_html="<h2>Nach dem Beschluss der Rentenreform hat Finanzminister Klingbeil sein Konzept für ein neues Altersvorsorgedepot vorgelegt. Für Verbraucher soll alles einfacher werden. Was ändert sich?</h2>"
                      "<p>Was vor einem Vierteljahrhundert als revolutionär galt, ist heute für viele Sparerinnen und Sparer zu einem Symbol des Scheiterns geworden. Wollte der Staat mit der Riester-Rente die private Altersvorsorge stärken und Druck vom umlagefinanzierten Rentensystem nehmen, fällt das Fazit aus Sicht von Sparern wie Anbietern heute meist negativ aus: zu unrentabel, zu teuer, zu kompliziert.</p>"
                      "<p>Reformieren wollte das System schon die Ampelkoalition. Nach ihrem Scheitern nimmt es sich nun auch die schwarz-rote Koalition vor. Bundesfinanzminister Lars Klingbeil (SPD) hat ein Gesetz für eine grundlegende Änderung der privaten Altersvorsorge auf den Weg gebracht. „Kostengünstiger, renditestärker, unbürokratischer, flexibler, einfacher und transparenter“ soll sie werden, heißt es in Klingbeils Gesetzentwurf. Doch was ändert sich konkret gegenüber dem Modell, dem der mittlerweile 82-jährige Walter Riester als Arbeitsminister seinen Namen gegeben hat?</p>"
                      "<h2>Mehr Rendite durch Aufhebung der Garantie</h2>"
@@ -41,6 +42,7 @@ ARTICLES: list[ArticleRecord] = [
         url=HttpUrl(
             "https://www.bild.de/politik/inland/hybrider-angriff-von-putin-kumpel-notlage-nato-land-reagiert-auf-ballon-terror-6937da9211f914c89b8576e7"),
         author="Philip Fabian",
+        preview="Hybrider Angriff von Putin-Kumpel: Ballon-Terror! Litauen ruft Notstand aus.",
         content_html="<h2>Hybrider Angriff von Putin-Kumpel: Ballon-Terror! Litauen ruft Notstand aus</h2>"
                      "<p>Hält sich dank Putin an der Macht und provoziert die Nachbarländer: Belarus-Diktator Alexander Lukaschenko (71)</p>"
                      "<p>Vilnius – Der Terror aus dem Nachbarland hört nicht auf! Litauen ruft wegen Ballons aus Belarus den Notstand aus. Innenminister Wladislaw Kondratowitsch begründet den Schritt nicht nur mit Störungen des Flugverkehrs, sondern auch mit Interessen der nationalen Sicherheit. EU-Kommissionspräsidentin Ursula von der Leyen spricht von einem „inakzeptablen hybriden Angriff“.</p>"
@@ -62,9 +64,9 @@ ARTICLES: list[ArticleRecord] = [
         url=HttpUrl(
             "https://www.spiegel.de/wirtschaft/unternehmen/rekordzahlen-des-deutschen-aktieninstituts-mehr-als-14-millionen-deutsche-besitzen-aktien-a-ebc734c3-f3c3-4551-a700-24fcd559ac5e"),
         author="",
+        preview="Deutschland hat so viele Aktionäre wie nie zuvor: 14,1 Millionen Deutsche besaßen 2025 Aktien, ETFs oder Aktienfonds – rund zwei Millionen mehr als im Vorjahr.",
         content_html=(
-            "<p>Deutschland hat so viele Aktionäre wie nie zuvor: 14,1 Millionen Deutsche besaßen 2025 "
-            "Aktien, ETFs oder Aktienfonds – rund zwei Millionen mehr als im Vorjahr.</p>"
+            "<h2>Deutschland hat so viele Aktionäre wie nie zuvor: 14,1 Millionen Deutsche besaßen 2025 Aktien, ETFs oder Aktienfonds – rund zwei Millionen mehr als im Vorjahr.</h2>"
             "<p>Im Verlauf des Jahres 2025 besaßen durchschnittlich 14,1 Millionen Menschen in Deutschland "
             "Aktienfonds, ETFs oder Aktien. Das zeigen Zahlen des Deutschen Aktieninstituts (DAI). "
             "Nach zwei Jahren mit rückläufigen Aktionärszahlen wurde damit der Rekord von 2022 "
@@ -104,11 +106,9 @@ ARTICLES: list[ArticleRecord] = [
             "https://www.ndr.de/nachrichten/niedersachsen/braunschweig_harz_goettingen/getoetete-liana-k-in-friedland-verdaechtiger-wohl-schuldunfaehig,friedland-164.html"
         ),
         author="NDR Redaktion",
+        preview="Vor fünf Monaten ist Liana K. in Friedland gestorben. Ein 31-jähriger abgelehnter Asylbewerber soll die 16-Jährige am Bahnhof gegen einen Güterzug gestoßen haben. Der Verdächtige soll schuldunfähig sein.",
         content_html=(
-            "<p>Vor fünf Monaten ist Liana K. in Friedland gestorben. "
-            "Ein 31-jähriger abgelehnter Asylbewerber soll die 16-Jährige "
-            "am Bahnhof gegen einen Güterzug gestoßen haben. "
-            "Der Verdächtige soll schuldunfähig sein.</p>"
+            "<h2>Vor fünf Monaten ist Liana K. in Friedland gestorben. Ein 31-jähriger abgelehnter Asylbewerber soll die 16-Jährige am Bahnhof gegen einen Güterzug gestoßen haben. Der Verdächtige soll schuldunfähig sein.</h2>"
             "<p>Grund dafür sei eine diagnostizierte Schizophrenie, "
             "teilte die Staatsanwaltschaft Göttingen mit. "
             "Statt einer Anklage wegen Totschlags wurde ein Sicherungsverfahren "

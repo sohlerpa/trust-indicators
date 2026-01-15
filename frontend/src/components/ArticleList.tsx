@@ -17,6 +17,11 @@ export default function ArticleList({articles}: { articles: ArticleSummary[] }) 
                             <div className="metaSmall">
                                 {a.source} · {new Date(a.published_at).toLocaleString()}
                             </div>
+                            <div>
+                                {a.preview && (
+                                    <p className="article-preview">{a.preview}</p>
+                                )}
+                            </div>
                         </div>
                     </Link>
                 ))}
