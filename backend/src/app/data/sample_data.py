@@ -91,7 +91,32 @@ ARTICLES: list[ArticleRecord] = [
             "Wirtschaftsleistung in Aktien, ETFs oder Fonds – deutlich weniger als etwa in Dänemark "
             "(194 Prozent) oder den Niederlanden (164 Prozent).</p>"
         ),
-    )
+    ),
+    ArticleRecord(
+        id="a4",
+        title="Getötete Liana K. in Friedland: Verdächtiger wohl schuldunfähig",
+        source="ndr.de",
+        published_at=datetime(2026, 1, 15, 10, 5, 0),
+        image_url=HttpUrl(
+            "https://images.ndr.de/image/0e6a0246-9c9f-4aff-9fb3-23ae0b46dc5a/AAABm8C_P4w/AAABmyZE0EA/16x9-big/friedland-136.webp?width=1920"
+        ),
+        url=HttpUrl(
+            "https://www.ndr.de/nachrichten/niedersachsen/braunschweig_harz_goettingen/getoetete-liana-k-in-friedland-verdaechtiger-wohl-schuldunfaehig,friedland-164.html"
+        ),
+        author="NDR Redaktion",
+        content_html=(
+            "<p>Vor fünf Monaten ist Liana K. in Friedland gestorben. "
+            "Ein 31-jähriger abgelehnter Asylbewerber soll die 16-Jährige "
+            "am Bahnhof gegen einen Güterzug gestoßen haben. "
+            "Der Verdächtige soll schuldunfähig sein.</p>"
+            "<p>Grund dafür sei eine diagnostizierte Schizophrenie, "
+            "teilte die Staatsanwaltschaft Göttingen mit. "
+            "Statt einer Anklage wegen Totschlags wurde ein Sicherungsverfahren "
+            "beantragt.</p>"
+            "<p>Der Beschuldigte könnte nach Abschluss des Verfahrens "
+            "in einem psychiatrischen Krankenhaus untergebracht werden.</p>"
+        ),
+    ),
 ]
 
 X_POSTS: list[XPostRecord] = [

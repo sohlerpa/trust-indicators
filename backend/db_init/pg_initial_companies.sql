@@ -7,4 +7,5 @@ INSERT INTO companies (name, isPublisher, publisherType, country) VALUES
 ('Spiegel-Gruppe', true, 'private', 'Germany'),
 ('Ströer SE & Co. KGaA', false, 'private', 'Germany'),
 ('United Internet AG', false, 'private', 'Germany'),
-('Zeitverlag Gerd Bucerius GmbH & Co. KG',true,  'private', 'Germany');
+('Zeitverlag Gerd Bucerius GmbH & Co. KG',true,  'private', 'Germany'),
+('Norddeutscher Rundfunk', true, 'public', 'Germany');

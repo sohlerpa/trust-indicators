@@ -1,17 +1,34 @@
 from src.app.api.schemas import ArticleSummaryOut, ArticleDetailOut, XPostOut
 from src.app.models.models import ArticleRecord, TrustIndicators, XPostRecord
 from src.modules.tone.tone_classifier import classify_tone
+from src.modules.source_funding.db_connector import get_db
+from src.modules.source_funding.queries import GET_DOMAIN_OWNERS, GET_FEED_OWNERSHIP, GET_DOMAIN_PUBLISHER_TYPE
+from src.modules.source_funding.db_connector import SessionLocal
 
 
 def compute_trust_indicators_for_article(a: ArticleRecord) -> TrustIndicators:
     tone_classification = classify_tone(a.content_html)
+
+    domain = a.source.replace("www.", "")
+    db = SessionLocal()
+    try:
+        row = db.execute(
+            GET_DOMAIN_PUBLISHER_TYPE,
+            {"domain": domain}
+        ).fetchone()
+    finally:
+        db.close()
+
+    print(row.publisher_type)
+    publisher_type = row.publisher_type if row else "unknown"
+
     return TrustIndicators(
         badge="red",  # TODO
         fact_checked=False,  # TODO
         tone=tone_classification.tone,
         content_type=tone_classification.content_type,
         tone_type_rationale=tone_classification.rationale,
-        publisher_type="private",  # TODO
+        publisher_type=publisher_type,  # TODO
         c2pa_present=False,  # TODO
     )
 
