@@ -1,10 +1,18 @@
+from sqlalchemy.orm import Session
+
 from src.app.api.schemas import ArticleSummaryOut, ArticleDetailOut, XPostOut
-from src.app.models.models import ArticleRecord, TrustIndicators, XPostRecord
+from src.app.models.models import ArticleRecord, TrustIndicators, XPostRecord, OwnerInfo
+from src.modules.source_funding.queries import GET_DOMAIN_OWNERS
 from src.modules.tone.tone_classifier import classify_tone
 
 
-def compute_trust_indicators_for_article(a: ArticleRecord) -> TrustIndicators:
+def compute_trust_indicators_for_article(a: ArticleRecord, db: Session) -> TrustIndicators:
     tone_classification = classify_tone(a.content_html)
+    owners_db_result = db.execute(GET_DOMAIN_OWNERS, {"domain": a.source}).fetchall()
+    owners = [
+        OwnerInfo(owner=row.name, percent=float(row.ownership_percent))
+        for row in owners_db_result
+    ]
     return TrustIndicators(
         badge="red",  # TODO
         fact_checked=False,  # TODO
@@ -13,6 +21,7 @@ def compute_trust_indicators_for_article(a: ArticleRecord) -> TrustIndicators:
         tone_type_rationale=tone_classification.rationale,
         publisher_type="private",  # TODO
         c2pa_present=False,  # TODO
+        owners=owners
     )
 
 
@@ -29,7 +38,7 @@ def compute_trust_indicators_for_xpost(p: XPostRecord) -> TrustIndicators:
     )
 
 
-def to_article_summary_out(a: ArticleRecord) -> ArticleSummaryOut:
+def to_article_summary_out(a: ArticleRecord, db: Session) -> ArticleSummaryOut:
     return ArticleSummaryOut(
         id=a.id,
         title=a.title,
@@ -37,12 +46,12 @@ def to_article_summary_out(a: ArticleRecord) -> ArticleSummaryOut:
         source=a.source,
         published_at=a.published_at,
         image_url=a.image_url,
-        trust_indicators=compute_trust_indicators_for_article(a),
+        trust_indicators=compute_trust_indicators_for_article(a, db),
     )
 
 
-def to_article_detail_out(a: ArticleRecord) -> ArticleDetailOut:
-    base = to_article_summary_out(a)
+def to_article_detail_out(a: ArticleRecord, db: Session) -> ArticleDetailOut:
+    base = to_article_summary_out(a, db)
     return ArticleDetailOut(
         **base.model_dump(),
         author=a.author,

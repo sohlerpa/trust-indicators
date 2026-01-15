@@ -9,7 +9,12 @@ export type TrustIndicators = {
     tone_type_rationale?: string | null;
     publisher_type: PublisherType;
     c2pa_present: boolean;
-    funding_info?: string | null;
+    owners?: OwnerInfo[];
+};
+
+export type OwnerInfo = {
+    owner: string;
+    percent: number;
 };
 
 export type ArticleSummary = {

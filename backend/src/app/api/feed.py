@@ -1,9 +1,12 @@
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Depends
 from typing import List, Optional
+
+from sqlalchemy.orm import Session
 
 from src.app.api.schemas import FeedResponse, ArticleSummaryOut, XPostOut
 from src.app.data.sample_data import X_POSTS, ARTICLES
 from src.app.service.trust_indicator_enricher import to_article_summary_out, to_xpost_out
+from src.modules.source_funding.db_connector import get_db
 
 router = APIRouter()
 
@@ -14,6 +17,7 @@ def get_feed(
         tone: Optional[List[str]] = Query(default=None),
         content_type: Optional[List[str]] = Query(default=None),
         publisher_type: Optional[List[str]] = Query(default=None),
+        db: Session = Depends(get_db)
 ):
     # TODO maybe we can filter for something already or do some pre processing that we don't have to run everything on all posts/articles?
 
@@ -21,7 +25,7 @@ def get_feed(
     x_raw = X_POSTS
 
     # enrich with trust indicators
-    articles: list[ArticleSummaryOut] = [to_article_summary_out(a) for a in articles_raw]
+    articles: list[ArticleSummaryOut] = [to_article_summary_out(a, db) for a in articles_raw]
     x_posts: list[XPostOut] = [to_xpost_out(p) for p in x_raw]
 
     def matches(ind) -> bool:
