@@ -22,11 +22,11 @@ cumulative AS (
 )
 SELECT name, ownership_percent
 FROM cumulative
-WHERE cumulative_sum <= 50
+WHERE cumulative_sum <= 70
    OR ownership_percent = (
         SELECT ownership_percent
         FROM cumulative
-        WHERE cumulative_sum > 50
+        WHERE cumulative_sum > 70
         ORDER BY cumulative_sum
         LIMIT 1
    );
@@ -53,7 +53,9 @@ ORDER BY total_influence DESC;
 """)
 
 GET_DOMAIN_PUBLISHER_TYPE = text("""
-SELECT c.publisherType AS publisher_type
+SELECT
+    c.publisherType AS publisher_type,
+    c.country       AS country
 FROM domains d
 JOIN companies c ON c.id = d.company_id
 WHERE d.domain = :domain;

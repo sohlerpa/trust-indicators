@@ -29,6 +29,7 @@ class TrustIndicators(BaseModel):
     content_type: Optional[ContentType] = None
     tone_type_rationale: Optional[str] = None
     publisher_type: PublisherType = "unknown"
+    publisher_country: Optional[str] = None
     c2pa_info: list[ImageProvenance] = None
     owners: list[OwnerInfo] = []
 
@@ -41,6 +42,7 @@ class ArticleRecord(BaseModel):
     published_at: datetime
     image_url: Optional[HttpUrl] = None
     author: Optional[str] = None
+    preview: str = ""
     content_html: str
 
 
