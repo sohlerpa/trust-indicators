@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 
 from src.app.api.schemas import ArticleSummaryOut, ArticleDetailOut, XPostOut
 from src.app.models.models import ArticleRecord, TrustIndicators, XPostRecord, OwnerInfo
-from src.modules.source_funding.queries import GET_DOMAIN_OWNERS
+from src.modules.source_funding.queries import GET_DOMAIN_OWNERS, GET_DOMAIN_PUBLISHER_TYPE
 from src.modules.tone.tone_classifier import classify_tone
 
 
@@ -13,13 +13,21 @@ def compute_trust_indicators_for_article(a: ArticleRecord, db: Session) -> Trust
         OwnerInfo(owner=row.name, percent=float(row.ownership_percent))
         for row in owners_db_result
     ]
+
+    publisher_type_db_result = db.execute(GET_DOMAIN_PUBLISHER_TYPE, {"domain": a.source}).fetchone()
+    publisher_type = (
+        publisher_type_db_result.publisher_type
+        if publisher_type_db_result
+        else "unknown"
+    )
+
     return TrustIndicators(
         badge="red",  # TODO
         fact_checked=False,  # TODO
         tone=tone_classification.tone,
         content_type=tone_classification.content_type,
         tone_type_rationale=tone_classification.rationale,
-        publisher_type="private",  # TODO
+        publisher_type=publisher_type,
         c2pa_present=False,  # TODO
         owners=owners
     )

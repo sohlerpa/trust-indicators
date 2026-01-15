@@ -51,3 +51,10 @@ FROM joined
 GROUP BY owner_name
 ORDER BY total_influence DESC;
 """)
+
+GET_DOMAIN_PUBLISHER_TYPE = text("""
+SELECT c.publisherType AS publisher_type
+FROM domains d
+JOIN companies c ON c.id = d.company_id
+WHERE d.domain = :domain;
+""")
