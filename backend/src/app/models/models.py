@@ -6,7 +6,7 @@ from pydantic import BaseModel, HttpUrl
 from src.modules.tone.tone_classifier import ToneType, ContentType
 
 PublisherType = Literal["public", "private", "unknown"]
-Badge = Literal["green", "orange", "red"]
+Badge = Literal["green", "orange", "red", "grey"]
 
 
 class OwnerInfo(BaseModel):
