@@ -65,8 +65,21 @@ export default function ArticlePage() {
                         <p>{article.source} ({article.trust_indicators.publisher_type})</p>
                     </div>
                     <div className="card metaCard">
-                        <h2>Funding</h2>
-                        <p>Insert Funding Info</p>
+                        <h2>Main Owners</h2>
+                        {article.trust_indicators.owners?.length ? (
+                            <ul className="ownersList">
+                                {article.trust_indicators.owners.map((o) => (
+                                    <li key={o.owner} className="ownerRow">
+                                        <span className="ownerName">{o.owner}  </span>
+                                        <span className="ownerPercent">
+                        ({o.percent.toFixed(1)}%)
+                    </span>
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <p>-</p>
+                        )}
                     </div>
                     <div className="card metaCard">
                         <h2>C2PA</h2>

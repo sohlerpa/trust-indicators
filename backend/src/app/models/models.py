@@ -8,6 +8,11 @@ PublisherType = Literal["public", "private", "unknown"]
 Badge = Literal["green", "orange", "red"]
 
 
+class OwnerInfo(BaseModel):
+    owner: str
+    percent: float
+
+
 class TrustIndicators(BaseModel):
     badge: Badge
     fact_checked: bool = False
@@ -16,6 +21,7 @@ class TrustIndicators(BaseModel):
     tone_type_rationale: Optional[str] = None
     publisher_type: PublisherType = "unknown"
     c2pa_present: bool = False
+    owners: list[OwnerInfo] = []
 
 
 class ArticleRecord(BaseModel):
