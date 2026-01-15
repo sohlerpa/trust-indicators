@@ -19,11 +19,3 @@ X_POSTS: list[XPostRecord] = [
         created_at=datetime(2025, 12, 21, 12, 34, 28)
     ),
 ]
-
-
-def load_all_articles() -> list[ArticleRecord]:
-    return ARTICLES
-
-
-def get_article_by_id(article_id: str) -> ArticleRecord | None:
-    return next((a for a in ARTICLES if a.id == article_id), None)
