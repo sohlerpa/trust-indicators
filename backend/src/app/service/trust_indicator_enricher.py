@@ -19,7 +19,7 @@ def extract_img_srcs(content_html: str, article_url: str, api_base_url: str) -> 
     soup = BeautifulSoup(content_html or "", "html.parser")
     srcs: list[str] = []
 
-    for img in soup.find_all("img"):
+    for img in soup.find_all(["img", "iframe"]):
         src = (img.get("src") or "").strip()
         if not src:
             continue

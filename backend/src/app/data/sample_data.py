@@ -121,18 +121,44 @@ ARTICLES: list[ArticleRecord] = [
     ArticleRecord(
         id="a5",
         title="C2PA Test-Article",
-        source="spiegel.de",
+        source="bbc.com",
         published_at=datetime(2026, 1, 15, 13, 22, 00),
         image_url=HttpUrl(
-            "https://cdn.prod.www.spiegel.de/images/9f1aa452-5e4a-4239-b481-eba8497b109c_w1920_r1.778_fpx50_fpy53.webp"),
+            "https://ichef.bbci.co.uk/news/1536/cpsprodpb/5abf/live/b6e95810-f1d1-11f0-8910-43200a92a454.jpg.webp"),
         url=HttpUrl(
-            "https://www.spiegel.de/wirtschaft/unternehmen/rekordzahlen-des-deutschen-aktieninstituts-mehr-als-14-millionen-deutsche-besitzen-aktien-a-ebc734c3-f3c3-4551-a700-24fcd559ac5e"),
+            "https://www.bbc.com/news/articles/cwyn15110gvo"),
         author="Paul Sohler",
         content_html="<p>This is a test for C2PA</p>"
+         '<div class="videoWrapper">'
+         '<iframe '
+         'src="/assets/dancing_dog.mp4" '
+         'title="A dancing dog" '
+         '</iframe>'
+         '</div>'
         "<p>new paragraph</p>"
         '<img src="/assets/cute_dog.png" />'
         "<p>Next picture without any siganture:</p>"
         '<img src="/assets/sample.png" />'
+    ),
+    ArticleRecord(
+        id="a6",
+        title="European military personnel arrive in Greenland as Trump says US needs island",
+        source="bbc.com",
+        published_at=datetime(2026, 1, 15, 14, 58, 00),
+        image_url=HttpUrl(
+            "https://ichef.bbci.co.uk/news/1536/cpsprodpb/fa87/live/3126fb20-f202-11f0-b5f7-49f0357294ff.jpg.webp"),
+        url=HttpUrl(
+            "https://www.bbc.com/news/articles/cd0ydjvxpejo"),
+        author="Paul Kirby",
+        content_html=(
+            "<p>Watch: What message do Greenlanders want to send to Trump?</p>"
+            '<div class="videoWrapper">'
+            '<iframe '
+            'src="https://www.youtube.com/embed/cWUsswicFJA" '
+            'title="What message do Greenlanders want to give to Donald Trump?" '
+            '</iframe>'
+            '</div>'
+        )
     )
 ]
 
