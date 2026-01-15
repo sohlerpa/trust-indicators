@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from src.app.api.schemas import ArticleSummaryOut, ArticleDetailOut, XPostOut
 from src.app.models.models import ArticleRecord, TrustIndicators, XPostRecord, OwnerInfo, ImageProvenance
+from src.modules.author_expertise.author_expertise_classifier import assess_author_expertise, AuthorExpertiseResult
 from src.modules.provenance_media.extractor import c2pa_for_image_url
 from src.modules.source_funding.queries import GET_DOMAIN_OWNERS, GET_DOMAIN_PUBLISHER_TYPE
 from src.modules.tone.tone_classifier import classify_tone
@@ -36,7 +37,7 @@ def extract_img_srcs(content_html: str, article_url: str, api_base_url: str) -> 
     return srcs
 
 
-def compute_trust_indicators_for_article(a: ArticleRecord, db: Session) -> TrustIndicators:
+def compute_trust_indicators_for_article(a: ArticleRecord, db: Session, feed_mode=True) -> TrustIndicators:
     tone_classification = classify_tone(a.content_html)
     owners_db_result = db.execute(GET_DOMAIN_OWNERS, {"domain": a.source}).fetchall()
     owners = [
@@ -66,6 +67,20 @@ def compute_trust_indicators_for_article(a: ArticleRecord, db: Session) -> Trust
             )
         )
 
+    if not feed_mode:
+        author_expertise = assess_author_expertise(a.content_html, a.author, str(a.url))
+    else:
+        # author_expertise = None TODO set back
+        author_expertise = AuthorExpertiseResult(
+            author = "Felix Kiefer",
+            article_url = "http://dijwbidw.dnwj/(dzwubdw",
+            publisher_domain = "tagesspiegel.de",
+            field = "Financial Policy",
+            label = "field_expert",
+            confidence = 0.9,
+            explanation = "Very well written piece......"
+        )
+
     return TrustIndicators(
         badge="red",  # TODO
         fact_checked=False,  # TODO
@@ -75,7 +90,8 @@ def compute_trust_indicators_for_article(a: ArticleRecord, db: Session) -> Trust
         publisher_type=publisher_type,
         publisher_country=publisher_country,
         c2pa_info=images,
-        owners=owners
+        owners=owners,
+        author_expertise=author_expertise,
     )
 
 
@@ -91,7 +107,7 @@ def compute_trust_indicators_for_xpost(p: XPostRecord) -> TrustIndicators:
     )
 
 
-def to_article_summary_out(a: ArticleRecord, db: Session) -> ArticleSummaryOut:
+def to_article_summary_out(a: ArticleRecord, db: Session, feed_mode=True) -> ArticleSummaryOut:
     return ArticleSummaryOut(
         id=a.id,
         title=a.title,
@@ -100,12 +116,12 @@ def to_article_summary_out(a: ArticleRecord, db: Session) -> ArticleSummaryOut:
         source=a.source,
         published_at=a.published_at,
         image_url=a.image_url,
-        trust_indicators=compute_trust_indicators_for_article(a, db),
+        trust_indicators=compute_trust_indicators_for_article(a, db, feed_mode),
     )
 
 
-def to_article_detail_out(a: ArticleRecord, db: Session) -> ArticleDetailOut:
-    base = to_article_summary_out(a, db)
+def to_article_detail_out(a: ArticleRecord, db: Session, feed_mode=True) -> ArticleDetailOut:
+    base = to_article_summary_out(a, db, feed_mode=feed_mode)
     return ArticleDetailOut(
         **base.model_dump(),
         author=a.author,

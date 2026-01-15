@@ -25,7 +25,7 @@ def get_feed(
     x_raw = X_POSTS
 
     # enrich with trust indicators
-    articles: list[ArticleSummaryOut] = [to_article_summary_out(a, db) for a in articles_raw]
+    articles: list[ArticleSummaryOut] = [to_article_summary_out(a, db, feed_mode=True) for a in articles_raw]
     x_posts: list[XPostOut] = [to_xpost_out(p) for p in x_raw]
 
     def matches(ind) -> bool:

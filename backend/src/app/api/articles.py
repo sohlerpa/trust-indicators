@@ -14,4 +14,4 @@ def get_article(article_id: str, db: Session = Depends(get_db)):
     a = get_article_by_id(article_id)
     if not a:
         raise HTTPException(status_code=404, detail="Article not found")
-    return to_article_detail_out(a, db)
+    return to_article_detail_out(a, db, feed_mode=True) # TODO insert false here

@@ -396,3 +396,232 @@ body {
 .c2paStatus.error {
     color: #c62828;
 }
+
+
+.expertBox {
+    display: grid;
+    gap: 10px;
+}
+
+.expertHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.expertMain {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.expertDot {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    flex: 0 0 10px;
+}
+
+.expertDot.field_expert { background: #3bb54a; }
+.expertDot.not_field_expert { background: #d0021b; }
+.expertDot.uncertain { background: #9aa3ad; }
+
+.expertLabel {
+    font-weight: 700;
+    letter-spacing: 0.1px;
+}
+
+.expertMeta {
+    display: grid;
+    gap: 6px;
+    color: #333;
+    font-size: 14px;
+}
+
+.confidencePill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    border: 1px solid rgba(0,0,0,0.10);
+    background: #f3f4f6;
+    color: #111;
+}
+
+.confidencePill.field_expert {
+    background: #e6f6ea;
+    color: #1c7c3c;
+    border-color: rgba(28, 124, 60, 0.18);
+}
+
+.confidencePill.not_field_expert {
+    background: #fdeaea;
+    color: #a11818;
+    border-color: rgba(161, 24, 24, 0.18);
+}
+
+.confidencePill.uncertain {
+    background: #eef0f2;
+    color: #4b5563;
+    border-color: rgba(75, 85, 99, 0.18);
+}
+
+.confidenceBar {
+    height: 8px;
+    background: #e6e9ee;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.confidenceFill {
+    height: 100%;
+    border-radius: 999px;
+}
+
+.confidenceFill.field_expert { background: #3bb54a; }
+.confidenceFill.not_field_expert { background: #d0021b; }
+.confidenceFill.uncertain { background: #9aa3ad; }
+
+.expertExplanation {
+    margin: 0;
+    font-size: 13px;
+    color: #444;
+    line-height: 1.5;
+}
+
+
+.styleBox {
+    display: grid;
+    gap: 10px;
+}
+
+.styleHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.styleMain {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.styleDot {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    background: #111;
+    opacity: 0.85;
+}
+
+.styleLabel {
+    font-weight: 700;
+    letter-spacing: 0.1px;
+    text-transform: capitalize;
+}
+
+.stylePill {
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 13px;
+    background: #f3f4f6;
+    color: #111;
+    border: 1px solid rgba(0,0,0,0.10);
+    white-space: nowrap;
+}
+
+.styleExplanation {
+    margin: 0;
+    font-size: 13px;
+    color: #444;
+    line-height: 1.5;
+}
+
+.publisherLabel {
+    font-weight: 700;
+    letter-spacing: 0.1px;
+}
+
+.publisherRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.publisherLeft {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0; /* allows truncation */
+}
+
+.publisherFlag {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    overflow: hidden;
+    flex: 0 0 22px;
+}
+
+.publisherLabel {
+    font-weight: 700;
+    letter-spacing: 0.1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ownersNiceList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 10px;
+}
+
+.ownerNiceRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.ownerNiceLeft {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0; /* enables truncation */
+}
+
+.ownerNiceDot {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    background: #111;
+    opacity: 0.85;
+    flex: 0 0 10px;
+}
+
+.ownerNiceName {
+    font-weight: 700;
+    letter-spacing: 0.1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ownerNicePill {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
