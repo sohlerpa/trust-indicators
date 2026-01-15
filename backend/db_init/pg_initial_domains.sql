@@ -9,3 +9,4 @@ INSERT INTO domains (domain, company_id) VALUES
 ('web.de', 8), --United Internet
 ('welt.de', 1), --Axel Springer
 ('zeit.de', 9); --Zeitverlag Gerd Bucerius
+('ndr.de', 10); -- Norddeutscher Rundfunk
