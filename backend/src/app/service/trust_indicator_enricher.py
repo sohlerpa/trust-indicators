@@ -8,7 +8,7 @@ from src.app.models.models import ArticleRecord, TrustIndicators, XPostRecord, O
 from src.modules.author_expertise.author_expertise_classifier import assess_author_expertise, AuthorExpertiseResult
 from src.modules.provenance_media.extractor import c2pa_for_image_url
 from src.modules.source_funding.queries import GET_DOMAIN_OWNERS, GET_DOMAIN_PUBLISHER_TYPE
-from src.modules.tone.tone_classifier import classify_tone
+from src.modules.tone.tone_classifier import classify_tone, ToneClassification
 from src.app.models.article import get_or_create_trust_indicators
 
 
@@ -88,7 +88,7 @@ def compute_trust_indicators_for_article(a: ArticleRecord, db: Session, feed_mod
 
 
 def compute_trust_indicators_for_xpost(p: XPostRecord) -> TrustIndicators:
-    tone_classification = classify_tone(p.text)
+    tone_classification = ToneClassification(content_type="news", tone="neutral", confidence=0.0, rationale="rationale text") #classify_tone(p.text) TODO
     return TrustIndicators(
         badge="red",  # TODO
         fact_checked=False,  # TODO
