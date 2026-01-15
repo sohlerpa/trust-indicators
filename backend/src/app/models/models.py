@@ -44,7 +44,7 @@ class ArticleRecord(BaseModel):
     published_at: datetime
     image_url: Optional[HttpUrl] = None
     author: Optional[str] = None
-    preview: str = ""
+    preview: Optional[str] = ""
     content_html: str
 
 

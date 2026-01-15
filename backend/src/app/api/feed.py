@@ -4,9 +4,10 @@ from typing import List, Optional
 from sqlalchemy.orm import Session
 
 from src.app.api.schemas import FeedResponse, ArticleSummaryOut, XPostOut
-from src.app.data.sample_data import X_POSTS, ARTICLES
+from src.app.data.sample_data import X_POSTS
+from src.app.models.article import get_all_articles
 from src.app.service.trust_indicator_enricher import to_article_summary_out, to_xpost_out
-from src.modules.source_funding.db_connector import get_db
+from src.app.service.db_connector import get_db
 
 router = APIRouter()
 
@@ -21,7 +22,7 @@ def get_feed(
 ):
     # TODO maybe we can filter for something already or do some pre processing that we don't have to run everything on all posts/articles?
 
-    articles_raw = ARTICLES
+    articles_raw = get_all_articles(db)
     x_raw = X_POSTS
 
     # enrich with trust indicators
