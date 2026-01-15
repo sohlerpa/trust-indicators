@@ -50,6 +50,7 @@ ARTICLES: list[ArticleRecord] = [
                      "<p>Die litauische Regierung sieht dahinter eine „hybride Attacke“ der belarussischen Führung in Minsk. Mit der Sperrung wollte Vilnius Minsk zwingen, die Ballonflüge zu stoppen.</p>"
                      "︎<p>Auch die Grenze zwischen beiden Ländern war wochenlang geschlossen. Lkw kamen seit Ende Oktober nicht durch. Erst am 19. November öffnete das kleine Litauen (2,9 Mio. Einwohner) die Grenze wieder.</p>"
                      "︎<p>Und: Kinder machen schon in der Schule ihren „Drohnenführerschein“.</p>"
+                     '<img src="https://www.bild.de/ig/eb26e079-d2a1-45f7-b899-da4edf1c024f/mobile/mobile">'
                      "<p>Im November beschloss Litauens „Rat für staatliche Verteidigung“ außerdem ein 500-Mio.-Euro-Paket zum Schutz vor russischen Spionage- und Kamikaze-Drohnen und zur Abwehr staatlich organisierter belarusischer Schmuggler-Ballons – ein Riesenposten im Haushalt des kleinen Landes (mehr als 5 Prozent des Litauen-BIPs von etwa 78 Mrd. Euro 2024).</p>"
                      "<p>Vize-Verteidigungsminister Tomas Godliauskas erklärte damals BILD, dass die Drohnen- und Ballongefahr aus Putins Reich „nicht nur theoretisch, sondern ganz praktisch unser Leben bereits erschwert und unterbricht“. Darum müsse die Politik sofort handeln, um die Bevölkerung, die kritische Infrastruktur und den Luftverkehr im Land zu schützen.</p>"
         ,
@@ -117,6 +118,48 @@ ARTICLES: list[ArticleRecord] = [
             "in einem psychiatrischen Krankenhaus untergebracht werden.</p>"
         ),
     ),
+    ArticleRecord(
+        id="a5",
+        title="C2PA Test-Article",
+        source="bbc.com",
+        published_at=datetime(2026, 1, 15, 13, 22, 00),
+        image_url=HttpUrl(
+            "https://ichef.bbci.co.uk/news/1536/cpsprodpb/5abf/live/b6e95810-f1d1-11f0-8910-43200a92a454.jpg.webp"),
+        url=HttpUrl(
+            "https://www.bbc.com/news/articles/cwyn15110gvo"),
+        author="Paul Sohler",
+        content_html="<p>This is a test for C2PA</p>"
+         '<div class="videoWrapper">'
+         '<iframe '
+         'src="/assets/dancing_dog.mp4" '
+         'title="A dancing dog" '
+         '</iframe>'
+         '</div>'
+        "<p>new paragraph</p>"
+        '<img src="/assets/cute_dog.png" />'
+        "<p>Next picture without any siganture:</p>"
+        '<img src="/assets/sample.png" />'
+    ),
+    ArticleRecord(
+        id="a6",
+        title="European military personnel arrive in Greenland as Trump says US needs island",
+        source="bbc.com",
+        published_at=datetime(2026, 1, 15, 14, 58, 00),
+        image_url=HttpUrl(
+            "https://ichef.bbci.co.uk/news/1536/cpsprodpb/fa87/live/3126fb20-f202-11f0-b5f7-49f0357294ff.jpg.webp"),
+        url=HttpUrl(
+            "https://www.bbc.com/news/articles/cd0ydjvxpejo"),
+        author="Paul Kirby",
+        content_html=(
+            "<p>Watch: What message do Greenlanders want to send to Trump?</p>"
+            '<div class="videoWrapper">'
+            '<iframe '
+            'src="https://www.youtube.com/embed/cWUsswicFJA" '
+            'title="What message do Greenlanders want to give to Donald Trump?" '
+            '</iframe>'
+            '</div>'
+        )
+    )
 ]
 
 X_POSTS: list[XPostRecord] = [

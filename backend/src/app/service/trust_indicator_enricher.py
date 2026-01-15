@@ -1,9 +1,39 @@
+from urllib.parse import urljoin
+
+from bs4 import BeautifulSoup
 from sqlalchemy.orm import Session
 
 from src.app.api.schemas import ArticleSummaryOut, ArticleDetailOut, XPostOut
-from src.app.models.models import ArticleRecord, TrustIndicators, XPostRecord, OwnerInfo
+from src.app.models.models import ArticleRecord, TrustIndicators, XPostRecord, OwnerInfo, ImageProvenance
+from src.modules.provenance_media.extractor import c2pa_for_image_url
 from src.modules.source_funding.queries import GET_DOMAIN_OWNERS, GET_DOMAIN_PUBLISHER_TYPE
 from src.modules.tone.tone_classifier import classify_tone
+
+
+def extract_img_srcs(content_html: str, article_url: str, api_base_url: str) -> list[str]:
+    """
+    - Absolute URLs (https://...) stay as-is
+    - Root-relative paths are resolved against api_base_url
+      (so /assets/... -> http://localhost:8000/assets/...)
+    """
+    soup = BeautifulSoup(content_html or "", "html.parser")
+    srcs: list[str] = []
+
+    for img in soup.find_all(["img", "iframe"]):
+        src = (img.get("src") or "").strip()
+        if not src:
+            continue
+
+        if src.startswith(("http://", "https://")):
+            resolved = src
+        elif src.startswith("/"):
+            resolved = urljoin(api_base_url, src)
+        else:
+            resolved = urljoin(article_url, src)
+
+        srcs.append(resolved)
+
+    return srcs
 
 
 def compute_trust_indicators_for_article(a: ArticleRecord, db: Session) -> TrustIndicators:
@@ -22,6 +52,20 @@ def compute_trust_indicators_for_article(a: ArticleRecord, db: Session) -> Trust
     publisher_type = publisher_type_db_result.publisher_type if publisher_type_db_result else "unknown"
     publisher_country = publisher_type_db_result.country if publisher_type_db_result else None
 
+    img_urls = extract_img_srcs(a.content_html, article_url=str(a.url), api_base_url="http://localhost:8000")
+    images: list[ImageProvenance] = []
+    for u in img_urls:
+        info = c2pa_for_image_url(u)
+        images.append(
+            ImageProvenance(
+                src=u,
+                c2pa_present=info.manifest_found,
+                issuer=info.issuer,
+                title=info.title,
+                is_ai_generated=info.is_ai_generated,
+            )
+        )
+
     return TrustIndicators(
         badge="red",  # TODO
         fact_checked=False,  # TODO
@@ -30,7 +74,7 @@ def compute_trust_indicators_for_article(a: ArticleRecord, db: Session) -> Trust
         tone_type_rationale=tone_classification.rationale,
         publisher_type=publisher_type,
         publisher_country=publisher_country,
-        c2pa_present=False,  # TODO
+        c2pa_info=images,
         owners=owners
     )
 
@@ -44,7 +88,6 @@ def compute_trust_indicators_for_xpost(p: XPostRecord) -> TrustIndicators:
         content_type=tone_classification.content_type,
         tone_type_rationale=tone_classification.rationale,
         publisher_type="unknown",  # TODO
-        c2pa_present=False,  # TODO
     )
 
 

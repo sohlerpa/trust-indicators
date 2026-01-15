@@ -1,6 +1,7 @@
-from pydantic import BaseModel, HttpUrl
-from typing import Optional, Literal
 from datetime import datetime
+from typing import Optional, Literal
+
+from pydantic import BaseModel, HttpUrl
 
 from src.modules.tone.tone_classifier import ToneType, ContentType
 
@@ -13,6 +14,14 @@ class OwnerInfo(BaseModel):
     percent: float
 
 
+class ImageProvenance(BaseModel):
+    src: str
+    c2pa_present: bool
+    issuer: Optional[str] = None
+    title: Optional[str] = None
+    is_ai_generated: bool = False
+
+
 class TrustIndicators(BaseModel):
     badge: Badge
     fact_checked: bool = False
@@ -21,7 +30,7 @@ class TrustIndicators(BaseModel):
     tone_type_rationale: Optional[str] = None
     publisher_type: PublisherType = "unknown"
     publisher_country: Optional[str] = None
-    c2pa_present: bool = False
+    c2pa_info: list[ImageProvenance] = None
     owners: list[OwnerInfo] = []
 
 

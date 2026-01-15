@@ -87,7 +87,51 @@ export default function ArticlePage() {
                     </div>
                     <div className="card metaCard">
                         <h2>C2PA</h2>
-                        <p>Insert C2PA Info</p>
+
+                        {article.trust_indicators.c2pa_info?.length ? (
+                            <ul className="c2paList">
+                                {article.trust_indicators.c2pa_info.map((i) => {
+                                    const ytId = i.src.includes("youtube.com/embed/")
+                                        ? i.src.split("youtube.com/embed/")[1]?.split("?")[0]
+                                        : null;
+
+                                    const thumbSrc = ytId
+                                        ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`
+                                        : i.src;
+
+                                    return (
+                                        <li key={i.src} className="c2paItem">
+                                            <div className="c2paThumbWrap">
+                                                <img
+                                                    src={thumbSrc}
+                                                    alt={i.title ?? (ytId ? "Video" : "Image")}
+                                                    className="c2paThumb"
+                                                />
+                                                {ytId && <div className="playOverlay">▶</div>}
+                                            </div>
+
+                                            {i.c2pa_present ? (
+                                                <div className="c2paMeta">
+                                                    <div className="c2paStatus ok">✓ C2PA Manifest present</div>
+                                                    <div><strong>Title:</strong> {i.title ?? "-"}</div>
+                                                    <div><strong>Issuer:</strong> {i.issuer ?? "-"}</div>
+                                                    <div>
+                                                        <strong>AI generated:</strong>{" "}
+                                                        {i.is_ai_generated ? "yes" : "no"}
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="c2paMeta">
+                                                    <div className="c2paStatus error">✕ No C2PA data</div>
+                                                </div>
+                                            )}
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        ) : (
+                            <p>-</p>
+                        )}
                     </div>
                 </div>
             </div>
