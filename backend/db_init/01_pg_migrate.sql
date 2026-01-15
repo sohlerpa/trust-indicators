@@ -50,17 +50,3 @@ CREATE TABLE article_llm_analysis (
     created_at TIMESTAMP NOT NULL DEFAULT now(),
     updated_at TIMESTAMP NOT NULL DEFAULT now()
 );
-
-CREATE TABLE article_c2pa_assets (
-    id SERIAL PRIMARY KEY,
-
-    article_id TEXT NOT NULL
-        REFERENCES articles(id) ON DELETE CASCADE,
-
-    src TEXT NOT NULL,
-    c2pa_present BOOLEAN NOT NULL,
-    issuer TEXT,
-    title TEXT,
-    is_ai_generated BOOLEAN NOT NULL DEFAULT FALSE,
-    created_at TIMESTAMP NOT NULL DEFAULT now()
-);

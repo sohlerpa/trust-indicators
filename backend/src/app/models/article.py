@@ -112,27 +112,7 @@ def insert_article_llm_analysis(db: Session, article_id: str, ti: TrustIndicator
         },
     )
 
-def insert_c2pa_assets(db: Session, article_id: str, assets: list[ImageProvenance]):
-    for a in assets:
-        db.execute(
-            text("""
-            INSERT INTO article_c2pa_assets (
-                article_id, src, c2pa_present, issuer, title, is_ai_generated
-            ) VALUES (
-                :article_id, :src, :present, :issuer, :title, :ai
-            )
-            """),
-            {
-                "article_id": article_id,
-                "src": a.src,
-                "present": a.c2pa_present,
-                "issuer": a.issuer,
-                "title": a.title,
-                "ai": a.is_ai_generated,
-            },
-        )
-
-def get_or_create_trust_indicators(
+def get_or_create_db_trust_indicators(
     article: ArticleRecord,
     db: Session,
 ) -> TrustIndicators:
@@ -141,10 +121,6 @@ def get_or_create_trust_indicators(
     if row:
         print(f"using cached analysis from DB for article {article.id}")
         # FAST PATH (no LLM, no C2PA)
-        c2pa_rows = db.execute(
-            text("SELECT * FROM article_c2pa_assets WHERE article_id = :id"),
-            {"id": article.id},
-        ).fetchall()
 
         return TrustIndicators(
             badge=row.badge,
@@ -152,16 +128,7 @@ def get_or_create_trust_indicators(
             tone=row.tone,
             content_type=row.content_type,
             tone_type_rationale=row.tone_type_rationale,
-            c2pa_info=[
-                ImageProvenance(
-                    src=r.src,
-                    c2pa_present=r.c2pa_present,
-                    issuer=r.issuer,
-                    title=r.title,
-                    is_ai_generated=r.is_ai_generated,
-                )
-                for r in c2pa_rows
-            ],
+            c2pa_info=[]
         )
 
     # SLOW PATH (first time only)
@@ -175,7 +142,8 @@ def get_or_create_trust_indicators(
             tone=None,
             content_type=None,
             tone_type_rationale=None,
-        )    #c2pa_assets = extract_and_check_c2pa(article.content_html)
+            c2pa_info=[]
+        )
 
     ti = TrustIndicators(
         badge="red",  # temp
@@ -183,30 +151,15 @@ def get_or_create_trust_indicators(
         tone=tone.tone,
         content_type=tone.content_type,
         tone_type_rationale=tone.rationale,
-        #c2pa_info=c2pa_assets,
+        c2pa_info=[],
     )
 
     if tone.tone != "error" and tone.content_type != "error":
         insert_article_llm_analysis(db, article.id, ti)
         db.commit()
 
-    #insert_c2pa_assets(db, article.id, c2pa_assets)
-    #db.commit()
-
     return ti
 
-
-
-def load_article_c2pa_assets(db: Session, article_id: str):
-    return db.execute(
-        text("""
-        SELECT *
-        FROM article_c2pa_assets
-        WHERE article_id = :id
-        ORDER BY id
-        """),
-        {"id": article_id},
-    ).fetchall()
 
 def extract_source(url: str) -> str:
     netloc = urlparse(url).netloc.lower()
