@@ -60,19 +60,17 @@ export default function ArticlePage() {
                             const rationale = article.trust_indicators.tone_type_rationale ?? "-";
 
                             return (
-                                <div className="styleBox">
-                                    <div className="styleHeader">
-                                        <div className="styleMain">
-                                            <span className="styleDot"/>
-                                            <span className="styleLabel">{tone}</span>
+                                <div className="metaBox">
+                                    <div className="metaRow">
+                                        <div className="metaLeft">
+                                            <span className="metaDot"/>
+                                            <span className="metaLabel capitalize">{tone}</span>
                                         </div>
 
-                                        <span className="stylePill">{type}</span>
+                                        <span className="pill">{type}</span>
                                     </div>
 
-                                    <p className="styleExplanation">
-                                        {rationale}
-                                    </p>
+                                    <p className="metaExplanation">{rationale}</p>
                                 </div>
                             );
                         })()}
@@ -104,19 +102,19 @@ export default function ArticlePage() {
 
                             return (
                                 <div className="expertBox">
-                                    <div className="expertHeader">
-                                        <div className="expertMain">
+                                    <div className="metaRow">
+                                        <div className="metaLeft">
                                             <span className={`expertDot ${label}`}/>
-                                            <span className="expertLabel">{labelText}</span>
+                                            <span className="metaLabel">{labelText}</span>
                                         </div>
 
-                                        <div
+                                        <span
                                             className={`confidencePill ${label}`}
                                             title={`Confidence: ${pct}%`}
                                             aria-label={`Confidence: ${pct}%`}
                                         >
-                                            <span className="confidenceText">{pct}%</span>
-                                        </div>
+                                            {pct}%
+                                        </span>
                                     </div>
 
                                     <div className="expertMeta">
@@ -139,7 +137,7 @@ export default function ArticlePage() {
                                         />
                                     </div>
 
-                                    <p className="expertExplanation">
+                                    <p className="metaExplanation">
                                         {ae?.explanation ?? "-"}
                                     </p>
                                 </div>
@@ -156,15 +154,15 @@ export default function ArticlePage() {
                             const cc = country ? country.toUpperCase() : "-";
 
                             return (
-                                <div className="publisherRow">
-                                    <div className="publisherLeft">
-                    <span className="publisherFlag" title={cc} aria-label={cc}>
-                        <CountryFlag code={country}/>
-                    </span>
-                                        <span className="publisherLabel">{source}</span>
+                                <div className="metaRow">
+                                    <div className="metaLeft">
+                                        <span className="metaFlag" title={cc} aria-label={cc}>
+                                            <CountryFlag code={country}/>
+                                        </span>
+                                        <span className="metaLabel">{source}</span>
                                     </div>
 
-                                    <span className="stylePill">{type}</span>
+                                    <span className="pill">{type}</span>
                                 </div>
                             );
                         })()}
@@ -175,19 +173,19 @@ export default function ArticlePage() {
                         {article.trust_indicators.owners?.length ? (
                             <ul className="ownersNiceList">
                                 {article.trust_indicators.owners.map((o) => (
-                                    <li key={o.owner} className="ownerNiceRow">
-                                        <div className="ownerNiceLeft">
-                                            <span className="ownerNiceDot" />
-                                            <span className="ownerNiceName">{o.owner}</span>
+                                    <li key={o.owner} className="metaRow">
+                                        <div className="metaLeft">
+                                            <span className="metaDot"/>
+                                            <span className="metaLabel">{o.owner}</span>
                                         </div>
 
                                         <span
-                                            className="stylePill ownerNicePill"
+                                            className="pill"
                                             title={`${o.percent.toFixed(1)}%`}
                                             aria-label={`${o.percent.toFixed(1)}%`}
                                         >
-                        {o.percent.toFixed(1)}%
-                    </span>
+                                            {o.percent.toFixed(1)}%
+                                        </span>
                                     </li>
                                 ))}
                             </ul>

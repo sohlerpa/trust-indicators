@@ -67,19 +67,10 @@ def compute_trust_indicators_for_article(a: ArticleRecord, db: Session, feed_mod
             )
         )
 
-    if not feed_mode:
-        author_expertise = assess_author_expertise(a.content_html, a.author, str(a.url))
+    if feed_mode:
+        author_expertise = None
     else:
-        # author_expertise = None TODO set back
-        author_expertise = AuthorExpertiseResult(
-            author = "Felix Kiefer",
-            article_url = "http://dijwbidw.dnwj/(dzwubdw",
-            publisher_domain = "tagesspiegel.de",
-            field = "Financial Policy",
-            label = "field_expert",
-            confidence = 0.9,
-            explanation = "Very well written piece......"
-        )
+        author_expertise = assess_author_expertise(a.content_html, a.author, str(a.url))
 
     return TrustIndicators(
         badge="red",  # TODO
