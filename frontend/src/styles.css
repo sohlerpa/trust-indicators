@@ -469,16 +469,12 @@ body {
     text-transform: capitalize;
 }
 
-/* Publisher flag wrapper */
 .metaFlag {
-    display: inline-flex;
+    font-size: 26px;
+    line-height: 1;
+    display: flex;
     align-items: center;
     justify-content: center;
-    width: 22px;
-    height: 22px;
-    border-radius: 6px;
-    overflow: hidden;
-    flex: 0 0 22px;
 }
 
 .ownersNiceList {
@@ -582,6 +578,126 @@ body {
 
 .ownerPercent {
     font-variant-numeric: tabular-nums;
+}
+
+.sourceCard {
+    display: grid;
+    gap: 18px;
+}
+
+
+.sourceHeader {
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.sourceTop {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.sourceName {
+    font-size: 22px;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+
+.sourceType {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+.sourceType {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+
+    background: #f3f4f6;
+    color: #111;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.sourceType.public,
+.sourceType.private,
+.sourceType.unknown {
+    background: #f3f4f6;
+    color: #111;
+}
+
+
+.sourceSectionLabel {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: #868e96;
+    margin-top: 2px;
+}
+
+.ownersGrid {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 22px;
+    align-items: center;
+}
+
+
+.ownerColor {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+    flex: 0 0 12px;
+}
+
+.factCheckWrapper {
+    position: relative;
+    display: inline-block;
+    margin-left: 6px;
+}
+
+.factBadge {
+    cursor: pointer;
+    font-size: 12px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    background: #222;
+    color: white;
+}
+
+.factPopover {
+    position: absolute;
+    top: 28px;
+    right: 0;
+    z-index: 1000;
+
+    opacity: 0;
+    transform: translateY(-4px);
+    pointer-events: none;
+
+    transition: opacity 0.15s ease,
+                transform 0.15s ease;
+}
+
+.factPopover .metaCard {
+    min-width: 240px;
+    max-width: 300px;
+}
+
+.factCheckWrapper:hover .factPopover {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
 }
 
 .factCheckSummary {

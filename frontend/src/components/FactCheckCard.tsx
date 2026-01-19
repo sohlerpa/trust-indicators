@@ -1,16 +1,28 @@
-import { useEffect, useState } from "react";
-import { getArticleFactCheck } from "../api/endpoints";
-import type { FactCheckTrust } from "../api/types";
+import {useEffect, useState} from "react";
+import {getArticleFactCheck, getXPostFactCheck} from "../api/endpoints";
+import type {FactCheckTrust} from "../api/types";
 
-export default function FactCheckCard({ articleId }: { articleId: string }) {
+export default function FactCheckCard({
+    id,
+    type,
+}: {
+    id: string;
+    type: "article" | "x";
+}) {
     const [data, setData] = useState<FactCheckTrust | null>(null);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        getArticleFactCheck(articleId)
-            .then(setData)
-            .catch(() => setError("Fact-checking failed."));
-    }, [articleId]);
+        if (!id) return;
+
+        if (type === "article") {
+            getArticleFactCheck(id).then(setData)
+                .catch(() => setError("Fact-checking failed."));
+        } else {
+            getXPostFactCheck(id).then(setData)
+                .catch(() => setError("Fact-checking failed."));
+        }
+    }, [id, type]);
 
     if (error) {
         return (

@@ -139,9 +139,9 @@ export type C2PATrust = {
 
 export type XPost = {
     id: string;
-    handle: string;
-    display_name: string;
+    url: string;
     text: string;
+    mediaUrl: string;
     created_at: string;
     indicators: TrustIndicators;
 };

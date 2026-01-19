@@ -49,6 +49,18 @@ export function getXPosts() {
     return apiGet<XPost[]>(`/api/xposts`);
 }
 
+export async function getXPostFactCheck(id: string) {
+    const res = await fetch(
+        `/api/xposts/${id}/fact-check`
+    );
+
+    if (!res.ok) {
+        throw new Error("Fact check failed");
+    }
+
+    return res.json();
+}
+
 export type DiversityRow = {
     owner: string;
     influence: number;
