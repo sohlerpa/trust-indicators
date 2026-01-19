@@ -1,15 +1,14 @@
 import json
 from typing import Optional, Any
+from urllib.parse import urlparse
 
 from sqlalchemy import Column, String, Text, TIMESTAMP
-from sqlalchemy.orm import declarative_base
-from urllib.parse import urlparse
 from sqlalchemy import text
-
 from sqlalchemy.orm import Session
-from src.app.models.models import ArticleRecord
+from sqlalchemy.orm import declarative_base
 
-from src.app.models.models import TrustIndicators, ImageProvenance
+from src.app.models.models import ArticleRecord, AuthorExpertise
+from src.app.models.models import TrustIndicators
 from src.modules.fact_checking.fact_checking import FactCheckTrustDTO
 from src.modules.tone.tone_classifier import classify_tone
 
@@ -120,23 +119,32 @@ def get_or_create_db_trust_indicators(
     article: ArticleRecord,
     db: Session,
 ) -> TrustIndicators:
+
     row = get_article_llm_analysis(db, article.id)
 
-    if row:
-        print(f"using cached analysis from DB for article {article.id}")
-        # FAST PATH (no LLM, no C2PA)
-
+    # FAST PATH — tone already cached
+    if row and row.tone and row.content_type:
         return TrustIndicators(
             badge=row.badge,
             fact_checked=row.fact_checked,
             tone=row.tone,
             content_type=row.content_type,
             tone_type_rationale=row.tone_type_rationale,
-            c2pa_info=[]
+            author_expertise=(
+                None
+                if not row.author_label
+                else AuthorExpertise(
+                    label=row.author_label,
+                    confidence=float(row.author_confidence or 0),
+                    author=row.author_name,
+                    field=row.author_field,
+                    explanation=row.author_explanation,
+                )
+            ),
+            c2pa_info=[],
         )
 
-    # SLOW PATH (first time only)
-    print(f"generating new analysis for article {article.id}")
+    # SLOW PATH — tone not computed yet
     tone = classify_tone(article.content_html)
 
     if tone.tone == "error" or tone.content_type == "error":
@@ -146,21 +154,22 @@ def get_or_create_db_trust_indicators(
             tone=None,
             content_type=None,
             tone_type_rationale=None,
-            c2pa_info=[]
+            author_expertise=None,
+            c2pa_info=[],
         )
 
     ti = TrustIndicators(
-        badge="red",  # temp
+        badge="red",
         fact_checked=False,
         tone=tone.tone,
         content_type=tone.content_type,
         tone_type_rationale=tone.rationale,
+        author_expertise=None,
         c2pa_info=[],
     )
 
-    if tone.tone != "error" and tone.content_type != "error":
-        insert_article_llm_analysis(db, article.id, ti)
-        db.commit()
+    insert_article_llm_analysis(db, article.id, ti)
+    db.commit()
 
     return ti
 
@@ -170,6 +179,77 @@ def extract_source(url: str) -> str:
     if netloc.startswith("www."):
         netloc = netloc[4:]
     return netloc
+
+def save_author_expertise(
+    db: Session,
+    article_id: str,
+    ae: AuthorExpertise,
+):
+    db.execute(
+        text("""
+        INSERT INTO article_llm_analysis (
+            article_id,
+            author_label,
+            author_confidence,
+            author_name,
+            author_field,
+            author_explanation
+        )
+        VALUES (
+            :id, :label, :confidence, :name, :field, :explanation
+        )
+        ON CONFLICT (article_id)
+        DO UPDATE SET
+            author_label = EXCLUDED.author_label,
+            author_confidence = EXCLUDED.author_confidence,
+            author_name = EXCLUDED.author_name,
+            author_field = EXCLUDED.author_field,
+            author_explanation = EXCLUDED.author_explanation,
+            updated_at = now()
+        """),
+        {
+            "id": article_id,
+            "label": ae.label,
+            "confidence": ae.confidence,
+            "name": ae.author,
+            "field": ae.field,
+            "explanation": ae.explanation,
+        },
+    )
+    db.commit()
+
+def save_tone_analysis(
+    db: Session,
+    article_id: str,
+    tc,
+):
+    db.execute(
+        text("""
+        INSERT INTO article_llm_analysis (
+            article_id,
+            tone,
+            content_type,
+            tone_type_rationale
+        )
+        VALUES (
+            :id, :tone, :ctype, :rationale
+        )
+        ON CONFLICT (article_id)
+        DO UPDATE SET
+            tone = EXCLUDED.tone,
+            content_type = EXCLUDED.content_type,
+            tone_type_rationale = EXCLUDED.tone_type_rationale,
+            updated_at = now()
+        """),
+        {
+            "id": article_id,
+            "tone": tc.tone,
+            "ctype": tc.content_type,
+            "rationale": tc.rationale,
+        },
+    )
+
+    db.commit()
 
 
 def get_fact_check_cache(db: Session, article_id: str) -> Optional[FactCheckTrustDTO]:

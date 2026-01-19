@@ -47,6 +47,13 @@ CREATE TABLE article_llm_analysis (
     tone TEXT,
     content_type TEXT,
     tone_type_rationale TEXT,
+
+    author_label TEXT,
+    author_confidence NUMERIC,
+    author_name TEXT,
+    author_field TEXT,
+    author_explanation TEXT,
+
     created_at TIMESTAMP NOT NULL DEFAULT now(),
     updated_at TIMESTAMP NOT NULL DEFAULT now()
 );
