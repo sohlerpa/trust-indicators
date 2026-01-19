@@ -192,9 +192,9 @@ def to_article_base_out(a) -> ArticleBaseOut:
 def to_xpost_out(p: XPostRecord) -> XPostOut:
     return XPostOut(
         id=p.id,
-        handle=p.handle,
-        display_name=p.display_name,
+        url=p.url,
         text=p.text,
+        media_url=p.media_url,
         created_at=p.created_at,
         indicators=compute_trust_indicators_for_xpost(p),
     )

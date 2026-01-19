@@ -1,13 +1,25 @@
-import {useEffect, useState} from "react";
-import {getArticleFactCheck} from "../api/endpoints";
-import type {FactCheckTrust} from "../api/types";
+import { useEffect, useState } from "react";
+import {getArticleFactCheck, getXPostFactCheck} from "../api/endpoints";
+import type { FactCheckTrust } from "../api/types";
 
-export default function FactCheckCard({articleId}: {articleId: string}) {
+export default function FactCheckCard({
+    id,
+    type,
+}: {
+    id: string;
+    type: "article" | "x";
+}) {
     const [data, setData] = useState<FactCheckTrust | null>(null);
 
     useEffect(() => {
-        getArticleFactCheck(articleId).then(setData);
-    }, [articleId]);
+        if (!id) return;
+
+        if (type === "article") {
+            getArticleFactCheck(id).then(setData);
+        } else {
+            getXPostFactCheck(id).then(setData);
+        }
+    }, [id, type]);
 
     if (!data) {
         return (
