@@ -5,7 +5,7 @@ from src.modules.author_expertise.author_expertise_classifier import (
 )
 
 from src.app.models.models import AuthorExpertise
-from src.app.models.article import get_article_llm_analysis
+from src.app.models.article import get_article_llm_analysis, save_author_expertise
 
 
 def analyze_author(article, db: Session):
