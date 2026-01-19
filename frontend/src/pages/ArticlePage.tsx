@@ -46,7 +46,7 @@ export default function ArticlePage() {
 
                 <div className="card">
                     <StyleCard articleId={article.id}/>
-                    <FactCheckCard articleId={article.id}/>
+                    <FactCheckCard id={article.id} type={"article"}/>
                     <AuthorExpertiseCard articleId={article.id}/>
                     <OwnershipPublisherCard articleId={article.id} source={article.source}/>
                     <C2PACard articleId={article.id}/>
