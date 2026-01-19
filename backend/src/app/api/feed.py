@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from src.app.api.schemas import FeedResponse, ArticleSummaryOut, XPostOut
 from src.app.data.sample_data import X_POSTS
 from src.app.models.article import get_all_articles
-from src.app.service.trust_indicator_enricher import to_article_summary_out, to_xpost_out
+from src.app.service.article_mapper import to_article_summary_out, to_xpost_out
 from src.app.service.db_connector import get_db
 
 router = APIRouter()

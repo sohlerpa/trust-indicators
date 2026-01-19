@@ -49,9 +49,54 @@ export type ArticleSummary = {
     trust_indicators: TrustIndicators;
 };
 
-export type ArticleDetail = ArticleSummary & {
+export type ArticleDetail = {
+    id: string;
+    title: string;
+    preview: string;
+    url: string;
+    source: string;
+    published_at: string;
+    image_url?: string | null;
     author?: string | null;
     content_html: string;
+};
+
+export type ArticleBase = {
+    id: string;
+    title: string;
+    preview: string;
+    url: string;
+    source: string;
+    published_at: string;
+    image_url?: string | null;
+    author?: string | null;
+    content_html: string;
+};
+
+export type StyleTrust = {
+    tone: string | null;
+    content_type: string | null;
+    tone_type_rationale: string | null;
+};
+
+export type FactCheckTrust = {
+    fact_checked: boolean;
+};
+
+export type AuthorExpertiseTrust = AuthorExpertise;
+
+export type PublisherTrust = {
+    publisher_type: PublisherType;
+    publisher_country?: string;
+};
+
+export type OwnershipTrust = {
+    owners?: OwnerInfo[];
+};
+
+export type C2PATrust = {
+    c2pa_present: boolean;
+    c2pa_info?: ImageProvenance[];
 };
 
 export type XPost = {
