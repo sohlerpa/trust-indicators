@@ -5,10 +5,8 @@ import type {ArticleDetail, ArticleBase} from "../api/types";
 import FactCheckCard from "../components/FactCheckCard";
 import AuthorExpertiseCard from "../components/AuthorExpertiseCard";
 import StyleCard from "../components/StyleCard";
-import CountryFlag from "../components/CountryFlag";
-import PublisherCard from "../components/PublisherCard";
-import OwnersCard from "../components/OwnersCard";
 import C2PACard from "../components/C2PACard";
+import OwnershipPublisherCard from "../components/PublisherOwnershipCars";
 
 export default function ArticlePage() {
     const {id} = useParams();
@@ -50,8 +48,7 @@ export default function ArticlePage() {
                     <StyleCard articleId={article.id}/>
                     <FactCheckCard articleId={article.id}/>
                     <AuthorExpertiseCard articleId={article.id}/>
-                    <PublisherCard articleId={article.id} source={article.source}/>
-                    <OwnersCard articleId={article.id}/>
+                    <OwnershipPublisherCard articleId={article.id} source={article.source}/>
                     <C2PACard articleId={article.id}/>
                 </div>
             </div>

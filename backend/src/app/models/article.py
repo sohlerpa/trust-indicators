@@ -84,6 +84,7 @@ def get_article_llm_analysis(db: Session, article_id: str):
     ).fetchone()
 
 def insert_article_llm_analysis(db: Session, article_id: str, ti: TrustIndicators):
+    print("inserting analysis to db...")
     db.execute(
         text("""
         INSERT INTO article_llm_analysis (
@@ -120,6 +121,7 @@ def get_or_create_db_trust_indicators(
     row = get_article_llm_analysis(db, article.id)
 
     # FAST PATH — tone already cached
+    print("getting data from db...")
     if row and row.tone and row.content_type:
         return TrustIndicators(
             badge=row.badge,
@@ -142,6 +144,7 @@ def get_or_create_db_trust_indicators(
         )
 
     # SLOW PATH — tone not computed yet
+    print("generating data from llm...")
     tone = classify_tone(article.content_html)
 
     if tone.tone == "error" or tone.content_type == "error":
@@ -182,6 +185,7 @@ def save_author_expertise(
     article_id: str,
     ae: AuthorExpertise,
 ):
+    print("save autor expertise to db...")
     db.execute(
         text("""
         INSERT INTO article_llm_analysis (
@@ -220,6 +224,7 @@ def save_tone_analysis(
     article_id: str,
     tc,
 ):
+    print("save tone analysis to db...")
     db.execute(
         text("""
         INSERT INTO article_llm_analysis (
