@@ -1,5 +1,5 @@
 import {apiGet, apiPost} from "./client";
-import type {FeedFilters, FeedResponse, ArticleDetail, XPost} from "./types";
+import type {FeedFilters, FeedResponse, ArticleDetail, XPost, ArticleBase, FactCheckTrust, C2PATrust, OwnershipTrust, PublisherTrust, StyleTrust, AuthorExpertiseTrust} from "./types";
 
 function qs(filters: FeedFilters): string {
     const p = new URLSearchParams();
@@ -18,7 +18,31 @@ export function getFeed(filters: FeedFilters) {
 }
 
 export function getArticle(id: string) {
-    return apiGet<ArticleDetail>(`/api/articles/${id}`);
+    return apiGet<ArticleBase>(`/api/articles/${id}`);
+}
+
+export function getArticleStyle(id: string) {
+    return apiGet<StyleTrust>(`/api/articles/${id}/trust/style`);
+}
+
+export function getArticleFactCheck(id: string) {
+    return apiGet<FactCheckTrust>(`/api/articles/${id}/trust/fact-check`);
+}
+
+export function getArticleAuthor(id: string) {
+    return apiGet<AuthorExpertiseTrust>(`/api/articles/${id}/trust/author`);
+}
+
+export function getArticlePublisher(id: string) {
+    return apiGet<PublisherTrust>(`/api/articles/${id}/trust/publisher`);
+}
+
+export function getArticleOwners(id: string) {
+    return apiGet<OwnershipTrust>(`/api/articles/${id}/trust/owners`);
+}
+
+export function getArticleC2PA(id: string) {
+    return apiGet<C2PATrust>(`/api/articles/${id}/trust/c2pa`);
 }
 
 export function getXPosts() {

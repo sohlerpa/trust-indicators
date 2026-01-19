@@ -5,6 +5,16 @@ from pydantic import BaseModel, Field, HttpUrl
 
 from src.app.models.models import TrustIndicators
 
+class ArticleBaseOut(BaseModel):
+    id: str
+    title: str
+    preview: Optional[str] = ""
+    url: HttpUrl
+    source: str
+    published_at: datetime
+    image_url: Optional[HttpUrl] = None
+    author: Optional[str] = None
+    content_html: str
 
 class ArticleSummaryOut(BaseModel):
     id: str
@@ -15,11 +25,6 @@ class ArticleSummaryOut(BaseModel):
     published_at: datetime
     image_url: Optional[HttpUrl] = None
     trust_indicators: TrustIndicators
-
-
-class ArticleDetailOut(ArticleSummaryOut):
-    author: Optional[str] = None
-    content_html: str
 
 
 class XPostOut(BaseModel):
