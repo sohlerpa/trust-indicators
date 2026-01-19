@@ -563,9 +563,15 @@ def extract_keywords_from_claim(
 
 
 def search_for_keywords(keywords: str, api_key: str) -> List[FactCheckClaim]:
+    time.sleep(0.8)  # REQUIRED
+
     with httpx.Client(timeout=10) as client:
         params = {"query": keywords, "pageSize": 30, "key": api_key}
         resp = client.get(FACTCHECK_ENDPOINT, params=params)
+
+        if resp.status_code == 403:
+            raise RuntimeError("FactCheck API rate-limited")
+
         resp.raise_for_status()
         data = resp.json()
 

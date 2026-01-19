@@ -15,3 +15,11 @@ def run_fact_check(article, db: Session) -> FactCheckTrustDTO:
 
     upsert_fact_check_cache(db, article.id, dto, model="gemini-2.5-flash")
     return dto
+
+def run_fact_check_for_text(*, text: str, source_id: str, db: Session,):
+    fake_html = f"<p>{text}</p>"
+
+    return check_facts_for_html(
+        fake_html,
+        article_id=source_id,
+    )
