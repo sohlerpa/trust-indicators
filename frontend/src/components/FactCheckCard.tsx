@@ -59,12 +59,11 @@ export default function FactCheckCard({ articleId }: { articleId: string }) {
                             <p className="claimText">“{c.claimText}”</p>
 
                             <div className="claimMeta">
-                                <span className="verdict">
-                                    Verdict: <strong>{c.verdict}</strong>
-                                </span>
-                                <span className="confidence">
-                                    Confidence: {Math.round(c.confidence * 100)}%
-                                </span>
+                                <span className="verdictLine">
+                                    <span className="arrow">→</span>{" "}
+                                        <strong className={`verdictText verdictText-${c.verdict}`}>{c.verdict}</strong>{" "}
+                                    <span className="confidenceText">(confidence: {Math.round(c.confidence * 100)}%)</span>
+                              </span>
                             </div>
 
                             <p className="summary">{c.summary}</p>

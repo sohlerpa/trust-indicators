@@ -6,7 +6,7 @@ import random
 import time
 from dataclasses import dataclass, asdict
 from enum import Enum
-from typing import List, Optional, Any
+from typing import List, Optional, Any, Dict, Tuple
 
 import httpx
 from bs4 import BeautifulSoup
@@ -16,6 +16,19 @@ load_dotenv()
 
 FACTCHECK_ENDPOINT = "https://factchecktools.googleapis.com/v1alpha1/claims:search"
 
+FACTCHECK_DEBUG = os.getenv("FACTCHECK_DEBUG", "").lower() in ("1", "true", "yes", "on")
+
+
+def _dbg(msg: str, *, claim_id: str | None = None):
+    if not FACTCHECK_DEBUG:
+        return
+    prefix = f"[factcheck]{'[' + claim_id + ']' if claim_id else ''}"
+    print(f"{prefix} {msg}")
+
+
+# =========================
+# Data Models
+# =========================
 
 @dataclass
 class FactCheckTrustStats:
@@ -39,6 +52,7 @@ class FactCheckTrustClaimDTO:
     summary: str
     reasoning: str
     sources: List[dict]  # list of SourceRef dicts
+
 
 @dataclass
 class FactCheckTrustDTO:
@@ -103,11 +117,11 @@ class SourceRef:
 class FactAssertionResult:
     input_claim: str
     verdict: Verdict
-    confidence: float  # 0.0..1.0 (how strongly supported by the *provided* evidence)
-    summary: str  # 1-2 sentences
-    reasoning: str  # short explanation, must reference evidence fields
-    sources: List[SourceRef]  # ONLY from fact_check_claims reviews
-    notes: Optional[str] = None  # e.g. "no matching fact-checks found"
+    confidence: float  # 0.0..1.0
+    summary: str
+    reasoning: str
+    sources: List[SourceRef]
+    notes: Optional[str] = None
 
 
 @dataclass
@@ -118,12 +132,16 @@ class FactCheckQuery:
 
 @dataclass
 class CheckedClaim:
+    claim_id: str
     span: ClaimSpan
     query: FactCheckQuery
     fact_checks: List[FactCheckClaim]
     assertion: FactAssertionResult
 
 
+# =========================
+# Utilities
+# =========================
 
 def _claim_id(article_id: str, start: int, end: int, claim_text: str) -> str:
     raw = f"{article_id}:{start}:{end}:{claim_text}".encode("utf-8")
@@ -139,7 +157,11 @@ def _to_claim_dto(article_id: str, checked: CheckedClaim) -> FactCheckTrustClaim
         endChar=checked.span.end_char,
         reason=checked.span.reason,
         query={"primary": checked.query.primary, "alternatives": checked.query.alternatives},
-        verdict=str(checked.assertion.verdict.value if hasattr(checked.assertion.verdict, "value") else checked.assertion.verdict),
+        verdict=str(
+            checked.assertion.verdict.value
+            if hasattr(checked.assertion.verdict, "value")
+            else checked.assertion.verdict
+        ),
         confidence=float(checked.assertion.confidence),
         summary=checked.assertion.summary,
         reasoning=checked.assertion.reasoning,
@@ -157,18 +179,18 @@ def post_with_retry(
         base_delay: float = 1.0,
 ):
     for attempt in range(retries):
+        if attempt != 0:
+            print(f"Retrying: Attempt {attempt + 1}/{retries}")
         try:
             resp = client.post(url, headers=headers, json=json_body)
             resp.raise_for_status()
             return resp
-
-        except (httpx.ReadTimeout, httpx.ConnectTimeout) as e:
+        except (httpx.ReadTimeout, httpx.ConnectTimeout):
             if attempt < retries - 1:
                 sleep = base_delay * (2 ** attempt) + random.uniform(0, 0.3)
                 time.sleep(sleep)
                 continue
             raise
-
         except httpx.HTTPStatusError as e:
             if e.response.status_code >= 500 and attempt < retries - 1:
                 sleep = base_delay * (2 ** attempt) + random.uniform(0, 0.3)
@@ -179,20 +201,21 @@ def post_with_retry(
 
 def html_to_plain_text(html: str) -> str:
     soup = BeautifulSoup(html, "html.parser")
-
-    # Remove non-textual elements you don’t want claims from
     for tag in soup(["script", "style", "img"]):
         tag.decompose()
-
     text = soup.get_text()
     return "\n".join(line.strip() for line in text.splitlines() if line.strip())
 
+
+# =========================
+# Evidence packing + stable IDs (Option C)
+# =========================
 
 def extract_claims_from_html(
         html: str,
         *,
         gemini_api_key: str,
-        model: str = "gemini-2.5-flash",
+        model: str = "gemini-2.5-flash-lite",
 ) -> ExtractedClaims:
     import json
     import httpx
@@ -202,28 +225,36 @@ def extract_claims_from_html(
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 
     system_instruction = (
-        "You extract ONLY high-value factual claims from news article text.\n\n"
-        "Your goal is to identify claims that are IMPORTANT and SUSPICIOUS enough "
-        "to be worth fact-checking.\n\n"
-        "A claim is worth extracting ONLY IF:\n"
-        "- It alleges wrongdoing, attacks, threats, or hostile actions\n"
-        "- OR it describes concrete government or military actions\n"
-        "- OR it attributes responsibility or intent to a person, group, or state\n"
-        "- OR it could significantly mislead readers if false\n\n"
-        "DO NOT extract:\n"
-        "- opinions, commentary, or rhetoric\n"
-        "- emotional or sensational language without factual content\n"
-        "- background information or context-only statements\n"
-        "- trivial facts that are not disputed or impactful\n\n"
-        "Rules:\n"
-        "- Use ONLY the provided text\n"
-        "- Do NOT add or infer facts\n"
-        "- Do NOT rewrite meaning beyond minimal normalization\n"
-        "- Provide exact character offsets into the provided text\n"
-        "- Offsets must match the provided text exactly\n"
-        "- Extract as FEW claims as possible (quality over quantity)\n"
-        "- Output JSON only\n"
-        "- Return at most 5 claims (pick the highest-value ones)."
+        "You prepare claims to be checked with the Google Fact Check Tools API (claims:search).\n\n"
+        "Goal: extract ONLY claims that are (1) ATOMIC and (2) likely to have existing third-party fact-check coverage.\n\n"
+        "A claim is ACCEPTABLE only if it is a standalone factual assertion that could be searched verbatim and judged true/false.\n"
+        "Prefer claims with absolute language and clear predicates (often already fact-checked):\n"
+        "- \"X is the only...\"\n"
+        "- \"No vaccines were...\"\n"
+        "- \"Never safety tested\"\n"
+        "- \"CDC study found <1%\" (named study)\n"
+        "- named lawsuit/whistleblower + specific allegation\n"
+        "- concrete numeric prevalence statements tied to a study/place/time\n\n"
+        "STRONGLY PREFER extracting claims in the form they appear (keep meaning), but you MAY do minimal normalization\n"
+        "ONLY to make the claim self-contained (e.g., expand pronouns like \"that study\" -> \"the 2010 Lazarus study\" if present in text).\n\n"
+        "DROP (do not extract) items that are hard for automated fact-check search:\n"
+        "- conversational filler (\"I think\", \"as of this morning\") unless the claim is still a clean numeric assertion\n"
+        "- broad multi-part paragraphs that bundle multiple claims\n"
+        "- purely local counts or routine epidemiology stats UNLESS phrased as a prominent comparative record (\"second biggest since 2000\")\n"
+        "- vague causal speculation (\"we know it's a toxin\") unless it names a specific authority + year + conclusion\n\n"
+        "Atomicity rules:\n"
+        "- EXACTLY ONE checkable assertion per claim.\n"
+        "- The context should still be clear, so the fact can be checked at its own without the article.\n"
+        "- If a sentence contains multiple assertions, split them.\n"
+        "- Avoid embedding extra justifications.\n\n"
+        "Searchability rules (critical):\n"
+        "- Choose claims that can be searched with short keyword queries (names, agencies, study titles, years, 'placebo', 'exempt', 'Lazarus').\n"
+        "- Prefer claims that include at least one of: a named institution (CDC/FDA/NIH/EPA/Merck), a named study, a year, or a strong universal quantifier.\n\n"
+        "Output constraints:\n"
+        "- Output JSON only.\n"
+        "- Provide exact character offsets into the PROVIDED plain text.\n"
+        "- Offsets must match exactly.\n"
+        "- Return at most 10 claims (pick highest-value + most searchable).\n"
     )
 
     response_schema = {
@@ -257,10 +288,13 @@ def extract_claims_from_html(
                             {
                                 "text": plain_text,
                                 "task": (
-                                    "Extract ONLY the most important and suspicious factual claims.\n"
-                                    "If a statement is not worth fact-checking, DO NOT extract it.\n"
-                                    "Return character offsets referring to THIS text."
-                                ),
+                                    "Extract up to 10 ATOMIC, searchable factual claims that a fact-check database is likely to contain.\n"
+                                    "Each claim must be a single self-contained assertion (one predicate).\n"
+                                    "Prefer absolute/record/never/only/exempt/placebo-tested/CDC-study-found patterns.\n"
+                                    "Return claim_text as ONE full sentence.\n"
+                                    "Return start_char/end_char offsets referring to THIS exact text.\n"
+                                    "If a statement is not suitable for automated fact-check search, do NOT extract it."
+                                )
                             },
                             ensure_ascii=False,
                         )
@@ -310,46 +344,172 @@ def extract_claims_from_html(
         plain_text=plain_text,
         claims=claims,
     )
-    print("Extracted Claims: ", extracted_claims.claims)
+    print("Found claims: ", {len(extracted_claims.claims)})
+    for claim in extracted_claims.claims:
+        print(claim.claim_text, "\n")
+
     return extracted_claims
 
+
+def search_for_claim_multi(
+        query: FactCheckQuery,
+        *,
+        api_key: str,
+        max_searches: int = 5,
+) -> Tuple[List[FactCheckClaim], List[str]]:
+    """
+    Runs up to max_searches searches (primary + alternatives),
+    merges results, de-dupes, and returns:
+      (merged_claims, used_queries)
+    """
+    # Build ordered unique list of query strings
+    all_q = [query.primary] + list(query.alternatives or [])
+    seen = set()
+    queries: List[str] = []
+    for q in all_q:
+        q = (q or "").strip()
+        if not q or q in seen:
+            continue
+        seen.add(q)
+        queries.append(q)
+
+    used_queries: List[str] = []
+    merged: List[FactCheckClaim] = []
+    dedup_keys: set[str] = set()
+
+    def _key(fc: FactCheckClaim) -> str:
+        # Prefer stable-ish de-dupe key: claim text + claimant + first review url
+        first_url = None
+        if fc.reviews:
+            for r in fc.reviews:
+                if r.url:
+                    first_url = r.url
+                    break
+        return f"{(fc.text or '').strip()}|{(fc.claimant or '').strip()}|{(first_url or '').strip()}"
+
+    for q in queries[:max_searches]:
+        results = search_for_keywords(q, api_key)
+        used_queries.append(q)
+
+        for fc in results:
+            k = _key(fc)
+            if k in dedup_keys:
+                continue
+            dedup_keys.add(k)
+            merged.append(fc)
+
+    return merged, used_queries
+
+
+def _canonical_source_id(*, url: Optional[str], title: Optional[str], publisher: Optional[str]) -> str:
+    """
+    Stable ID based on the review entry itself.
+    Prefer URL (best), otherwise title+publisher.
+    """
+    key = (url or "").strip()
+    if not key:
+        key = f"{(publisher or '').strip()}|{(title or '').strip()}"
+    if not key:
+        key = "unknown"
+    return hashlib.sha1(key.encode("utf-8")).hexdigest()
+
+
+def _facts_to_llm_evidence(
+        fact_check_claims: List[FactCheckClaim],
+) -> Tuple[List[dict[str, Any]], Dict[str, SourceRef]]:
+    """
+    Returns:
+      - evidence payload for the LLM, where EACH review includes a review_id
+      - id -> SourceRef mapping for exact reconstruction later
+    """
+    evidence: List[dict[str, Any]] = []
+    id_to_source: Dict[str, SourceRef] = {}
+
+    for c in fact_check_claims:
+        packed_reviews: List[dict[str, Any]] = []
+        for r in c.reviews:
+            rid = _canonical_source_id(url=r.url, title=r.title, publisher=r.publisher)
+
+            # First writer wins if collision; collisions are unlikely when url exists.
+            if rid not in id_to_source:
+                id_to_source[rid] = SourceRef(
+                    publisher=r.publisher,
+                    publisher_site=r.publisher_site,
+                    title=r.title,
+                    url=r.url,
+                    review_date=r.review_date,
+                    textual_rating=r.textual_rating,
+                    language_code=r.language_code,
+                )
+
+            packed_reviews.append(
+                {
+                    "review_id": rid,
+                    "publisher": r.publisher,
+                    "publisher_site": r.publisher_site,
+                    "title": r.title,
+                    "url": r.url,
+                    "textual_rating": r.textual_rating,
+                    "review_date": r.review_date,
+                    "language_code": r.language_code,
+                }
+            )
+
+        evidence.append(
+            {
+                "claim_text": c.text,
+                "claimant": c.claimant,
+                "claim_date": c.claim_date,
+                "reviews": packed_reviews,
+            }
+        )
+
+    return evidence, id_to_source
+
+
+# =========================
+# Gemini: keywords + assertion
+# =========================
 
 def extract_keywords_from_claim(
         claim: str,
         *,
         gemini_api_key: str,
-        model: str = "gemini-2.5-flash",
+        model: str = "gemini-2.5-flash-lite",
 ) -> FactCheckQuery:
-    """
-    Uses Gemini ONLY to extract search keywords for Google Fact Check Tools API.
-    It must not add facts, entities, or opinions.
-    """
-
-    import json
-    import httpx
-
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 
     system_instruction = (
-        "You extract search keywords for the Google Fact Check Tools API.\n"
-        "Your task is NOT to judge truth, NOT to explain, and NOT to add context.\n"
-        "ONLY rewrite the input claim into short keyword queries.\n\n"
-        "Rules:\n"
-        "- Use ONLY words that already appear in the claim.\n"
-        "- Do NOT add new entities, countries, people, or facts.\n"
-        "- Do NOT state whether the claim is true or false.\n"
-        "- Keep queries short (3–8 words).\n"
-        "- Output JSON only."
+        "You generate search queries for the Google Fact Check Tools API (claims:search).\n"
+        "Goal: HIGH RECALL. Prefer broad topic queries that are likely to match existing fact-check entries.\n"
+        "The index often does NOT match exact claim wording, numbers, or specific time phrases.\n\n"
+        "Output JSON only:\n"
+        "- primary: best high-recall query\n"
+        "- alternatives: 2 to 4 additional queries (TOTAL 3 to 5 searches)\n\n"
+        "Query style rules (important):\n"
+        "- Keep queries SHORT: 2–4 words preferred (max 6).\n"
+        "- Use mostly NOUNS. Avoid verbs and adjectives.\n"
+        "- Avoid time/rank phrases like: 'since 2000', 'second biggest', 'largest', exact counts.\n"
+        "- Avoid abstract/meta words: 'comparison', 'historical', 'scale', 'evidence', 'claims', 'requirements'.\n"
+        "- Primary must be anchored: it MUST include a specific anchor from the claim text (e.g., MMR/measles/mumps/VAERS/Lazarus/Merck/CDC/FDA/COVID).\n"
+        "- Alternatives may include at most ONE broad backoff query, but the others must still include an anchor from the claim.\n"
+        "- Never output ultra-broad single-word queries like: 'outbreak', 'testing', 'safety', 'vaccines'.\n"
+        "How to choose terms:\n"
+        "- Prefer anchors if present: Merck, MMR, VAERS, Lazarus, CDC, FDA, Gardasil, COVID.\n"
+        "- Otherwise use the main domain nouns: vaccine safety, placebo trial, vaccine testing, VAERS reporting,\n"
+        "  mumps vaccine, measles outbreak, autism prevalence.\n\n"
+        "Distinctness requirement:\n"
+        "- Do NOT output word-order permutations.\n"
+        "- Each alternative must be a different retrieval angle (different anchor/topic combo).\n\n"
+        "Return keywords only (no full sentences).\n"
+        "Fallback rule: if unsure, output a broader 2–3 word topic query instead of adding specificity."
     )
 
     response_schema = {
         "type": "object",
         "properties": {
             "primary": {"type": "string"},
-            "alternatives": {
-                "type": "array",
-                "items": {"type": "string"},
-            },
+            "alternatives": {"type": "array", "items": {"type": "string"}},
         },
         "required": ["primary", "alternatives"],
     }
@@ -365,11 +525,10 @@ def extract_keywords_from_claim(
                             {
                                 "claim": claim,
                                 "task": (
-                                    "Return:\n"
-                                    "- primary: the single best keyword query\n"
-                                    "- alternatives: 1–3 alternative keyword queries\n"
-                                    "Remember: keywords only, no full sentences."
-                                ),
+                                    "Return 3–5 SHORT high-recall keyword queries (2–4 words preferred) to find matching fact-check entries.\n"
+                                    "Be broader/open rather than specific. Avoid years, rankings, and abstract/meta wording.\n"
+                                    "Return JSON: primary + alternatives."
+                                )
                             },
                             ensure_ascii=False,
                         )
@@ -384,12 +543,9 @@ def extract_keywords_from_claim(
         },
     }
 
-    headers = {
-        "Content-Type": "application/json",
-        "x-goog-api-key": gemini_api_key,
-    }
+    headers = {"Content-Type": "application/json", "x-goog-api-key": gemini_api_key}
 
-    with httpx.Client(timeout=15) as client:
+    with httpx.Client(timeout=30) as client:
         resp = client.post(url, headers=headers, json=body)
         resp.raise_for_status()
         data = resp.json()
@@ -407,317 +563,64 @@ def extract_keywords_from_claim(
 
 
 def search_for_keywords(keywords: str, api_key: str) -> List[FactCheckClaim]:
-    print(f"Searching Google Fact Checking Api for keywords ", keywords)
-
     with httpx.Client(timeout=10) as client:
-        params = {
-            "query": keywords,
-            "pageSize": 10,
-            "key": api_key,
-        }
-
+        params = {"query": keywords, "pageSize": 30, "key": api_key}
         resp = client.get(FACTCHECK_ENDPOINT, params=params)
         resp.raise_for_status()
         data = resp.json()
-        raw_claims = data.get("claims", [])
-        claims: List[FactCheckClaim] = []
 
-        for c in raw_claims:
-            reviews: List[FactCheckReview] = []
+    raw_claims = data.get("claims", [])
+    claims: List[FactCheckClaim] = []
 
-            for r in c.get("claimReview", []):
-                reviews.append(
-                    FactCheckReview(
-                        publisher=(r.get("publisher") or {}).get("name"),
-                        publisher_site=(r.get("publisher") or {}).get("site"),
-                        title=r.get("title"),
-                        url=r.get("url"),
-                        textual_rating=r.get("textualRating"),
-                        review_date=r.get("reviewDate"),
-                        language_code=r.get("languageCode"),
-                    )
-                )
-
-            claims.append(
-                FactCheckClaim(
-                    text=c.get("text"),
-                    claimant=c.get("claimant"),
-                    claim_date=c.get("claimDate"),
-                    reviews=reviews,
+    for c in raw_claims:
+        reviews: List[FactCheckReview] = []
+        for r in c.get("claimReview", []):
+            reviews.append(
+                FactCheckReview(
+                    publisher=(r.get("publisher") or {}).get("name"),
+                    publisher_site=(r.get("publisher") or {}).get("site"),
+                    title=r.get("title"),
+                    url=r.get("url"),
+                    textual_rating=r.get("textualRating"),
+                    review_date=r.get("reviewDate"),
+                    language_code=r.get("languageCode"),
                 )
             )
-
-        return claims
-
-
-@dataclass
-class SourceRef:
-    publisher: Optional[str]
-    publisher_site: Optional[str]
-    title: Optional[str]
-    url: Optional[str]
-    review_date: Optional[str]
-    textual_rating: Optional[str]
-    language_code: Optional[str]
-
-
-@dataclass
-class FactAssertionResult:
-    input_claim: str
-    verdict: Verdict
-    confidence: float  # 0.0..1.0 (how strongly supported by the *provided* evidence)
-    summary: str  # 1-2 sentences
-    reasoning: str  # short explanation, must reference evidence fields
-    sources: List[SourceRef]  # ONLY from fact_check_claims reviews
-    notes: Optional[str] = None  # e.g. "no matching fact-checks found"
-
-
-def _facts_to_llm_evidence(fact_check_claims: List[FactCheckClaim]) -> List[dict[str, Any]]:
-    """
-    Make a compact evidence payload for the LLM (only what we already have).
-    """
-    evidence: List[dict[str, Any]] = []
-    for c in fact_check_claims:
-        evidence.append(
-            {
-                "claim_text": c.text,
-                "claimant": c.claimant,
-                "claim_date": c.claim_date,
-                "reviews": [
-                    {
-                        "publisher": r.publisher,
-                        "publisher_site": r.publisher_site,
-                        "title": r.title,
-                        "url": r.url,
-                        "textual_rating": r.textual_rating,
-                        "review_date": r.review_date,
-                        "language_code": r.language_code,
-                    }
-                    for r in c.reviews
-                ],
-            }
-        )
-    return evidence
-
-
-def assert_claim_to_facts(
-        claim: str,
-        fact_check_claims: List[FactCheckClaim],
-        *,
-        gemini_api_key: str,
-        model: str = "gemini-2.5-flash",
-        timeout_s: int = 20,
-) -> FactAssertionResult:
-    """
-    Uses Gemini to decide TRUE/FALSE/UNCLEAR using ONLY:
-      - the input claim text
-      - the fact-check API results you already fetched (claim text + reviews)
-
-    It must not invent sources. It may return UNCLEAR if:
-      - no matching fact-checks
-      - ratings are missing/ambiguous
-      - multiple sources conflict
-      - evidence does not directly address the input claim
-    """
-
-    # If you have *zero* evidence, short-circuit without calling the LLM.
-    # (You can remove this if you want the LLM to always explain "no evidence".)
-    if not fact_check_claims:
-        return FactAssertionResult(
-            input_claim=claim,
-            verdict=Verdict.UNCLEAR,
-            confidence=0.0,
-            summary="No matching fact-checks were found in the provided results.",
-            reasoning="The fact-check result list is empty, so there is no evidence here to confirm or refute the claim.",
-            sources=[],
-            notes="no_fact_check_results",
-        )
-
-    evidence_payload = _facts_to_llm_evidence(fact_check_claims)
-
-    # JSON schema for structured output (Gemini structured outputs)
-    response_schema = {
-        "type": "object",
-        "properties": {
-            "verdict": {"type": "string", "enum": ["true", "false", "unclear"]},
-            "confidence": {"type": "number"},
-            "summary": {"type": "string"},
-            "reasoning": {"type": "string"},
-            "used_sources": {
-                "type": "array",
-                "items": {
-                    "type": "object",
-                    "properties": {
-                        "publisher": {"type": "string"},
-                        "publisher_site": {"type": "string"},
-                        "title": {"type": "string"},
-                        "url": {"type": "string"},
-                        "review_date": {"type": "string"},
-                        "textual_rating": {"type": "string"},
-                        "language_code": {"type": "string"},
-                    },
-                },
-            },
-            "notes": {"type": "string"},
-        },
-        "required": ["verdict", "confidence", "summary", "reasoning", "used_sources", "notes"],
-    }
-
-    system_instruction = (
-        "You are a fact-checking assistant.\n"
-        "You must ONLY use the provided evidence (fact-check claims + their claimReview entries).\n"
-        "Do NOT use external knowledge. Do NOT invent sources, URLs, publishers, dates, or ratings.\n"
-        "If the evidence does not clearly support or refute the input claim, return verdict 'unclear' and explain why.\n"
-        "If there are conflicting sources/ratings, return 'unclear' and describe the conflict.\n"
-        "When you cite sources, ONLY include sources that appear in the provided evidence reviews."
-    )
-
-    user_prompt = {
-        "input_claim": claim,
-        "evidence": evidence_payload,
-        "task": (
-            "Decide if the input_claim can be labeled true/false/unclear using ONLY the evidence.\n"
-            "Return a structured JSON response that matches the provided schema.\n"
-            "Important:\n"
-            "- If evidence is about a different claim or not close enough, choose 'unclear'.\n"
-            "- Put the exact review entries you relied on into used_sources.\n"
-            "- Keep summary short (1-2 sentences). Keep reasoning concise but specific."
-        ),
-    }
-
-    # Gemini REST endpoint (Google AI for Developers Gemini API)
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
-
-    body = {
-        "system_instruction": {"parts": [{"text": system_instruction}]},
-        "contents": [
-            {"role": "user", "parts": [{"text": json.dumps(user_prompt, ensure_ascii=False)}]}
-        ],
-        "generationConfig": {
-            "temperature": 0.2,
-            "responseMimeType": "application/json",
-            "responseJsonSchema": response_schema,
-        },
-    }
-
-    headers = {
-        "Content-Type": "application/json",
-        # Prefer header-based auth (avoids key in logs); query-param also works for many setups.
-        "x-goog-api-key": gemini_api_key,
-    }
-
-    with httpx.Client(timeout=timeout_s) as client:
-        resp = client.post(url, headers=headers, json=body)
-        if resp.status_code >= 400:
-            raise RuntimeError(f"{resp.status_code}: {resp.text}")
-
-        data = resp.json()
-
-    # Extract the model's JSON text.
-    # Typical shape: candidates[0].content.parts[0].text
-    try:
-        text = data["candidates"][0]["content"]["parts"][0]["text"]
-    except (KeyError, IndexError, TypeError):
-        raise RuntimeError(f"Unexpected Gemini response shape: {data}")
-
-    try:
-        parsed = json.loads(text)
-    except json.JSONDecodeError:
-        raise RuntimeError(f"Gemini did not return valid JSON. Raw text:\n{text}")
-
-    verdict = Verdict(parsed["verdict"])
-    confidence = float(parsed["confidence"])
-    summary = str(parsed["summary"])
-    reasoning = str(parsed["reasoning"])
-    notes = parsed.get("notes")
-
-    # Enforce: sources must be subset of evidence reviews (no hallucinated URLs).
-    evidence_sources_set = set()
-    for c in evidence_payload:
-        for r in c["reviews"]:
-            evidence_sources_set.add(
-                (
-                    r.get("publisher"),
-                    r.get("publisher_site"),
-                    r.get("title"),
-                    r.get("url"),
-                    r.get("review_date"),
-                    r.get("textual_rating"),
-                    r.get("language_code"),
-                )
-            )
-
-    sources: List[SourceRef] = []
-    for s in parsed["used_sources"]:
-        tup = (
-            s.get("publisher"),
-            s.get("publisher_site"),
-            s.get("title"),
-            s.get("url"),
-            s.get("review_date"),
-            s.get("textual_rating"),
-            s.get("language_code"),
-        )
-        if tup not in evidence_sources_set:
-            notes = (notes or "") + " | dropped_invented_source"
-            continue
-
-        sources.append(
-            SourceRef(
-                publisher=s.get("publisher"),
-                publisher_site=s.get("publisher_site"),
-                title=s.get("title"),
-                url=s.get("url"),
-                review_date=s.get("review_date"),
-                textual_rating=s.get("textual_rating"),
-                language_code=s.get("language_code"),
+        claims.append(
+            FactCheckClaim(
+                text=c.get("text"),
+                claimant=c.get("claimant"),
+                claim_date=c.get("claimDate"),
+                reviews=reviews,
             )
         )
 
-    if not sources:
-        return FactAssertionResult(
-            input_claim=claim,
-            verdict=Verdict.UNCLEAR,
-            confidence=0.0,
-            summary="No usable sources remained after filtering.",
-            reasoning="The model referenced sources that were not present in the provided fact-check evidence, so no supported conclusion can be returned.",
-            sources=[],
-            notes=(notes or "") + " | no_valid_sources",
-        )
-
-    return FactAssertionResult(
-        input_claim=claim,
-        verdict=verdict,
-        confidence=confidence,
-        summary=summary,
-        reasoning=reasoning,
-        sources=sources,
-        notes=notes,
-    )
+    print(f"found {len(claims)} claims for {keywords}")
+    return claims
 
 
 def assert_claims_to_facts_batch(
-        items: List[CheckedClaim],  # items where span+query+fact_checks already exist, but assertion is not set yet
+        items: List[CheckedClaim],
         *,
         gemini_api_key: str,
-        model: str = "gemini-2.5-flash",
-        timeout_s: int = 35,
-) -> List[FactAssertionResult]:
+        model: str = "gemini-2.5-flash-lite",
+        timeout_s: int = 100,
+) -> Dict[str, FactAssertionResult]:
     """
-    Calls Gemini ONCE to decide TRUE/FALSE/UNCLEAR for multiple claims.
-    Each item contains:
-      - span.claim_text
-      - fact_checks (Google Fact Check API results)
-    Returns FactAssertionResult list in same order as input items.
+    Returns dict: claim_id -> FactAssertionResult
+    (No more brittle list-index coupling.)
     """
-
     if not items:
-        return []
+        return {}
 
-    # Build per-claim evidence payloads
-    evidence_payloads: List[List[dict[str, Any]]] = [
-        _facts_to_llm_evidence(it.fact_checks) for it in items
-    ]
+    # Build per-claim evidence payloads + per-claim id->SourceRef maps
+    evidence_payloads: Dict[str, List[dict[str, Any]]] = {}
+    id_maps: Dict[str, Dict[str, SourceRef]] = {}
+
+    for it in items:
+        ev, id_map = _facts_to_llm_evidence(it.fact_checks)
+        evidence_payloads[it.claim_id] = ev
+        id_maps[it.claim_id] = id_map
 
     response_schema = {
         "type": "object",
@@ -727,35 +630,21 @@ def assert_claims_to_facts_batch(
                 "items": {
                     "type": "object",
                     "properties": {
-                        "index": {"type": "integer"},
+                        "claim_id": {"type": "string"},
                         "verdict": {"type": "string", "enum": ["true", "false", "unclear"]},
                         "confidence": {"type": "number"},
                         "summary": {"type": "string"},
                         "reasoning": {"type": "string"},
-                        "used_sources": {
-                            "type": "array",
-                            "items": {
-                                "type": "object",
-                                "properties": {
-                                    "publisher": {"type": "string"},
-                                    "publisher_site": {"type": "string"},
-                                    "title": {"type": "string"},
-                                    "url": {"type": "string"},
-                                    "review_date": {"type": "string"},
-                                    "textual_rating": {"type": "string"},
-                                    "language_code": {"type": "string"},
-                                },
-                            },
-                        },
+                        "used_source_ids": {"type": "array", "items": {"type": "string"}},
                         "notes": {"type": "string"},
                     },
                     "required": [
-                        "index",
+                        "claim_id",
                         "verdict",
                         "confidence",
                         "summary",
                         "reasoning",
-                        "used_sources",
+                        "used_source_ids",
                         "notes",
                     ],
                 },
@@ -767,12 +656,13 @@ def assert_claims_to_facts_batch(
     system_instruction = (
         "You are a fact-checking assistant.\n"
         "You must ONLY use the provided evidence for EACH claim.\n"
-        "Do NOT use external knowledge. Do NOT invent sources, URLs, publishers, dates, or ratings.\n"
-        "If the evidence does not clearly support or refute the input claim, return verdict 'unclear'.\n"
-        "If there are conflicting sources/ratings, return 'unclear' and describe the conflict.\n"
-        "When you cite sources, ONLY include sources that appear in the provided evidence reviews for that claim.\n"
-        "\n"
-        "You will receive a list of claims. Return results with the SAME 'index' for each claim.\n"
+        "Do NOT use external knowledge.\n"
+        "Do NOT invent sources.\n\n"
+        "VERY IMPORTANT SELECTION RULE:\n"
+        "- If evidence is non-empty for a claim, you MUST select at least ONE review_id in used_source_ids.\n"
+        "- Even if the verdict is 'unclear', pick the SINGLE closest matching review_id.\n"
+        "- Only return used_source_ids = [] when the evidence list is empty.\n\n"
+        "Return results with the SAME claim_id you received.\n"
     )
 
     user_prompt = {
@@ -780,17 +670,18 @@ def assert_claims_to_facts_batch(
             "For each item, decide true/false/unclear using ONLY its evidence.\n"
             "Return JSON matching the schema.\n"
             "Important:\n"
-            "- If evidence is about a different claim or not close enough, choose 'unclear'.\n"
-            "- Put exact review entries you relied on into used_sources.\n"
+            "- If evidence is about a different claim or not close, choose 'unclear' (low confidence).\n"
+            "- STILL you MUST include >=1 used_source_id whenever evidence is non-empty.\n"
+            "- Put ONLY review_id values you relied on into used_source_ids.\n"
             "- Keep summary 1-2 sentences. Keep reasoning concise but specific.\n"
         ),
         "items": [
             {
-                "index": i,
-                "input_claim": items[i].span.claim_text,
-                "evidence": evidence_payloads[i],
+                "claim_id": it.claim_id,
+                "input_claim": it.span.claim_text,
+                "evidence": evidence_payloads[it.claim_id],
             }
-            for i in range(len(items))
+            for it in items
         ],
     }
 
@@ -819,26 +710,13 @@ def assert_claims_to_facts_batch(
     except Exception as e:
         raise RuntimeError(f"Unexpected Gemini response shape: {data}") from e
 
-    # Build a map index -> parsed result
-    by_index: dict[int, dict[str, Any]] = {int(r["index"]): r for r in raw_results}
+    # Parse into claim_id -> FactAssertionResult, with strict source-id filtering + fallback
+    out: Dict[str, FactAssertionResult] = {}
+    seen_ids: set[str] = set()
 
-    results: List[FactAssertionResult] = []
-    for i, item in enumerate(items):
-        r = by_index.get(i)
-        if not r:
-            # missing -> treat as unclear
-            results.append(
-                FactAssertionResult(
-                    input_claim=item.span.claim_text,
-                    verdict=Verdict.UNCLEAR,
-                    confidence=0.0,
-                    summary="No result returned for this claim.",
-                    reasoning="The batch model output did not include an entry for this claim index.",
-                    sources=[],
-                    notes="missing_batch_result",
-                )
-            )
-            continue
+    for r in raw_results:
+        claim_id = str(r["claim_id"]).strip()
+        seen_ids.add(claim_id)
 
         verdict = Verdict(r["verdict"])
         confidence = float(r["confidence"])
@@ -846,117 +724,117 @@ def assert_claims_to_facts_batch(
         reasoning = str(r["reasoning"])
         notes = r.get("notes")
 
-        # Enforce: used_sources must be subset of THIS claim's evidence reviews
-        evidence_sources_set = set()
-        for c in evidence_payloads[i]:
-            for rr in c["reviews"]:
-                evidence_sources_set.add(
-                    (
-                        rr.get("publisher"),
-                        rr.get("publisher_site"),
-                        rr.get("title"),
-                        rr.get("url"),
-                        rr.get("review_date"),
-                        rr.get("textual_rating"),
-                        rr.get("language_code"),
-                    )
-                )
+        used_ids = [str(x).strip() for x in (r.get("used_source_ids") or []) if str(x).strip()]
+        id_map = id_maps.get(claim_id, {})
 
+        _dbg(f"assert verdict={verdict} conf={confidence:.2f} used_ids={len(used_ids)} id_map={len(id_map)}", claim_id=claim_id)
+
+        # Filter to valid review_ids
         sources: List[SourceRef] = []
-        for s in r.get("used_sources", []):
-            tup = (
-                s.get("publisher"),
-                s.get("publisher_site"),
-                s.get("title"),
-                s.get("url"),
-                s.get("review_date"),
-                s.get("textual_rating"),
-                s.get("language_code"),
-            )
-            if tup not in evidence_sources_set:
-                notes = (notes or "") + " | dropped_invented_source"
+        dropped = 0
+        for rid in used_ids:
+            src = id_map.get(rid)
+            if not src:
+                dropped += 1
                 continue
-            sources.append(
-                SourceRef(
-                    publisher=s.get("publisher"),
-                    publisher_site=s.get("publisher_site"),
-                    title=s.get("title"),
-                    url=s.get("url"),
-                    review_date=s.get("review_date"),
-                    textual_rating=s.get("textual_rating"),
-                    language_code=s.get("language_code"),
-                )
-            )
+            sources.append(src)
 
-        if not sources:
-            results.append(
-                FactAssertionResult(
-                    input_claim=item.span.claim_text,
-                    verdict=Verdict.UNCLEAR,
-                    confidence=0.0,
-                    summary="No usable sources remained after filtering.",
-                    reasoning="The model referenced sources that were not present in the provided fact-check evidence.",
-                    sources=[],
-                    notes=(notes or "") + " | no_valid_sources",
-                )
-            )
-            continue
+        if dropped:
+            notes = (notes or "") + f" | dropped_unknown_source_ids={dropped}"
 
-        results.append(
-            FactAssertionResult(
-                input_claim=item.span.claim_text,
-                verdict=verdict,
-                confidence=confidence,
-                summary=summary,
-                reasoning=reasoning,
-                sources=sources,
-                notes=notes,
-            )
+        # Fallback: if model returned no valid sources but evidence exists, pick 1 best-effort source
+        # (This prevents "0 checked, everything dropped" while still surfacing uncertainty.)
+        if not sources and id_map:
+            fallback_rid = next(iter(id_map.keys()))
+            sources = [id_map[fallback_rid]]
+            notes = (notes or "") + " | fallback_source_selected"
+            verdict = Verdict.UNCLEAR if verdict != Verdict.FALSE and verdict != Verdict.TRUE else verdict
+            confidence = min(confidence, 0.35)  # keep it clearly low if we had to fallback
+            _dbg(f"fallback picked review_id={fallback_rid}", claim_id=claim_id)
+
+        out[claim_id] = FactAssertionResult(
+            input_claim="",  # filled in below from original item (safer than trusting model)
+            verdict=verdict,
+            confidence=confidence,
+            summary=summary,
+            reasoning=reasoning,
+            sources=sources,
+            notes=notes,
         )
 
-    return results
+    # Ensure every input claim has an output entry (even if missing from model output)
+    for it in items:
+        if it.claim_id not in out:
+            _dbg("missing model result -> create placeholder", claim_id=it.claim_id)
+            out[it.claim_id] = FactAssertionResult(
+                input_claim=it.span.claim_text,
+                verdict=Verdict.UNCLEAR,
+                confidence=0.0,
+                summary="No result returned for this claim.",
+                reasoning="The batch model output did not include an entry for this claim_id.",
+                sources=[],
+                notes="missing_batch_result",
+            )
+        else:
+            # Fill input_claim from our canonical item text (prevents mismatches / hallucinated text)
+            out[it.claim_id].input_claim = it.span.claim_text
 
+    # Debug: model returned unknown IDs
+    if FACTCHECK_DEBUG:
+        unknown = [cid for cid in seen_ids if cid not in {it.claim_id for it in items}]
+        if unknown:
+            _dbg(f"model returned {len(unknown)} unknown claim_id(s): {unknown[:3]}…")
+
+    return out
+
+
+# =========================
+# Top-level function (PATCH THE CANDIDATES + ATTACHMENT PARTS)
+# =========================
 
 def check_facts_for_html(content_html: str, *, article_id: str) -> FactCheckTrustDTO:
     api_key = os.environ["GEMINI_API_KEY"]
+    fact_api_key = os.environ["FACT_CHECKING_API_KEY"]
 
     extracted = extract_claims_from_html(content_html, gemini_api_key=api_key)
+
     extracted_count = len(extracted.claims)
 
     dropped_no_evidence = 0
     dropped_keyword_failed = 0
     dropped_assertion_failed = 0
 
-    # Collect candidates that have evidence and are ready for batch assertion
+    # NEW: richer counters for debugging / telemetry
+    dropped_missing_batch_result = 0
+    checked_with_no_sources = 0
+
     candidates: List[CheckedClaim] = []
 
     for span in extracted.claims:
-        # keyword query (LLM)
+        claim_id = _claim_id(article_id, span.start_char, span.end_char, span.claim_text)
+
         try:
             query = extract_keywords_from_claim(span.claim_text, gemini_api_key=api_key)
-        except (httpx.ReadTimeout, httpx.ConnectTimeout, httpx.HTTPStatusError):
+        except (httpx.ReadTimeout, httpx.ConnectTimeout, httpx.HTTPStatusError) as e:
             dropped_keyword_failed += 1
+            _dbg(f"drop keywordExtractionFailed: {type(e).__name__}", claim_id=claim_id)
             continue
 
-        # fact-check API search (primary -> alternatives)
-        fact_checks = search_for_keywords(query.primary, api_key)
-        if not fact_checks:
-            for alt in query.alternatives:
-                fact_checks = search_for_keywords(alt, api_key)
-                if fact_checks:
-                    break
+        fact_checks, used_queries = search_for_claim_multi(query, api_key=fact_api_key, max_searches=5)
+        _dbg(f"searched={used_queries}", claim_id=claim_id)
 
         if not fact_checks:
             dropped_no_evidence += 1
+            _dbg("drop noEvidence: fact-check api returned 0 claims", claim_id=claim_id)
             continue
 
-        # assertion will be filled later (batch)
         candidates.append(
             CheckedClaim(
+                claim_id=claim_id,
                 span=span,
                 query=query,
                 fact_checks=fact_checks,
-                assertion=FactAssertionResult(  # placeholder, replaced after batch
+                assertion=FactAssertionResult(
                     input_claim=span.claim_text,
                     verdict=Verdict.UNCLEAR,
                     confidence=0.0,
@@ -968,29 +846,51 @@ def check_facts_for_html(content_html: str, *, article_id: str) -> FactCheckTrus
             )
         )
 
-    # ✅ ONE model call here
+    assertions_by_id: Dict[str, FactAssertionResult] = {}
     try:
-        assertions = assert_claims_to_facts_batch(candidates, gemini_api_key=api_key)
-    except (httpx.ReadTimeout, httpx.ConnectTimeout, httpx.HTTPStatusError, RuntimeError):
-        # whole batch failed -> drop all candidate assertions
+        _dbg(f"candidates_for_assertion={len(candidates)}")
+        assertions_by_id = assert_claims_to_facts_batch(candidates, gemini_api_key=api_key)
+    except (httpx.ReadTimeout, httpx.ConnectTimeout, httpx.HTTPStatusError, RuntimeError) as e:
         dropped_assertion_failed += len(candidates)
+        _dbg(f"assertion batch failed: {type(e).__name__}: {e}")
         candidates = []
-        assertions = []
+        assertions_by_id = {}
 
-    # Attach assertions back to candidates (keep only those that produced usable sources)
     checked: List[CheckedClaim] = []
-    for i, c in enumerate(candidates):
-        a = assertions[i] if i < len(assertions) else None
-        if not a or not a.sources:
+    for c in candidates:
+        a = assertions_by_id.get(c.claim_id)
+        if not a:
             dropped_assertion_failed += 1
+            dropped_missing_batch_result += 1
+            _dbg("drop assertionFailed: missing result for claim_id", claim_id=c.claim_id)
             continue
+
+        # skip placeholders entirely
+        if a.notes and "missing_batch_result" in a.notes:
+            dropped_assertion_failed += 1
+            dropped_missing_batch_result += 1
+            _dbg("drop assertionFailed: missing_batch_result placeholder", claim_id=c.claim_id)
+            continue
+
+        # skip "fallback-only" results (broad evidence, no close match)
+        if a.notes and "fallback_source_selected" in a.notes:
+            dropped_no_evidence += 1
+            _dbg("drop noEvidence: fallback_source_selected (no close match)", claim_id=c.claim_id)
+            continue
+
+        # keep but annotate if no sources (optional)
+        if not a.sources:
+            checked_with_no_sources += 1
+            a.notes = (a.notes or "") + " | no_sources_selected"
+            _dbg("kept but no sources selected", claim_id=c.claim_id)
+
         c.assertion = a
         checked.append(c)
 
     checked_count = len(checked)
     dropped_count = extracted_count - checked_count
 
-    dto = FactCheckTrustDTO(
+    return FactCheckTrustDTO(
         articleId=article_id,
         generatedAt=datetime.now(timezone.utc).isoformat(),
         stats=FactCheckTrustStats(
@@ -1001,8 +901,10 @@ def check_facts_for_html(content_html: str, *, article_id: str) -> FactCheckTrus
                 "noEvidence": dropped_no_evidence,
                 "keywordExtractionFailed": dropped_keyword_failed,
                 "assertionFailed": dropped_assertion_failed,
+                # NEW: debugging breakdown
+                "missingBatchResult": dropped_missing_batch_result,
+                "checkedButNoSources": checked_with_no_sources,
             },
         ),
         claims=[_to_claim_dto(article_id, c) for c in checked],
     )
-    return dto
