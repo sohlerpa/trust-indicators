@@ -19,4 +19,4 @@ def fact_check_xpost(id: str):
     if not post:
         raise HTTPException(404, "X post not found")
 
-    return run_fact_check(post.text)
+    return None # run_fact_check(post.text) TODO
