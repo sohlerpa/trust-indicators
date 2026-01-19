@@ -699,3 +699,75 @@ body {
     transform: translateY(0);
     pointer-events: auto;
 }
+
+.factCheckSummary {
+    margin-bottom: 1rem;
+}
+
+.factCheckClaims {
+    list-style: none;
+    padding: 0;
+}
+
+.claim {
+    margin-bottom: 1.2rem;
+}
+
+.claimText {
+    font-weight: 500;
+}
+
+.verdict-true {
+    border-left: 4px solid #2ecc71;
+    padding-left: 0.75rem;
+}
+
+.verdict-false {
+    border-left: 4px solid #e74c3c;
+    padding-left: 0.75rem;
+}
+
+.verdict-unclear {
+    border-left: 4px solid #f1c40f;
+    padding-left: 0.75rem;
+}
+
+.muted {
+    opacity: 0.7;
+}
+
+.claimMeta {
+    margin-top: 0.35rem;
+}
+
+.verdictLine {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.35rem;
+    font-size: 0.95rem;
+    opacity: 0.9;
+}
+
+.arrow {
+    opacity: 0.75;
+}
+
+.verdictText {
+    text-transform: lowercase;
+}
+
+.verdictText-true {
+    color: #2ecc71;
+}
+
+.verdictText-false {
+    color: #e74c3c;
+}
+
+.verdictText-unclear {
+    color: #f1c40f;
+}
+
+.confidenceText {
+    opacity: 0.85;
+}

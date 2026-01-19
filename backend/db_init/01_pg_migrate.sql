@@ -57,3 +57,18 @@ CREATE TABLE article_llm_analysis (
     created_at TIMESTAMP NOT NULL DEFAULT now(),
     updated_at TIMESTAMP NOT NULL DEFAULT now()
 );
+
+
+CREATE TABLE article_fact_check
+(
+    article_id TEXT PRIMARY KEY
+        REFERENCES articles (id) ON DELETE CASCADE,
+
+    result_json JSONB NOT NULL,
+    extracted_claims_count INT NOT NULL DEFAULT 0,
+    checked_claims_count INT NOT NULL DEFAULT 0,
+    dropped_claims_count INT NOT NULL DEFAULT 0,
+    model TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT now(),
+    updated_at TIMESTAMP NOT NULL DEFAULT now()
+);

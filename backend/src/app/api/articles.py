@@ -35,7 +35,7 @@ def get_article_style(article_id: str, db: Session = Depends(get_db)):
 @router.get("/articles/{article_id}/trust/fact-check")
 def get_fact_check(article_id: str, db: Session = Depends(get_db)):
     article = get_article_by_id(db, article_id)
-    return run_fact_check(article)
+    return run_fact_check(article, db)
 
 @router.get("/articles/{article_id}/trust/author")
 def get_author(article_id: str, db: Session = Depends(get_db)):

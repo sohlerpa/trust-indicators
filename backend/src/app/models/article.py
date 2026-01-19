@@ -1,12 +1,15 @@
-from sqlalchemy import Column, String, Text, TIMESTAMP
-from sqlalchemy.orm import declarative_base
+import json
+from typing import Optional, Any
 from urllib.parse import urlparse
+
+from sqlalchemy import Column, String, Text, TIMESTAMP
 from sqlalchemy import text
-
 from sqlalchemy.orm import Session
-from src.app.models.models import ArticleRecord, AuthorExpertise
+from sqlalchemy.orm import declarative_base
 
-from src.app.models.models import TrustIndicators, ImageProvenance
+from src.app.models.models import ArticleRecord, AuthorExpertise
+from src.app.models.models import TrustIndicators
+from src.modules.fact_checking.fact_checking import FactCheckTrustDTO
 from src.modules.tone.tone_classifier import classify_tone
 
 Base = declarative_base()
@@ -249,4 +252,94 @@ def save_tone_analysis(
         },
     )
 
+    db.commit()
+
+
+def get_fact_check_cache(db: Session, article_id: str) -> Optional[FactCheckTrustDTO]:
+    row = db.execute(
+        text(
+            """
+            SELECT result_json
+            FROM article_fact_check
+            WHERE article_id = :article_id
+            """
+        ),
+        {"article_id": article_id},
+    ).mappings().first()
+
+    if not row:
+        return None
+
+    payload: Any = row["result_json"]
+    if isinstance(payload, str):
+        payload = json.loads(payload)
+
+    return FactCheckTrustDTO(**payload)
+
+
+def upsert_fact_check_cache(
+        db: Session,
+        article_id: str,
+        dto: FactCheckTrustDTO,
+        *,
+        model: Optional[str] = None,
+) -> None:
+        # 1) Turn dto into a JSON-serializable dict (deep)
+    if hasattr(dto, "model_dump"):
+        payload = dto.model_dump(mode="json")  # <-- important: converts enums etc.
+    else:
+        # fallback if dto isn't pydantic
+        payload = json.loads(json.dumps(dto, default=lambda o: getattr(o, "__dict__", str(o))))
+
+    # 2) Stats extraction now works on dict
+    stats = payload.get("stats") or {}
+    extracted = int(stats.get("extractedClaims", 0))
+    checked = int(stats.get("checkedClaims", 0))
+    dropped = int(stats.get("droppedClaims", 0))
+
+    # 3) Store JSON
+    result_json = json.dumps(payload, ensure_ascii=False)
+
+    db.execute(
+        text(
+            """
+            INSERT INTO article_fact_check (
+                article_id,
+                result_json,
+                extracted_claims_count,
+                checked_claims_count,
+                dropped_claims_count,
+                model,
+                created_at,
+                updated_at
+            )
+            VALUES (
+                       :article_id,
+                       (:result_json)::jsonb,
+                       :extracted,
+                       :checked,
+                       :dropped,
+                       :model,
+                       now(),
+                       now()
+                   )
+                ON CONFLICT (article_id)
+        DO UPDATE SET
+                result_json = EXCLUDED.result_json,
+                               extracted_claims_count = EXCLUDED.extracted_claims_count,
+                               checked_claims_count = EXCLUDED.checked_claims_count,
+                               dropped_claims_count = EXCLUDED.dropped_claims_count,
+                               model = EXCLUDED.model,
+                               updated_at = now()
+            """
+        ),
+        {
+            "article_id": article_id,
+            "result_json": result_json,
+            "extracted": extracted,
+            "checked": checked,
+            "dropped": dropped,
+            "model": model,
+        },
+    )
     db.commit()

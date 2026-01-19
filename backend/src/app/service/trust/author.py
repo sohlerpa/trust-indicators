@@ -1,11 +1,8 @@
 from sqlalchemy.orm import Session
 
-from src.modules.author_expertise.author_expertise_classifier import (
-    assess_author_expertise,
-)
-
-from src.app.models.models import AuthorExpertise
 from src.app.models.article import get_article_llm_analysis, save_author_expertise
+from src.app.models.models import AuthorExpertise
+from src.modules.author_expertise.author_expertise_classifier import assess_author_expertise
 
 
 def analyze_author(article, db: Session):

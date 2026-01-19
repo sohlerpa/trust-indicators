@@ -80,7 +80,45 @@ export type StyleTrust = {
 };
 
 export type FactCheckTrust = {
-    fact_checked: boolean;
+    articleId: string;
+    generatedAt: string; // ISO date
+    stats: {
+        extractedClaims: number;   // total from LLM extraction
+        checkedClaims: number;     // claims with evidence (returned)
+        droppedClaims: number;     // extracted - checked
+        dropReasons: {
+            noEvidence: number;      // fact_checks=[]
+            keywordExtractionFailed?: number;
+            assertionFailed?: number;
+        };
+    };
+    claims: FactCheckTrustClaim[]; // only the checked ones (with evidence)
+};
+
+export type FactCheckTrustClaim = {
+    id: string; // stable id for React keys / tooltip mapping (you generate it)
+    claimText: string;     // normalized claim text (LLM)
+    sourceText: string;    // exact substring from plain_text (for display)
+    startChar: number;     // start offset in plain_text
+    endChar: number;       // end offset in plain_text
+    reason?: string;       // why extracted (optional)
+    query: {
+        primary: string;
+        alternatives: string[];
+    };
+    verdict: "true" | "false" | "unclear";
+    confidence: number;    // 0..1
+    summary: string;       // 1-2 sentences
+    reasoning: string;     // short, evidence-based
+    sources: Array<{
+        publisher?: string;
+        publisherSite?: string;
+        title?: string;
+        url?: string;
+        reviewDate?: string;
+        textualRating?: string;
+        languageCode?: string;
+    }>;
 };
 
 export type AuthorExpertiseTrust = AuthorExpertise;
