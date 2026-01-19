@@ -59,7 +59,7 @@ class ArticleRecord(BaseModel):
 
 class XPostRecord(BaseModel):
     id: str
-    handle: str
-    display_name: str
+    url: HttpUrl
     text: str
+    media_url: Optional[HttpUrl] = None
     created_at: datetime

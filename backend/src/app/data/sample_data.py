@@ -6,16 +6,16 @@ from src.app.models.models import ArticleRecord, XPostRecord
 X_POSTS: list[XPostRecord] = [
     XPostRecord(
         id="x1",
-        handle="@exampleUser1",
-        display_name="Example User 1",
-        text="First X post",
+        url="https://x.com/consciousphilos/status/1968904800218562608",
+        text="""America is a golden calf and we'll suck it dry, chop it up, and sell it off piece by piece until there is nothing left but the world's biggest welfare state that we'll create and control... This is what we do to countries that we hate. We destroy them very slowly" - Netanyahu""",
+        media_url="https://pbs.twimg.com/media/G1L0enNXoAA2mMy?format=jpg&name=medium",
         created_at=datetime(2025, 12, 21, 11, 15, 00)
     ),
     XPostRecord(
         id="x2",
-        handle="@exampleUser2",
-        display_name="Example User 2",
+        url="https://x.com/LovesNandos/status/1211797914437259264",
         text="Second X post",
+        media_url=None,
         created_at=datetime(2025, 12, 21, 12, 34, 28)
     ),
 ]
