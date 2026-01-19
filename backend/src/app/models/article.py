@@ -117,7 +117,6 @@ def get_or_create_db_trust_indicators(
     article: ArticleRecord,
     db: Session,
 ) -> TrustIndicators:
-
     row = get_article_llm_analysis(db, article.id)
 
     # FAST PATH — tone already cached
@@ -143,8 +142,8 @@ def get_or_create_db_trust_indicators(
             c2pa_info=[],
         )
 
-    # SLOW PATH — tone not computed yet
-    print("generating data from llm...")
+    # SLOW PATH (first time only)
+    print(f"generating new analysis for article {article.id}")
     tone = classify_tone(article.content_html)
 
     if tone.tone == "error" or tone.content_type == "error":
@@ -154,8 +153,7 @@ def get_or_create_db_trust_indicators(
             tone=None,
             content_type=None,
             tone_type_rationale=None,
-            author_expertise=None,
-            c2pa_info=[],
+            c2pa_info=[]
         )
 
     ti = TrustIndicators(
