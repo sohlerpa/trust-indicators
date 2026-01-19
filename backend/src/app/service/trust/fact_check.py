@@ -1,8 +1,7 @@
 from sqlalchemy.orm import Session
 
 from src.app.models.article import get_fact_check_cache, upsert_fact_check_cache
-from src.modules.fact_checking import check_facts_for_html
-from src.modules.fact_checking.fact_checking import FactCheckTrustDTO
+from src.modules.fact_checking.fact_checking import FactCheckTrustDTO, check_facts_for_html
 
 
 def run_fact_check(article, db: Session) -> FactCheckTrustDTO:

@@ -1,6 +1,5 @@
-import { useState } from "react";
-import { XEmbed } from "react-social-media-embed";
-import type { XPost } from "../api/types";
+import {XEmbed} from "react-social-media-embed";
+import type {XPost} from "../api/types";
 import FactCheckCard from "./FactCheckCard";
 
 export default function XPostList({ posts }: { posts: XPost[] }) {
