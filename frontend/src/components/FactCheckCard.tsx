@@ -1,13 +1,25 @@
-import {useEffect, useState} from "react";
-import {getArticleFactCheck} from "../api/endpoints";
-import type {FactCheckTrust} from "../api/types";
+import { useEffect, useState } from "react";
+import { getArticleFactCheck } from "../api/endpoints";
+import type { FactCheckTrust } from "../api/types";
 
-export default function FactCheckCard({articleId}: {articleId: string}) {
+export default function FactCheckCard({ articleId }: { articleId: string }) {
     const [data, setData] = useState<FactCheckTrust | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        getArticleFactCheck(articleId).then(setData);
+        getArticleFactCheck(articleId)
+            .then(setData)
+            .catch(() => setError("Fact-checking failed."));
     }, [articleId]);
+
+    if (error) {
+        return (
+            <div className="card metaCard">
+                <h2>Fact-Checking</h2>
+                <p className="error">{error}</p>
+            </div>
+        );
+    }
 
     if (!data) {
         return (
@@ -18,10 +30,48 @@ export default function FactCheckCard({articleId}: {articleId: string}) {
         );
     }
 
+    const { stats, claims } = data;
+
     return (
         <div className="card metaCard">
             <h2>Fact-Checking</h2>
-            <p>{String(data.fact_checked)}</p>
+
+            {/* High-level summary */}
+            <div className="factCheckSummary">
+                <p>
+                    <strong>{stats.extractedClaims}</strong> potentially relevant claims detected
+                </p>
+                <p>
+                    <strong>{stats.checkedClaims}</strong> checked &nbsp;·&nbsp;
+                    <strong>{stats.droppedClaims}</strong> skipped (no evidence)
+                </p>
+            </div>
+
+            {/* Checked claims */}
+            {claims.length === 0 ? (
+                <p className="muted">
+                    No claims could be verified against known fact-check sources.
+                </p>
+            ) : (
+                <ul className="factCheckClaims">
+                    {claims.map((c) => (
+                        <li key={c.id} className={`claim verdict-${c.verdict}`}>
+                            <p className="claimText">“{c.claimText}”</p>
+
+                            <div className="claimMeta">
+                                <span className="verdict">
+                                    Verdict: <strong>{c.verdict}</strong>
+                                </span>
+                                <span className="confidence">
+                                    Confidence: {Math.round(c.confidence * 100)}%
+                                </span>
+                            </div>
+
+                            <p className="summary">{c.summary}</p>
+                        </li>
+                    ))}
+                </ul>
+            )}
         </div>
     );
 }
