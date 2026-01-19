@@ -22,18 +22,27 @@ class ImageProvenance(BaseModel):
     title: Optional[str] = None
     is_ai_generated: bool = False
 
+class AuthorExpertise(BaseModel):
+    label: str
+    confidence: float
+    author: Optional[str] = None
+    field: Optional[str] = None
+    explanation: Optional[str] = None
+
 
 class TrustIndicators(BaseModel):
-    badge: Badge
-    fact_checked: bool = False
-    tone: Optional[ToneType] = None
-    content_type: Optional[ContentType] = None
-    tone_type_rationale: Optional[str] = None
-    publisher_type: PublisherType = "unknown"
-    publisher_country: Optional[str] = None
-    c2pa_info: list[ImageProvenance] = None
+    badge: str
+    fact_checked: bool | None = None
+    tone: str | None = None
+    content_type: str | None = None
+    tone_type_rationale: str | None = None
+
+    author_expertise: Optional[AuthorExpertise] = None
+
+    c2pa_info: list[ImageProvenance] = []
     owners: list[OwnerInfo] = []
-    author_expertise: Optional[AuthorExpertiseResult] = None
+    publisher_type: str | None = None
+    publisher_country: str | None = None
 
 
 class ArticleRecord(BaseModel):

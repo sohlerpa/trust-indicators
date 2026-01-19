@@ -4,12 +4,12 @@ from bs4 import BeautifulSoup
 from sqlalchemy.orm import Session
 
 from src.app.api.schemas import ArticleSummaryOut, XPostOut, ArticleBaseOut
+from src.app.models.article import get_or_create_db_trust_indicators
 from src.app.models.models import ArticleRecord, TrustIndicators, XPostRecord, OwnerInfo, ImageProvenance
 from src.modules.author_expertise.author_expertise_classifier import assess_author_expertise
 from src.modules.provenance_media.extractor import c2pa_for_image_url
 from src.modules.source_funding.queries import GET_DOMAIN_OWNERS, GET_DOMAIN_PUBLISHER_TYPE
 from src.modules.tone.tone_classifier import classify_tone, ToneClassification
-from src.app.models.article import get_or_create_db_trust_indicators
 
 
 def extract_img_srcs(content_html: str, article_url: str, api_base_url: str, main_image_url: str=None) -> list[str]:
@@ -160,6 +160,7 @@ def to_article_summary_out(
     db,
     feed_mode: bool = True,
 ) -> ArticleSummaryOut:
+
     ti = get_or_create_db_trust_indicators(a, db)
 
     return ArticleSummaryOut(
