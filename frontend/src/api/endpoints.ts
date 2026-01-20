@@ -129,3 +129,15 @@ export async function ingestArticleFromUrl(url: string): Promise<IngestArticleRe
         }
     );
 }
+
+export async function startArticleFactCheck(id: string): Promise<{ runId: string }> {
+    const res = await fetch(`/api/articles/${id}/trust/fact-check`, {method: "POST"});
+    if (!res.ok) throw new Error("Fact check failed");
+    return res.json();
+}
+
+export async function fetchFactCheckResult(runId: string) {
+    const res = await fetch(`/api/fact-check/result/${runId}`);
+    if (!res.ok) return null;
+    return res.json();
+}

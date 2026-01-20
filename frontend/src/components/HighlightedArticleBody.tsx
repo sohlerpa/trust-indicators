@@ -1,0 +1,385 @@
+import {useEffect, useMemo, useRef, useState} from "react";
+import type {FactCheckTrust} from "../api/types";
+
+type Claim = FactCheckTrust["claims"][number];
+
+function formatReviewDate(date?: string) {
+    if (!date) return null;
+
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return date;
+
+    return d.toLocaleDateString("en-US", {
+        month: "short",
+        year: "numeric",
+    });
+}
+
+function clamp(n: number, min: number, max: number) {
+    return Math.max(min, Math.min(max, n));
+}
+
+function computePopoverPos(anchor: DOMRect, popW = 420, popH = 360) {
+    const margin = 10;
+
+    // below + aligned to left edge of highlight
+    let left = anchor.left;
+    let top = anchor.bottom + 8;
+
+    // if would overflow bottom
+    if (top + popH > window.innerHeight - margin) {
+        top = anchor.top - 8 - popH;
+    }
+
+    left = clamp(left, margin, window.innerWidth - margin - popW);
+    top = clamp(top, margin, window.innerHeight - margin - popH);
+
+    return {left, top};
+}
+
+function escapeRegExp(s: string) {
+    return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function normalizeWs(s: string) {
+    return s.replace(/\s+/g, " ").trim();
+}
+
+function verdictClass(verdict: string) {
+    if (verdict === "true") return "factSpan isTrue";
+    if (verdict === "false") return "factSpan isFalse";
+    return "factSpan isUnclear";
+}
+
+function wrapRange(
+    root: HTMLElement,
+    start: number,
+    end: number,
+    className: string,
+    claimId: string,
+) {
+    if (end <= start) return;
+
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    let node: Text | null = walker.nextNode() as Text | null;
+
+    let pos = 0;
+    let startNode: Text | null = null;
+    let endNode: Text | null = null;
+    let startOffset = 0;
+    let endOffset = 0;
+
+    while (node) {
+        const len = node.nodeValue?.length ?? 0;
+        const nextPos = pos + len;
+
+        if (!startNode && start >= pos && start < nextPos) {
+            startNode = node;
+            startOffset = start - pos;
+        }
+        if (!endNode && end > pos && end <= nextPos) {
+            endNode = node;
+            endOffset = end - pos;
+            break;
+        }
+
+        pos = nextPos;
+        node = walker.nextNode() as Text | null;
+    }
+
+    if (!startNode || !endNode) return;
+
+    const range = document.createRange();
+    range.setStart(startNode, startOffset);
+    range.setEnd(endNode, endOffset);
+
+    const mark = document.createElement("mark");
+    mark.className = className;
+    mark.dataset.claimId = claimId;
+
+    try {
+        range.surroundContents(mark);
+    } catch {
+        const frag = range.extractContents();
+        mark.appendChild(frag);
+        range.insertNode(mark);
+    } finally {
+        range.detach();
+    }
+}
+
+export default function HighlightedArticleBody({
+                                                   html,
+                                                   claims,
+                                               }: {
+    html: string;
+    claims?: Claim[] | null;
+}) {
+    const articleRef = useRef<HTMLElement | null>(null);
+    const popoverRef = useRef<HTMLDivElement | null>(null);
+
+    const claimById = useMemo(() => {
+        const m = new Map<string, Claim>();
+        for (const c of claims ?? []) m.set(c.id, c);
+        return m;
+    }, [claims]);
+
+    const [hover, setHover] = useState<{
+        open: boolean;
+        left: number;
+        top: number;
+        claim: Claim | null;
+    }>({
+        open: false,
+        left: 0,
+        top: 0,
+        claim: null,
+    });
+
+    useEffect(() => {
+        const root = articleRef.current;
+        if (!root) return;
+
+        root.querySelectorAll("mark.factSpan").forEach((m) => {
+            const parent = m.parentNode;
+            if (!parent) return;
+            while (m.firstChild) parent.insertBefore(m.firstChild, m);
+            parent.removeChild(m);
+            parent.normalize();
+        });
+
+        if (!claims || claims.length === 0) return;
+
+        const fullText = root.textContent ?? "";
+        const fullTextNorm = normalizeWs(fullText);
+
+        const sorted = [...claims].sort(
+            (a, b) => (b.sourceText?.length ?? 0) - (a.sourceText?.length ?? 0)
+        );
+
+        for (const c of sorted) {
+            const source = c.sourceText?.trim();
+            if (!source) continue;
+
+            let idx = 0;
+            while (true) {
+                const found = fullText.indexOf(source, idx);
+                if (found === -1) break;
+
+                wrapRange(
+                    root,
+                    found,
+                    found + source.length,
+                    verdictClass(c.verdict),
+                    c.id,
+                );
+
+                idx = found + source.length;
+            }
+
+            if (!fullText.includes(source)) {
+                const pattern = escapeRegExp(normalizeWs(source)).replace(/\s+/g, "\\s+");
+                const re = new RegExp(pattern, "g");
+
+                let m: RegExpExecArray | null;
+                while ((m = re.exec(fullText)) !== null) {
+                    wrapRange(
+                        root,
+                        m.index,
+                        m.index + m[0].length,
+                        verdictClass(c.verdict),
+                        c.id,
+                    );
+                }
+            }
+        }
+    }, [html, claims]);
+
+    useEffect(() => {
+        const root = articleRef.current;
+        if (!root) return;
+
+        let closeTimer: number | null = null;
+
+        const clearCloseTimer = () => {
+            if (closeTimer !== null) {
+                window.clearTimeout(closeTimer);
+                closeTimer = null;
+            }
+        };
+
+        const scheduleClose = () => {
+            clearCloseTimer();
+            closeTimer = window.setTimeout(() => {
+                setHover((h) => ({...h, open: false, claim: null}));
+            }, 120);
+        };
+
+        const openForMark = (mark: HTMLElement) => {
+            const claimId = mark.dataset.claimId;
+            if (!claimId) return;
+
+            const claim = claimById.get(claimId);
+            if (!claim) return;
+
+            const popW = Math.min(420, window.innerWidth - 24);
+            const popH = Math.min(360, window.innerHeight - 24);
+
+            const rect = mark.getBoundingClientRect();
+            const pos = computePopoverPos(rect, popW, popH);
+
+            setHover({
+                open: true,
+                left: pos.left,
+                top: pos.top,
+                claim,
+            });
+        };
+
+        const onOver = (e: MouseEvent) => {
+            const mark = (e.target as HTMLElement | null)?.closest("mark.factSpan") as HTMLElement | null;
+            if (!mark) return;
+            clearCloseTimer();
+            openForMark(mark);
+        };
+
+        const onOut = (e: MouseEvent) => {
+            const leavingMark = (e.target as HTMLElement | null)?.closest("mark.factSpan");
+            if (!leavingMark) return;
+
+            const entering = e.relatedTarget as HTMLElement | null;
+            if (entering?.closest(".factHoverPopover")) return;
+
+            scheduleClose();
+        };
+
+        root.addEventListener("mouseover", onOver);
+        root.addEventListener("mouseout", onOut);
+
+        const onScrollOrResize = () => {
+            setHover((h) => {
+                if (!h.open || !h.claim) return h;
+                const mark = root.querySelector(`mark.factSpan[data-claim-id="${h.claim.id}"]`) as HTMLElement | null;
+                if (!mark) return h;
+
+                const popW = Math.min(420, window.innerWidth - 24);
+                const popH = Math.min(360, window.innerHeight - 24);
+
+                const rect = mark.getBoundingClientRect();
+                const pos = computePopoverPos(rect, popW, popH);
+                return {...h, left: pos.left, top: pos.top};
+            });
+        };
+
+        window.addEventListener("scroll", onScrollOrResize, true);
+        window.addEventListener("resize", onScrollOrResize);
+
+        return () => {
+            root.removeEventListener("mouseover", onOver);
+            root.removeEventListener("mouseout", onOut);
+            window.removeEventListener("scroll", onScrollOrResize, true);
+            window.removeEventListener("resize", onScrollOrResize);
+            clearCloseTimer();
+        };
+    }, [claimById]);
+
+    useEffect(() => {
+        if (!hover.open || !hover.claim) return;
+        const root = articleRef.current;
+        const pop = popoverRef.current;
+        if (!root || !pop) return;
+
+        const mark = root.querySelector(
+            `mark.factSpan[data-claim-id="${hover.claim.id}"]`
+        ) as HTMLElement | null;
+
+        if (!mark) return;
+
+        const anchor = mark.getBoundingClientRect();
+        const popRect = pop.getBoundingClientRect();
+
+        const isAbove = popRect.bottom <= anchor.top + 2;
+        if (!isAbove) return;
+
+        const margin = 10;
+        const gap = 8;
+
+        const desiredTop = anchor.top - gap - popRect.height;
+        const clampedTop = clamp(desiredTop, margin, window.innerHeight - margin - popRect.height);
+
+        if (Math.abs(clampedTop - hover.top) > 1) {
+            setHover((h) => ({ ...h, top: clampedTop }));
+        }
+    }, [hover.open, hover.claim?.id, hover.left, hover.top]);
+
+    return (
+        <>
+            <article
+                ref={articleRef as any}
+                className="articleBody card"
+                dangerouslySetInnerHTML={{__html: html}}
+            />
+
+            <div
+                ref={popoverRef}
+                className={`factHoverPopover ${hover.open ? "isOpen" : ""}`}
+                style={{left: hover.left, top: hover.top}}
+                onMouseEnter={() => {
+                    null;
+                }}
+                onMouseLeave={() =>
+                    setHover((h) => ({...h, open: false, claim: null}))
+                }
+            >
+                {hover.claim && (
+                    <div className="card metaCard">
+                        <div className="verdictLine">
+                            <span className="arrow">→</span>{" "}
+                            <strong className={`verdictText verdictText-${hover.claim.verdict}`}>
+                                {hover.claim.verdict}
+                            </strong>{" "}
+                            <span className="confidenceText">
+                                ({Math.round(hover.claim.confidence * 100)}%)
+                            </span>
+                        </div>
+
+                        <p className="summary" style={{marginTop: 8}}>
+                            {hover.claim.summary}
+                        </p>
+
+                        {hover.claim.sources?.length ? (
+                            <>
+                                <div className="sourceSectionLabel" style={{marginTop: 10}}>
+                                    Sources
+                                </div>
+                                <ul className="tooltipList" style={{marginTop: 6}}>
+                                    {hover.claim.sources.map((s, i) => (
+                                        <li
+                                            key={`${s.url ?? s.title ?? "src"}-${i}`}
+                                            className="tooltipItem"
+                                        >
+                                            <span className="tooltipPublisher">
+                                                {s.publisher} {formatReviewDate((s as any).review_date) && <span
+                                                className="tooltipDate"> · {formatReviewDate((s as any).review_date)}</span>}
+                                            </span>
+                                            {s.url && (
+                                                <a
+                                                    className="tooltipLink"
+                                                    href={s.url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                >
+                                                    {s.url}
+                                                </a>
+                                            )}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </>
+                        ) : null}
+                    </div>
+                )}
+            </div>
+        </>
+    );
+}

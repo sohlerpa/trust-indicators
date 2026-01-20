@@ -903,3 +903,58 @@ body {
     color: #111;
     line-height: 1;
 }
+
+
+mark.factSpan {
+    padding: 0.08em 0.2em;
+    border-radius: 6px;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+}
+
+mark.factSpan.isTrue {
+    background: rgba(46, 204, 113, 0.22);
+    outline: 1px solid rgba(46, 204, 113, 0.35);
+}
+
+mark.factSpan.isFalse {
+    background: rgba(231, 76, 60, 0.20);
+    outline: 1px solid rgba(231, 76, 60, 0.35);
+}
+
+mark.factSpan.isUnclear {
+    background: rgba(241, 196, 15, 0.22);
+    outline: 1px solid rgba(241, 196, 15, 0.35);
+}
+
+
+.factHoverPopover {
+    position: fixed;
+    z-index: 4000;
+
+    opacity: 0;
+    transform: translateY(-4px);
+    pointer-events: none;
+
+    transition: opacity 0.12s ease, transform 0.12s ease;
+}
+
+.factHoverPopover.isOpen {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.factHoverPopover.isOpen::before {
+    content: "";
+    position: absolute;
+    inset: -12px;
+    background: transparent;
+}
+
+.factHoverPopover .metaCard {
+    width: min(420px, calc(100vw - 24px));
+    max-height: min(360px, calc(100vh - 24px));
+    overflow: auto;
+    pointer-events: auto;
+}

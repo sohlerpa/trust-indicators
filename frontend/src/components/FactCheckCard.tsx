@@ -7,70 +7,70 @@ import ClaimSourcesTooltip from "./ClaimSourcesTooltip";
 export default function FactCheckCard({
                                           id,
                                           type,
+                                          data: externalData,
+                                          runId: externalRunId,
+                                          error: externalError,
                                       }: {
     id: string;
     type: "article" | "x";
+    data?: FactCheckTrust | null;
+    runId?: string | null;
+    error?: string | null;
 }) {
     const [data, setData] = useState<FactCheckTrust | null>(null);
     const [runId, setRunId] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
+    useEffect(() => {
+        if (externalRunId !== undefined) setRunId(externalRunId);
+        if (externalData !== undefined) setData(externalData);
+        if (externalError !== undefined) setError(externalError);
+    }, [externalRunId, externalData, externalError]);
+
+    const isControlled = externalRunId !== undefined || externalData !== undefined || externalError !== undefined;
 
     useEffect(() => {
+        if (isControlled) return;
+
         setData(null);
         setError(null);
         setRunId(null);
 
-        const fn =
-            type === "article"
-                ? getArticleFactCheck
-                : getXPostFactCheck;
+        const fn = type === "article" ? getArticleFactCheck : getXPostFactCheck;
 
         fn(id)
-            .then(res => {
-                setRunId(res.runId);
-            })
+            .then((res) => setRunId(res.runId))
             .catch(() => setError("Fact-checking failed."));
-    }, [id, type]);
+    }, [id, type, isControlled]);
 
     useEffect(() => {
+        if (isControlled) return;
         if (!runId) return;
 
         let alive = true;
 
         const pollResult = async () => {
             try {
-                const res = await fetch(
-                    `/api/fact-check/result/${runId}`
-                );
-
+                const res = await fetch(`/api/fact-check/result/${runId}`);
                 if (!res.ok) {
                     setTimeout(pollResult, 1000);
                     return;
                 }
-
                 const result = await res.json();
-
                 if (!alive) return;
 
-                if (result) {
-                    setData(result);
-                } else {
-                    setTimeout(pollResult, 1000);
-                }
+                if (result) setData(result);
+                else setTimeout(pollResult, 1000);
             } catch {
                 setTimeout(pollResult, 1500);
             }
         };
 
         pollResult();
-
         return () => {
             alive = false;
         };
-    }, [runId]);
-
-    // ─────────────────────────────────────────────
+    }, [runId, isControlled]);
 
     return (
         <div className="card metaCard">

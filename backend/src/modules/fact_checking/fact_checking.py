@@ -255,6 +255,7 @@ def extract_claims_from_html(
         "- Prefer claims that include at least one of: a named institution (CDC/FDA/NIH/EPA/Merck), a named study, a year, or a strong universal quantifier.\n\n"
         "Output constraints:\n"
         "- Output JSON only.\n"
+        "- Provide the exact part of the text where you found the claim. It is important that it matched the text EXACTLY.\n"
         "- Provide exact character offsets into the PROVIDED plain text.\n"
         "- Offsets must match exactly.\n"
         "- Return at most 10 claims (pick highest-value + most searchable).\n"
@@ -269,11 +270,12 @@ def extract_claims_from_html(
                     "type": "object",
                     "properties": {
                         "claim_text": {"type": "string"},
+                        "claim_citation": {"type": "string"},
                         "start_char": {"type": "integer"},
                         "end_char": {"type": "integer"},
                         "reason": {"type": "string"},
                     },
-                    "required": ["claim_text", "start_char", "end_char"],
+                    "required": ["claim_text", "claim_citation", "start_char", "end_char"],
                 },
             }
         },
@@ -295,7 +297,8 @@ def extract_claims_from_html(
                                     "Each claim must be a single self-contained assertion (one predicate).\n"
                                     "Prefer absolute/record/never/only/exempt/placebo-tested/CDC-study-found patterns.\n"
                                     "Return claim_text as ONE full sentence.\n"
-                                    "Return start_char/end_char offsets referring to THIS exact text.\n"
+                                    "Return claim_citation as the part of the text where you found the claim. It MUST match the part of the original text EXACTLY.\n"
+                                    "Return start_char and end_char, which refers to the character index where the claim was found in the provided text above.\n"
                                     "If a statement is not suitable for automated fact-check search, do NOT extract it."
                                 )
                             },
@@ -340,7 +343,7 @@ def extract_claims_from_html(
                 claim_text=c["claim_text"],
                 start_char=start,
                 end_char=end,
-                source_text=plain_text[start:end],
+                source_text=c["claim_citation"],
                 reason=c.get("reason"),
             )
         )
