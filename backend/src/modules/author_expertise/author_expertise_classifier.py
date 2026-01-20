@@ -367,12 +367,14 @@ def assess_author_expertise(
 
     print(f"Results of author assessment:\n{step4}\n")
 
+    confidence = step4.final_confidence if step4.final_label == "field_expert" else 1 - step4.final_confidence if step4.final_label == "not_field_expert" else 0
+
     return AuthorExpertiseResult(
         author=author,
         article_url=article_url,
         publisher_domain=publisher_domain,
         field=step4.field,
         label=step4.final_label,
-        confidence=step4.final_confidence,
+        confidence=confidence,
         explanation=step4.explanation
     )

@@ -1,7 +1,7 @@
 import {useEffect, useState} from "react";
 import {Link, useParams} from "react-router-dom";
 import {getArticle} from "../api/endpoints";
-import type {ArticleDetail, ArticleBase} from "../api/types";
+import type {ArticleBase} from "../api/types";
 import FactCheckCard from "../components/FactCheckCard";
 import AuthorExpertiseCard from "../components/AuthorExpertiseCard";
 import StyleCard from "../components/StyleCard";
@@ -28,8 +28,25 @@ export default function ArticlePage() {
             </h2>
 
             <div className="meta">
-                <span>{article.source}</span> ·{" "}
-                <span>{new Date(article.published_at).toLocaleString()}</span>
+                <a
+                    href={article.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="articleLink"
+                >
+                    {article.source}
+                </a>{" "}
+                · <span>{article.author}</span> ·{" "}
+                <span>
+                  {new Date(article.published_at).toLocaleString("de-DE", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: false,
+                  })}
+                </span>
             </div>
 
             <div className="articleLayout">
