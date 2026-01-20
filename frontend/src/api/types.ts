@@ -157,3 +157,7 @@ export type FeedFilters = {
     content_type?: string[];
     publisher_type?: string[];
 };
+
+export type IngestArticleResponse = {
+    id: string
+};

@@ -5,6 +5,7 @@ import FilterBar from "../components/FilterBar";
 import ArticleList from "../components/ArticleList";
 import XPostList from "../components/XPostList";
 import DiversityScore from "../components/DiversityScore"
+import ArticleIngest from "../components/ArticleIngest";
 
 export default function HomePage() {
     const [filters, setFilters] = useState<FeedFilters>({
@@ -17,6 +18,7 @@ export default function HomePage() {
     const [data, setData] = useState<FeedResponse>({articles: [], x_posts: []});
     const [loading, setLoading] = useState(false);
     const [err, setErr] = useState<string | null>(null);
+    const [reloadToken, setReloadToken] = useState(0);
 
     const stableFilters = useMemo(() => filters, [filters]);
 
@@ -60,7 +62,7 @@ export default function HomePage() {
         return () => {
             cancelled = true;
         };
-    }, [stableFilters]);
+    }, [stableFilters, reloadToken]);
 
     return (
         <div className="page">
@@ -69,6 +71,8 @@ export default function HomePage() {
                     <h1>Personalized Media Experience</h1>
                     <FilterBar value={filters} onChange={setFilters}/>
                 </header>
+
+                <ArticleIngest onInserted={() => setReloadToken(t => t + 1)} />
 
                 {err && <div className="error">Error: {err}</div>}
                 {loading && <div className="hint">Loading…</div>}

@@ -3,8 +3,9 @@ import uuid
 from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
 from sqlalchemy.orm import Session
 
-from src.app.api.schemas import ArticleBaseOut
-from src.app.models.article import get_article_by_id
+from src.app.api.schemas import ArticleBaseOut, ArticleIngestIn, ArticleIngestOut
+from src.app.models.article import get_article_by_id, insert_article
+from src.app.service.article_ingest import preprocess_article_from_url
 from src.app.service.article_mapper import to_article_base_out
 from src.app.service.db_connector import get_db
 from src.app.service.progress import set_progress, results
@@ -95,6 +96,31 @@ def get_owners(article_id: str, db: Session = Depends(get_db)):
 def get_c2pa(article_id: str, db: Session = Depends(get_db)):
     article = get_article_by_id(db, article_id)
     return analyze_c2pa(article)
+
+@router.post("/articles/ingest", response_model=ArticleIngestOut)
+def ingest_article(payload: ArticleIngestIn, db: Session = Depends(get_db)):
+    url = str(payload.url)
+
+    try:
+        extracted = preprocess_article_from_url(url)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Could not ingest article: {e}")
+
+    article_id = f"a{uuid.uuid4().hex[:10]}"
+
+    insert_article(
+        db,
+        article_id=article_id,
+        title=extracted["title"],
+        url=url,
+        published_at=extracted["published_at"],
+        image_url=extracted.get("image_url"),
+        author=extracted.get("author"),
+        preview=extracted.get("preview") or "",
+        content_html=extracted["content_html"],
+    )
+
+    return ArticleIngestOut(id=article_id)
 
 
 def run_and_store_fact_check(

@@ -1,131 +1,137 @@
-import { useEffect, useState } from "react";
-import { getArticleFactCheck, getXPostFactCheck } from "../api/endpoints";
-import type { FactCheckTrust } from "../api/types";
+import {useEffect, useState} from "react";
+import {getArticleFactCheck, getXPostFactCheck} from "../api/endpoints";
+import type {FactCheckTrust} from "../api/types";
 import ProgressBar from "./ProgressBar";
+import ClaimSourcesTooltip from "./ClaimSourcesTooltip";
 
 export default function FactCheckCard({
-    id,
-    type,
-}: {
+                                          id,
+                                          type,
+                                          data: externalData,
+                                          runId: externalRunId,
+                                          error: externalError,
+                                      }: {
     id: string;
     type: "article" | "x";
+    data?: FactCheckTrust | null;
+    runId?: string | null;
+    error?: string | null;
 }) {
     const [data, setData] = useState<FactCheckTrust | null>(null);
     const [runId, setRunId] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
+    useEffect(() => {
+        if (externalRunId !== undefined) setRunId(externalRunId);
+        if (externalData !== undefined) setData(externalData);
+        if (externalError !== undefined) setError(externalError);
+    }, [externalRunId, externalData, externalError]);
+
+    const isControlled = externalRunId !== undefined || externalData !== undefined || externalError !== undefined;
 
     useEffect(() => {
+        if (isControlled) return;
+
         setData(null);
         setError(null);
         setRunId(null);
 
-        const fn =
-            type === "article"
-                ? getArticleFactCheck
-                : getXPostFactCheck;
+        const fn = type === "article" ? getArticleFactCheck : getXPostFactCheck;
 
         fn(id)
-            .then(res => {
-                setRunId(res.runId);
-            })
+            .then((res) => setRunId(res.runId))
             .catch(() => setError("Fact-checking failed."));
-    }, [id, type]);
+    }, [id, type, isControlled]);
 
     useEffect(() => {
+        if (isControlled) return;
         if (!runId) return;
 
         let alive = true;
 
         const pollResult = async () => {
             try {
-                const res = await fetch(
-                    `/api/fact-check/result/${runId}`
-                );
-
+                const res = await fetch(`/api/fact-check/result/${runId}`);
                 if (!res.ok) {
                     setTimeout(pollResult, 1000);
                     return;
                 }
-
                 const result = await res.json();
-
                 if (!alive) return;
 
-                if (result) {
-                    setData(result);
-                } else {
-                    setTimeout(pollResult, 1000);
-                }
+                if (result) setData(result);
+                else setTimeout(pollResult, 1000);
             } catch {
                 setTimeout(pollResult, 1500);
             }
         };
 
         pollResult();
-
         return () => {
             alive = false;
         };
-    }, [runId]);
-
-    // ─────────────────────────────────────────────
+    }, [runId, isControlled]);
 
     return (
         <div className="card metaCard">
             <h2>Fact-Checking</h2>
 
-            {runId && !data && <ProgressBar runId={runId} />}
+            <div className="factCardBody">
 
-            {error && <p className="error">{error}</p>}
+                {runId && !data && <ProgressBar runId={runId}/>}
 
-            {data && (
-                <>
-                    <div className="factCheckSummary">
-                        <p>
-                            <strong>{data.stats.extractedClaims}</strong>{" "}
-                            potentially relevant claims detected
-                        </p>
-                        <p>
-                            <strong>{data.stats.checkedClaims}</strong> checked ·{" "}
-                            <strong>{data.stats.droppedClaims}</strong> skipped
-                        </p>
-                    </div>
+                {error && <p className="error">{error}</p>}
 
-                    {data.claims.length === 0 ? (
-                        <p className="muted">
-                            No claims could be verified against known fact-check sources.
-                        </p>
-                    ) : (
-                        <ul className="factCheckClaims">
-                            {data.claims.map((c) => (
-                                <li
-                                    key={c.id}
-                                    className={`claim verdict-${c.verdict}`}
-                                >
-                                    <p className="claimText">
-                                        “{c.claimText}”
-                                    </p>
+                {data?.stats.extractedClaims === 0 ? (
+                    <p>No potentially relevant claims detected</p>
+                ) : data ? (
+                    <>
+                        <div className="factCheckSummary">
+                            <p>
+                                <strong>{data.stats.extractedClaims}</strong>{" "}
+                                potentially relevant claims detected
+                            </p>
+                            <p>
+                                <strong>{data.stats.checkedClaims}</strong> checked ·{" "}
+                                <strong>{data.stats.droppedClaims}</strong> skipped
+                            </p>
+                        </div>
 
-                                    <div className="claimMeta">
-                                        <span className="arrow">→</span>{" "}
-                                        <strong
-                                            className={`verdictText verdictText-${c.verdict}`}
-                                        >
-                                            {c.verdict}
-                                        </strong>{" "}
-                                        <span className="confidenceText">
-                                            ({Math.round(c.confidence * 100)}%)
-                                        </span>
-                                    </div>
+                        {data.claims.length === 0 ? (
+                            <p className="muted">
+                                No claims could be verified against known fact-check sources.
+                            </p>
+                        ) : (
+                            <ul className="factCheckClaims">
+                                {data.claims.map((c) => (
+                                    <li
+                                        key={c.id}
+                                        className={`claim verdict-${c.verdict}`}
+                                    >
+                                        <p className="claimText">
+                                            “{c.claimText}”
+                                        </p>
 
-                                    <p className="summary">{c.summary}</p>
-                                </li>
-                            ))}
-                        </ul>
-                    )}
-                </>
-            )}
+                                        <div className="claimMeta">
+                                            <span className="arrow">→</span>{" "}
+                                            <strong className={`verdictText verdictText-${c.verdict}`}>
+                                                {c.verdict}
+                                            </strong>{" "}
+                                            <span className="confidenceText">
+                                                ({Math.round(c.confidence * 100)}%)
+                                            </span>
+
+                                            <ClaimSourcesTooltip sources={c.sources}/>
+                                        </div>
+
+                                        <p className="summary">{c.summary}</p>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </>
+                ) : null}
+            </div>
         </div>
     );
 }

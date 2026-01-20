@@ -1,5 +1,16 @@
 import {apiGet, apiPost} from "./client";
-import type {FeedFilters, FeedResponse, ArticleDetail, XPost, ArticleBase, FactCheckTrust, C2PATrust, OwnershipTrust, PublisherTrust, StyleTrust, AuthorExpertiseTrust} from "./types";
+import type {
+    ArticleBase,
+    AuthorExpertiseTrust,
+    C2PATrust,
+    FeedFilters,
+    FeedResponse,
+    IngestArticleResponse,
+    OwnershipTrust,
+    PublisherTrust,
+    StyleTrust,
+    XPost
+} from "./types";
 
 function qs(filters: FeedFilters): string {
     const p = new URLSearchParams();
@@ -106,4 +117,27 @@ export function getFeedDiversity(domains: string[]) {
             body: JSON.stringify(domains),
         }
     );
+}
+
+export async function ingestArticleFromUrl(url: string): Promise<IngestArticleResponse> {
+    return apiPost<IngestArticleResponse>(
+        "/api/articles/ingest",
+        {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({url}),
+        }
+    );
+}
+
+export async function startArticleFactCheck(id: string): Promise<{ runId: string }> {
+    const res = await fetch(`/api/articles/${id}/trust/fact-check`, {method: "POST"});
+    if (!res.ok) throw new Error("Fact check failed");
+    return res.json();
+}
+
+export async function fetchFactCheckResult(runId: string) {
+    const res = await fetch(`/api/fact-check/result/${runId}`);
+    if (!res.ok) return null;
+    return res.json();
 }

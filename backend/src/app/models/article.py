@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 from typing import Optional, Any
 from urllib.parse import urlparse
@@ -340,6 +341,42 @@ def upsert_fact_check_cache(
             "checked": checked,
             "dropped": dropped,
             "model": model,
+        },
+    )
+    db.commit()
+
+
+def insert_article(
+        db: Session,
+        *,
+        article_id: str,
+        title: str,
+        url: str,
+        published_at: datetime,
+        image_url: str | None,
+        author: str | None,
+        preview: str,
+        content_html: str,
+) -> None:
+    print(f"Inserting article {article_id} into db")
+    db.execute(
+        text("""
+             INSERT INTO articles (
+                 id, title, url, published_at, image_url, author, preview, content_html, created_at
+             )
+             VALUES (
+                        :id, :title, :url, :published_at, :image_url, :author, :preview, :content_html, now()
+                    )
+             """),
+        {
+            "id": article_id,
+            "title": title,
+            "url": url,
+            "published_at": published_at,
+            "image_url": image_url,
+            "author": author,
+            "preview": preview,
+            "content_html": content_html,
         },
     )
     db.commit()

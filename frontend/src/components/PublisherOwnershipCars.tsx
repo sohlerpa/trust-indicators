@@ -17,8 +17,8 @@ function OwnershipDonut({
 }: {
     owners: {owner: string; percent: number}[];
 }) {
-    const size = 130;
-    const stroke = 36;
+    const size = 80;
+    const stroke = 20;
     const r = (size - stroke) / 2;
     const c = size / 2;
     const circumference = 2 * Math.PI * r;

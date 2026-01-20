@@ -39,3 +39,11 @@ class XPostOut(BaseModel):
 class FeedResponse(BaseModel):
     articles: List[ArticleSummaryOut] = Field(default_factory=list)
     x_posts: List[XPostOut] = Field(default_factory=list)
+
+
+class ArticleIngestIn(BaseModel):
+    url: HttpUrl
+
+
+class ArticleIngestOut(BaseModel):
+    id: str
