@@ -86,11 +86,6 @@ export default function AuthorExpertiseCard({
 
             {runId && !data && <ProgressBar runId={runId} />}
 
-            {!data && (
-                <p className="loading">
-                    Evaluating author credibility…
-                </p>
-            )}
 
             {data && <AuthorResult data={data} />}
         </div>
