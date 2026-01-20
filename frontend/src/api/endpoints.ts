@@ -25,12 +25,34 @@ export function getArticleStyle(id: string) {
     return apiGet<StyleTrust>(`/api/articles/${id}/trust/style`);
 }
 
-export function getArticleFactCheck(id: string) {
-    return apiGet<FactCheckTrust>(`/api/articles/${id}/trust/fact-check`);
+export async function getArticleFactCheck(id: string) {
+    const res = await fetch(
+        `/api/articles/${id}/trust/fact-check`,
+        { method: "POST" }
+    );
+
+    if (!res.ok) {
+        throw new Error("Fact check failed");
+    }
+
+    return res.json(); // { runId }
 }
 
 export function getArticleAuthor(id: string) {
     return apiGet<AuthorExpertiseTrust>(`/api/articles/${id}/trust/author`);
+}
+
+export async function startAuthorExpertise(id: string) {
+    const res = await fetch(
+        `/api/articles/${id}/trust/author`,
+        { method: "POST" }
+    );
+
+    if (!res.ok) {
+        throw new Error("Author check failed");
+    }
+
+    return res.json(); // { runId }
 }
 
 export function getArticlePublisher(id: string) {
@@ -51,7 +73,8 @@ export function getXPosts() {
 
 export async function getXPostFactCheck(id: string) {
     const res = await fetch(
-        `/api/xposts/${id}/fact-check`
+        `/api/xposts/${id}/fact-check`,
+        { method: "POST" }
     );
 
     if (!res.ok) {
@@ -59,6 +82,15 @@ export async function getXPostFactCheck(id: string) {
     }
 
     return res.json();
+}
+
+export type Progress = {
+    step: string;
+    progress: number;
+};
+
+export function getProgress(runId: string) {
+    return apiGet<Progress>(`/api/progress/${runId}`);
 }
 
 export type DiversityRow = {
