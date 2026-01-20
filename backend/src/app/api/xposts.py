@@ -1,7 +1,10 @@
+import uuid
+
 from fastapi import APIRouter
 from fastapi import HTTPException
 
 from src.app.service.db_connector import get_db
+from src.app.service.progress import set_progress, progress_state, results
 from src.app.service.trust.fact_check import run_fact_check, run_fact_check_for_text
 from sqlalchemy.orm import Session
 from fastapi import APIRouter, HTTPException, Depends
@@ -9,6 +12,7 @@ from fastapi import APIRouter, HTTPException, Depends
 
 from src.app.api.schemas import XPostOut
 from src.app.data.sample_data import X_POSTS
+from fastapi import BackgroundTasks
 
 router = APIRouter()
 
@@ -17,15 +21,50 @@ router = APIRouter()
 def list_xposts():
     return X_POSTS
 
-@router.get("/xposts/{xpost_id}/fact-check")
-def fact_check_xpost(xpost_id: str, db: Session = Depends(get_db)):
+@router.post("/xposts/{xpost_id}/fact-check")
+def start_fact_check(
+    xpost_id: str,
+    background: BackgroundTasks,
+    db: Session = Depends(get_db),
+):
     post = next((p for p in X_POSTS if p.id == xpost_id), None)
-
     if not post:
-        raise HTTPException(404, "X post not found")
+        raise HTTPException(404)
 
-    return run_fact_check_for_text(
+    run_id = f"xpost:{xpost_id}:{uuid.uuid4().hex[:8]}"
+
+    background.add_task(
+        run_and_store_fact_check_for_text,
+        run_id=run_id,
         text=post.text,
-        source_id=f"xpost:{post.id}",
         db=db,
     )
+
+    return {"runId": run_id}
+
+
+@router.get("/progress/{run_id}")
+def get_progress(run_id: str):
+    return progress_state.get(
+        run_id,
+        {"step": "starting", "progress": 0}
+    )
+
+@router.get("/fact-check/result/{run_id}")
+def get_fact_check_result(run_id: str):
+    return results.get(run_id)
+
+def run_and_store_fact_check_for_text(
+    *,
+    run_id: str,
+    text: str,
+    db: Session,
+):
+    dto = run_fact_check_for_text(
+        text=text,
+        source_id=run_id,
+        db=db,
+        progress=lambda s, p: set_progress(run_id, s, p),
+    )
+
+    results[run_id] = dto

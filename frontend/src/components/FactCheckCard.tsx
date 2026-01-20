@@ -1,6 +1,7 @@
-import {useEffect, useState} from "react";
-import {getArticleFactCheck, getXPostFactCheck} from "../api/endpoints";
-import type {FactCheckTrust} from "../api/types";
+import { useEffect, useState } from "react";
+import { getArticleFactCheck, getXPostFactCheck } from "../api/endpoints";
+import type { FactCheckTrust } from "../api/types";
+import ProgressBar from "./ProgressBar";
 
 export default function FactCheckCard({
     id,
@@ -10,78 +11,120 @@ export default function FactCheckCard({
     type: "article" | "x";
 }) {
     const [data, setData] = useState<FactCheckTrust | null>(null);
+    const [runId, setRunId] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        if (!id) return;
 
-        if (type === "article") {
-            getArticleFactCheck(id).then(setData)
-                .catch(() => setError("Fact-checking failed."));
-        } else {
-            getXPostFactCheck(id).then(setData)
-                .catch(() => setError("Fact-checking failed."));
-        }
+    useEffect(() => {
+        setData(null);
+        setError(null);
+        setRunId(null);
+
+        const fn =
+            type === "article"
+                ? getArticleFactCheck
+                : getXPostFactCheck;
+
+        fn(id)
+            .then(res => {
+                setRunId(res.runId);
+            })
+            .catch(() => setError("Fact-checking failed."));
     }, [id, type]);
 
-    if (error) {
-        return (
-            <div className="card metaCard">
-                <h2>Fact-Checking</h2>
-                <p className="error">{error}</p>
-            </div>
-        );
-    }
+    useEffect(() => {
+        if (!runId) return;
 
-    if (!data) {
-        return (
-            <div className="card metaCard">
-                <h2>Fact-Checking</h2>
-                <p className="loading">Verifying claims…</p>
-            </div>
-        );
-    }
+        let alive = true;
 
-    const { stats, claims } = data;
+        const pollResult = async () => {
+            try {
+                const res = await fetch(
+                    `/api/fact-check/result/${runId}`
+                );
+
+                if (!res.ok) {
+                    setTimeout(pollResult, 1000);
+                    return;
+                }
+
+                const result = await res.json();
+
+                if (!alive) return;
+
+                if (result) {
+                    setData(result);
+                } else {
+                    setTimeout(pollResult, 1000);
+                }
+            } catch {
+                setTimeout(pollResult, 1500);
+            }
+        };
+
+        pollResult();
+
+        return () => {
+            alive = false;
+        };
+    }, [runId]);
+
+    // ─────────────────────────────────────────────
 
     return (
         <div className="card metaCard">
             <h2>Fact-Checking</h2>
 
-            {/* High-level summary */}
-            <div className="factCheckSummary">
-                <p>
-                    <strong>{stats.extractedClaims}</strong> potentially relevant claims detected
-                </p>
-                <p>
-                    <strong>{stats.checkedClaims}</strong> checked &nbsp;·&nbsp;
-                    <strong>{stats.droppedClaims}</strong> skipped (no evidence)
-                </p>
-            </div>
+            {runId && !data && <ProgressBar runId={runId} />}
 
-            {/* Checked claims */}
-            {claims.length === 0 ? (
-                <p className="muted">
-                    No claims could be verified against known fact-check sources.
-                </p>
-            ) : (
-                <ul className="factCheckClaims">
-                    {claims.map((c) => (
-                        <li key={c.id} className={`claim verdict-${c.verdict}`}>
-                            <p className="claimText">“{c.claimText}”</p>
+            {error && <p className="error">{error}</p>}
 
-                            <div className="claimMeta">
-                                <span className="verdictLine">
-                                    <span className="arrow">→</span>{" "}
-                                        <strong className={`verdictText verdictText-${c.verdict}`}>{c.verdict}</strong>{" "}
-                                    <span className="confidenceText">(confidence: {Math.round(c.confidence * 100)}%)</span>
-                              </span>
-                            </div>
+            {data && (
+                <>
+                    <div className="factCheckSummary">
+                        <p>
+                            <strong>{data.stats.extractedClaims}</strong>{" "}
+                            potentially relevant claims detected
+                        </p>
+                        <p>
+                            <strong>{data.stats.checkedClaims}</strong> checked ·{" "}
+                            <strong>{data.stats.droppedClaims}</strong> skipped
+                        </p>
+                    </div>
 
-                            <p className="summary">{c.summary}</p>
-                        </li>
-                    ))}
-                </ul>
+                    {data.claims.length === 0 ? (
+                        <p className="muted">
+                            No claims could be verified against known fact-check sources.
+                        </p>
+                    ) : (
+                        <ul className="factCheckClaims">
+                            {data.claims.map((c) => (
+                                <li
+                                    key={c.id}
+                                    className={`claim verdict-${c.verdict}`}
+                                >
+                                    <p className="claimText">
+                                        “{c.claimText}”
+                                    </p>
+
+                                    <div className="claimMeta">
+                                        <span className="arrow">→</span>{" "}
+                                        <strong
+                                            className={`verdictText verdictText-${c.verdict}`}
+                                        >
+                                            {c.verdict}
+                                        </strong>{" "}
+                                        <span className="confidenceText">
+                                            ({Math.round(c.confidence * 100)}%)
+                                        </span>
+                                    </div>
+
+                                    <p className="summary">{c.summary}</p>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </>
             )}
         </div>
     );

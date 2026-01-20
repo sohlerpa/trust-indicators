@@ -12,6 +12,9 @@ import httpx
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 
+from src.app.service.llm_limit import LLM_SEMAPHORE
+from src.app.service.progress import ProgressFn
+
 load_dotenv()
 
 FACTCHECK_ENDPOINT = "https://factchecktools.googleapis.com/v1alpha1/claims:search"
@@ -314,15 +317,16 @@ def extract_claims_from_html(
         "x-goog-api-key": gemini_api_key,
     }
 
-    with httpx.Client(timeout=35) as client:
-        resp = post_with_retry(
-            client,
-            url,
-            headers=headers,
-            json_body=body,
-            retries=3,
-        )
-        data = resp.json()
+    with LLM_SEMAPHORE:
+        with httpx.Client(timeout=35) as client:
+            resp = post_with_retry(
+                client,
+                url,
+                headers=headers,
+                json_body=body,
+                retries=3,
+            )
+            data = resp.json()
 
     text = data["candidates"][0]["content"]["parts"][0]["text"]
     parsed = json.loads(text)
@@ -545,10 +549,11 @@ def extract_keywords_from_claim(
 
     headers = {"Content-Type": "application/json", "x-goog-api-key": gemini_api_key}
 
-    with httpx.Client(timeout=30) as client:
-        resp = client.post(url, headers=headers, json=body)
-        resp.raise_for_status()
-        data = resp.json()
+    with LLM_SEMAPHORE:
+        with httpx.Client(timeout=30) as client:
+            resp = client.post(url, headers=headers, json=body)
+            resp.raise_for_status()
+            data = resp.json()
 
     try:
         text = data["candidates"][0]["content"]["parts"][0]["text"]
@@ -565,15 +570,16 @@ def extract_keywords_from_claim(
 def search_for_keywords(keywords: str, api_key: str) -> List[FactCheckClaim]:
     time.sleep(0.8)  # REQUIRED
 
-    with httpx.Client(timeout=10) as client:
-        params = {"query": keywords, "pageSize": 30, "key": api_key}
-        resp = client.get(FACTCHECK_ENDPOINT, params=params)
+    with LLM_SEMAPHORE:
+        with httpx.Client(timeout=10) as client:
+            params = {"query": keywords, "pageSize": 30, "key": api_key}
+            resp = client.get(FACTCHECK_ENDPOINT, params=params)
 
-        if resp.status_code == 403:
-            raise RuntimeError("FactCheck API rate-limited")
+            if resp.status_code == 403:
+                raise RuntimeError("FactCheck API rate-limited")
 
-        resp.raise_for_status()
-        data = resp.json()
+            resp.raise_for_status()
+            data = resp.json()
 
     raw_claims = data.get("claims", [])
     claims: List[FactCheckClaim] = []
@@ -703,11 +709,12 @@ def assert_claims_to_facts_batch(
     }
     headers = {"Content-Type": "application/json", "x-goog-api-key": gemini_api_key}
 
-    with httpx.Client(timeout=timeout_s) as client:
-        resp = client.post(url, headers=headers, json=body)
-        if resp.status_code >= 400:
-            raise RuntimeError(f"{resp.status_code}: {resp.text}")
-        data = resp.json()
+    with LLM_SEMAPHORE:
+        with httpx.Client(timeout=timeout_s) as client:
+            resp = client.post(url, headers=headers, json=body)
+            if resp.status_code >= 400:
+                raise RuntimeError(f"{resp.status_code}: {resp.text}")
+            data = resp.json()
 
     try:
         text = data["candidates"][0]["content"]["parts"][0]["text"]
@@ -798,11 +805,17 @@ def assert_claims_to_facts_batch(
 # Top-level function (PATCH THE CANDIDATES + ATTACHMENT PARTS)
 # =========================
 
-def check_facts_for_html(content_html: str, *, article_id: str) -> FactCheckTrustDTO:
+def check_facts_for_html(content_html: str, *, article_id: str, progress: ProgressFn | None = None) -> FactCheckTrustDTO:
     api_key = os.environ["GEMINI_API_KEY"]
     fact_api_key = os.environ["FACT_CHECKING_API_KEY"]
 
+    if progress:
+        progress("start", 0.05)
+
     extracted = extract_claims_from_html(content_html, gemini_api_key=api_key)
+
+    if progress:
+        progress("extract_claims", 0.20)
 
     extracted_count = len(extracted.claims)
 
@@ -816,7 +829,16 @@ def check_facts_for_html(content_html: str, *, article_id: str) -> FactCheckTrus
 
     candidates: List[CheckedClaim] = []
 
-    for span in extracted.claims:
+    total = max(len(extracted.claims), 1)
+
+    for i, span in enumerate(extracted.claims):
+
+        if progress:
+            progress(
+                "search_fact_checks",
+                0.20 + 0.55 * ((i + 1) / total)
+            )
+
         claim_id = _claim_id(article_id, span.start_char, span.end_char, span.claim_text)
 
         try:
@@ -851,6 +873,9 @@ def check_facts_for_html(content_html: str, *, article_id: str) -> FactCheckTrus
                 ),
             )
         )
+
+    if progress:
+        progress("asserting_claims", 0.75)
 
     assertions_by_id: Dict[str, FactAssertionResult] = {}
     try:
@@ -892,6 +917,9 @@ def check_facts_for_html(content_html: str, *, article_id: str) -> FactCheckTrus
 
         c.assertion = a
         checked.append(c)
+
+    if progress:
+        progress("done", 1.0)
 
     checked_count = len(checked)
     dropped_count = extracted_count - checked_count
