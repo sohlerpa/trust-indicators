@@ -61,9 +61,7 @@ CREATE TABLE article_llm_analysis (
 
 CREATE TABLE article_fact_check
 (
-    article_id TEXT PRIMARY KEY
-        REFERENCES articles (id) ON DELETE CASCADE,
-
+    article_id TEXT PRIMARY KEY,
     result_json JSONB NOT NULL,
     extracted_claims_count INT NOT NULL DEFAULT 0,
     checked_claims_count INT NOT NULL DEFAULT 0,

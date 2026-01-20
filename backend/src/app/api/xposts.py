@@ -1,18 +1,14 @@
 import uuid
 
-from fastapi import APIRouter
-from fastapi import HTTPException
-
-from src.app.service.db_connector import get_db
-from src.app.service.progress import set_progress, progress_state, results
-from src.app.service.trust.fact_check import run_fact_check, run_fact_check_for_text
-from sqlalchemy.orm import Session
 from fastapi import APIRouter, HTTPException, Depends
-
+from fastapi import BackgroundTasks
+from sqlalchemy.orm import Session
 
 from src.app.api.schemas import XPostOut
 from src.app.data.sample_data import X_POSTS
-from fastapi import BackgroundTasks
+from src.app.service.db_connector import get_db
+from src.app.service.progress import set_progress, progress_state, results
+from src.app.service.trust.fact_check import run_fact_check_for_text
 
 router = APIRouter()
 
@@ -38,6 +34,7 @@ def start_fact_check(
         run_id=run_id,
         text=post.text,
         db=db,
+        x_post_id=xpost_id,
     )
 
     return {"runId": run_id}
@@ -59,11 +56,13 @@ def run_and_store_fact_check_for_text(
     run_id: str,
     text: str,
     db: Session,
+    x_post_id: str,
 ):
     dto = run_fact_check_for_text(
         text=text,
         source_id=run_id,
         db=db,
+        x_post_id=x_post_id,
         progress=lambda s, p: set_progress(run_id, s, p),
     )
 
