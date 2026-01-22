@@ -1070,3 +1070,14 @@ mark.factSpan.isUnclear {
 .xEmbed iframe {
     margin: 0 !important;
 }
+
+.chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.chipCount {
+    font-size: 12px;
+    opacity: 0.7;
+}

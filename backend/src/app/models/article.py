@@ -1,5 +1,5 @@
-from datetime import datetime
 import json
+from datetime import datetime
 from typing import Optional, Any
 from urllib.parse import urlparse
 
@@ -10,6 +10,7 @@ from sqlalchemy.orm import declarative_base
 
 from src.app.models.models import ArticleRecord, AuthorExpertise
 from src.app.models.models import TrustIndicators
+from src.app.service.trust.publisher import analyze_publisher
 from src.modules.fact_checking.fact_checking import FactCheckTrustDTO
 from src.modules.tone.tone_classifier import classify_tone
 
@@ -123,6 +124,10 @@ def get_or_create_db_trust_indicators(
 ) -> TrustIndicators:
     row = get_article_llm_analysis(db, article.id)
 
+    publisher = analyze_publisher(article, db)
+    publisher_type = publisher.get("publisher_type")
+    publisher_country = getattr(publisher, "publisher_country", None)
+
     # FAST PATH — tone already cached
     print("getting data from db...")
     if row and row.tone and row.content_type:
@@ -144,6 +149,8 @@ def get_or_create_db_trust_indicators(
                 )
             ),
             c2pa_info=[],
+            publisher_type=publisher_type,
+            publisher_country=publisher_country,
         )
 
     # SLOW PATH (first time only)
@@ -168,6 +175,8 @@ def get_or_create_db_trust_indicators(
         tone_type_rationale=tone.rationale,
         author_expertise=None,
         c2pa_info=[],
+        publisher_type=publisher_type,
+        publisher_country=publisher_country,
     )
 
     insert_article_llm_analysis(db, article.id, ti)

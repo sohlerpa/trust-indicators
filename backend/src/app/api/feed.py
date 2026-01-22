@@ -1,9 +1,8 @@
-from fastapi import APIRouter, Query, Depends
 from typing import List, Optional
 
+from fastapi import APIRouter, Query, Depends
 from sqlalchemy.orm import Session
 
-from src.app.api.articles import get_publisher
 from src.app.api.schemas import FeedResponse, ArticleSummaryOut, XPostOut
 from src.app.data.sample_data import X_POSTS
 from src.app.models.article import get_all_articles
@@ -36,7 +35,7 @@ def get_feed(
             return False
         if content_type and (article.trust_indicators.content_type not in content_type):
             return False
-        if publisher_type and (get_publisher(article.id, db)["publisher_type"] not in publisher_type):
+        if publisher_type and (article.trust_indicators.publisher_type not in publisher_type):
             return False
         return True
 
