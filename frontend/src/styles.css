@@ -1376,3 +1376,108 @@ mark.factSpan.isUnclear {
     opacity: 0.7;
     font-variant-numeric: tabular-nums;
 }
+
+
+/* Article page back button */
+.backLink {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    padding: 6px 10px;
+    border-radius: 10px;
+
+    font-size: 12px;
+    font-weight: 650;
+
+    border: 1px solid rgba(0,0,0,0.12);
+    background: #fff;
+    color: #111;
+
+    cursor: pointer;
+    transition: transform 0.12s ease, background 0.12s ease, opacity 0.12s ease;
+}
+
+.backLink:hover {
+    background: rgba(0,0,0,0.03);
+}
+
+.backLink:active {
+    transform: scale(0.98);
+}
+
+.segmentedMulti.wrap {
+    flex-wrap: wrap;
+    border-radius: 14px;
+}
+
+.segmentedMulti.wrap .segBtn {
+    border-radius: 999px;
+}
+
+/* Count slot is always there (stable width) */
+.segCount {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    margin-left: 2px;
+
+    /* stable width (fits up to 3 digits) */
+    width: 2.6ch;
+    flex: 0 0 2.6ch;
+
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    pointer-events: none;
+
+    /* default: subtle */
+    opacity: 0.18;
+    transform: translateY(0) scale(1);
+    transition: opacity 0.14s ease, transform 0.14s ease;
+}
+
+/* real counts: a bit stronger + tiny pop */
+.segCount.show {
+    opacity: 0.65;
+    transform: translateY(0) scale(1);
+}
+
+/* zero counts: even more subtle */
+.segCount.isZero {
+    opacity: 0.12;
+}
+
+.segBtn:hover .segCount.isZero {
+    opacity: 0.03;
+}
+
+/* Optional: prevent button width from jittering even if label wraps */
+.segBtn {
+    white-space: nowrap;
+}
+
+.segClear {
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+    color: rgba(0,0,0,0.55);
+    transition: background 0.12s ease, transform 0.12s ease, opacity 0.12s ease;
+}
+
+.segClear:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.segClear:not(:disabled):hover {
+    background: rgba(255,255,255,0.55);
+}
+
+.segClear:not(:disabled):active {
+    transform: scale(0.98);
+}

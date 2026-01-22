@@ -1,5 +1,5 @@
-import {useMemo, useState} from "react";
-import type {FeedFilters} from "../api/types";
+import { useMemo, useState } from "react";
+import type { FeedFilters } from "../api/types";
 
 type Props = {
     value: FeedFilters;
@@ -29,57 +29,98 @@ const TONES = [
 ];
 
 const TYPES = ["news", "opinion", "analysis", "satire", "gossip", "review", "sponsored", "other", "error"];
-const PUBLISHERS = ["public", "private", "unknown"];
+const PUBLISHERS = ["public", "private", "unknown"] as const;
 
-type Tri = undefined | boolean; // Any | true | false
+type Publisher = (typeof PUBLISHERS)[number];
+type AuthorExpert = "field_expert" | "not_field_expert" | "unknown";
 
-function toggleMulti(list: string[] | undefined, item: string) {
+type BoolMulti = Array<true | false>;
+type AuthorMulti = AuthorExpert[];
+type PublisherMulti = Publisher[];
+
+function toggleIn<T>(list: T[] | undefined, item: T): T[] {
     const s = new Set(list ?? []);
     if (s.has(item)) s.delete(item);
     else s.add(item);
     return Array.from(s);
 }
 
-function triToKey(v: Tri): "any" | "true" | "false" {
-    if (v === undefined) return "any";
-    return v ? "true" : "false";
+function uniq<T>(arr: T[]): T[] {
+    return Array.from(new Set(arr));
 }
 
-function keyToTri(k: "any" | "true" | "false"): Tri {
-    if (k === "any") return undefined;
-    return k === "true";
+/**
+ * Store multi-select booleans in the existing backend shape (boolean | undefined)
+ * by encoding multi selection as:
+ *  - [] => undefined
+ *  - [true] => true
+ *  - [false] => false
+ *  - [true,false] => undefined (treat as no filter OR "both")
+ *
+ * This is the only lossy part because your API currently supports only tri-state.
+ * If you want true multi-select semantics on the backend, we should change the API
+ * to accept repeated params (e.g. no_false_facts=true&no_false_facts=false).
+ */
+function boolMultiToTri(xs: BoolMulti): boolean | undefined {
+    const u = uniq(xs);
+    if (u.length === 0) return undefined;
+    if (u.length === 2) return undefined;
+    return u[0];
 }
 
-export default function FilterBar({value, onChange, counts}: Props) {
+function triToBoolMulti(v: boolean | undefined): BoolMulti {
+    if (v === undefined) return [];
+    return [v];
+}
+
+function authorMultiToSingle(xs: AuthorMulti): AuthorExpert | undefined {
+    const u = uniq(xs);
+    if (u.length === 0) return undefined;
+    if (u.length >= 2) return undefined; // can't represent in current API
+    return u[0];
+}
+
+function singleToAuthorMulti(v: AuthorExpert | undefined): AuthorMulti {
+    return v ? [v] : [];
+}
+
+export default function FilterBar({ value, onChange, counts }: Props) {
     const [advancedOpen, setAdvancedOpen] = useState(false);
 
+    // map existing (single-value) API fields into multi-select UI state
+    const publisherSel = (value.publisher_type ?? []) as PublisherMulti;
+
+    const factSel = triToBoolMulti(value.no_false_facts);
+    const c2paSel = triToBoolMulti(value.c2pa_present);
+    const authorSel = singleToAuthorMulti(value.author_expert as AuthorExpert | undefined);
+
     const hasAnyAdvanced = useMemo(() => {
-        const t = (value.tone ?? []).length > 0;
-        const ct = (value.content_type ?? []).length > 0;
-        return t || ct;
-    }, [value.tone, value.content_type, value.publisher_type]);
+        return (value.tone ?? []).length > 0 || (value.content_type ?? []).length > 0;
+    }, [value.tone, value.content_type]);
 
     const selectedCount = useMemo(() => {
         const parts = [
-            value.no_false_facts !== undefined ? 1 : 0,
-            value.c2pa_present !== undefined ? 1 : 0,
-            value.author_expert !== undefined ? 1 : 0,
+            (publisherSel ?? []).length,
+            factSel.length,
+            authorSel.length,
+            c2paSel.length,
             (value.tone ?? []).length,
             (value.content_type ?? []).length,
-            (value.publisher_type ?? []).length,
         ];
         return parts.reduce((a, b) => a + b, 0);
-    }, [value]);
+    }, [publisherSel, factSel, authorSel, c2paSel, value.tone, value.content_type]);
 
     const resetAll = () => {
         onChange({
             ...value,
+            // top filters
+            publisher_type: [],
             no_false_facts: undefined,
             author_expert: undefined,
             c2pa_present: undefined,
+            // advanced
             tone: [],
             content_type: [],
-            publisher_type: [],
         });
     };
 
@@ -108,74 +149,73 @@ export default function FilterBar({value, onChange, counts}: Props) {
                 </div>
 
                 <div className="filtersGrid">
-
-                    {/* Publisher */}
+                    {/* Publisher (multi) */}
                     <FilterRow
                         label="Publisher"
                         right={
-                            <Segmented
-                                value={(value.publisher_type?.[0] ?? "any") as "any" | "public" | "private" | "unknown"}
-                                onChange={(k) =>
-                                    onChange({
-                                        ...value,
-                                        publisher_type: k === "any" ? [] : [k],
-                                    })
-                                }
+                            <SegMulti
+                                selected={publisherSel}
                                 options={[
-                                    {key: "any", label: "Any"},
-                                    {key: "public", label: "Public"},
-                                    {key: "private", label: "Private"},
-                                    {key: "unknown", label: "Unknown"},
+                                    { key: "public", label: "Public", count: counts.publisher_type.public ?? 0 },
+                                    { key: "private", label: "Private", count: counts.publisher_type.private ?? 0 },
+                                    { key: "unknown", label: "Unknown", count: counts.publisher_type.unknown ?? 0 },
                                 ]}
+                                onToggle={(k) => onChange({ ...value, publisher_type: toggleIn(publisherSel, k) })}
                             />
                         }
                     />
 
-                    {/* No “false” facts */}
+                    {/* Fact Checking (multi UI -> tri API) */}
                     <FilterRow
                         label="Fact Checking"
                         right={
-                            <Segmented<"any" | "true" | "false">
-                                value={triToKey(value.no_false_facts)}
-                                onChange={(k) => onChange({...value, no_false_facts: keyToTri(k)})}
+                            <SegMulti
+                                selected={factSel}
                                 options={[
-                                    {key: "any", label: "Any"},
-                                    {key: "true", label: "No false facts"},
-                                    {key: "false", label: "False facts"},
+                                    { key: true as const, label: "No false facts" },
+                                    { key: false as const, label: "False facts" },
                                 ]}
+                                onToggle={(k) => {
+                                    const next = toggleIn(factSel, k);
+                                    onChange({ ...value, no_false_facts: boolMultiToTri(next) });
+                                }}
                             />
                         }
                     />
 
-                    {/* Author expert */}
+                    {/* Author Expertise (multi UI -> single API) */}
                     <FilterRow
-                        label="Author expert"
+                        label="Author Field Expertise"
                         right={
-                            <Segmented
-                                value={value.author_expert ?? "any"}
-                                onChange={(k) =>
-                                    onChange({
-                                        ...value,
-                                        author_expert: k === "any" ? undefined : (k as "field_expert" | "not_field_expert" | "unknown"),
-                                    })
-                                }
+                            <SegMulti
+                                selected={authorSel}
                                 options={[
-                                    {key: "any", label: "Any"},
-                                    {key: "field_expert", label: "Expert"},
-                                    {key: "not_field_expert", label: "Not Expert"},
-                                    {key: "unknown", label: "Unknown"},
+                                    { key: "field_expert" as const, label: "Expert" },
+                                    { key: "not_field_expert" as const, label: "Not expert" },
+                                    { key: "unknown" as const, label: "Unknown" },
                                 ]}
+                                onToggle={(k) => {
+                                    const next = toggleIn(authorSel, k);
+                                    onChange({ ...value, author_expert: authorMultiToSingle(next) as any });
+                                }}
                             />
                         }
                     />
 
-                    {/* C2PA */}
+                    {/* C2PA (multi UI -> tri API) */}
                     <FilterRow
                         label="Includes C2PA"
                         right={
-                            <SegmentedTri
-                                value={triToKey(value.c2pa_present)}
-                                onChange={(k) => onChange({...value, c2pa_present: keyToTri(k)})}
+                            <SegMulti
+                                selected={c2paSel}
+                                options={[
+                                    { key: true as const, label: "Has C2PA" },
+                                    { key: false as const, label: "No C2PA" },
+                                ]}
+                                onToggle={(k) => {
+                                    const next = toggleIn(c2paSel, k);
+                                    onChange({ ...value, c2pa_present: boolMultiToTri(next) });
+                                }}
                             />
                         }
                     />
@@ -190,7 +230,7 @@ export default function FilterBar({value, onChange, counts}: Props) {
                 >
           <span className="advancedLabel">
             Advanced filters
-              {hasAnyAdvanced && <span className="advancedDot" title="Some advanced filters are active"/>}
+              {hasAnyAdvanced && <span className="advancedDot" title="Some advanced filters are active" />}
           </span>
                     <span className="advancedChevron" aria-hidden="true">
             ▾
@@ -198,25 +238,31 @@ export default function FilterBar({value, onChange, counts}: Props) {
                 </button>
             </div>
 
-            {/* Advanced content */}
+            {/* Advanced content (same style rows) */}
             <div className={`advancedPanel ${advancedOpen ? "open" : ""}`}>
                 <div className="advancedInner">
-                    <ChipGroup
-                        title="Tone"
-                        items={TONES}
-                        selected={value.tone ?? []}
-                        getCount={(k) => counts.tone[k] ?? 0}
-                        onToggle={(k) => onChange({...value, tone: toggleMulti(value.tone, k)})}
-                        onClear={() => onChange({...value, tone: []})}
+                    <FilterRow
+                        label="Tone"
+                        right={
+                            <SegMulti
+                                selected={value.tone ?? []}
+                                options={TONES.map((t) => ({ key: t, label: t, count: counts.tone[t] ?? 0 }))}
+                                onToggle={(k) => onChange({ ...value, tone: toggleIn(value.tone, k) })}
+                                wrap
+                            />
+                        }
                     />
 
-                    <ChipGroup
-                        title="Type"
-                        items={TYPES}
-                        selected={value.content_type ?? []}
-                        getCount={(k) => counts.content_type[k] ?? 0}
-                        onToggle={(k) => onChange({...value, content_type: toggleMulti(value.content_type, k)})}
-                        onClear={() => onChange({...value, content_type: []})}
+                    <FilterRow
+                        label="Type"
+                        right={
+                            <SegMulti
+                                selected={value.content_type ?? []}
+                                options={TYPES.map((t) => ({ key: t, label: t, count: counts.content_type[t] ?? 0 }))}
+                                onToggle={(k) => onChange({ ...value, content_type: toggleIn(value.content_type, k) })}
+                                wrap
+                            />
+                        }
                     />
                 </div>
             </div>
@@ -228,7 +274,7 @@ export default function FilterBar({value, onChange, counts}: Props) {
    Small presentational helpers
 ------------------------------ */
 
-function FilterRow({label, right}: { label: string; right: React.ReactNode }) {
+function FilterRow({ label, right }: { label: string; right: React.ReactNode }) {
     return (
         <div className="filterRow">
             <div className="filterRowLabel">{label}</div>
@@ -237,100 +283,41 @@ function FilterRow({label, right}: { label: string; right: React.ReactNode }) {
     );
 }
 
-function SegmentedTri({
-                          value,
-                          onChange,
-                      }: {
-    value: "any" | "true" | "false";
-    onChange: (v: "any" | "true" | "false") => void;
+function SegMulti<T extends string | boolean>({
+                                                  selected,
+                                                  options,
+                                                  onToggle,
+                                                  wrap = false,
+                                              }: {
+    selected: T[];
+    options: Array<{ key: T; label: string; count?: number }>;
+    onToggle: (k: T) => void;
+    wrap?: boolean;
 }) {
-    return (
-        <Segmented<"any" | "true" | "false">
-            value={value}
-            onChange={onChange}
-            options={[
-                {key: "any", label: "Any"},
-                {key: "true", label: "Yes"},
-                {key: "false", label: "No"},
-            ]}
-        />
-    );
-}
-
-function Segmented<T extends string>({
-                                         value,
-                                         onChange,
-                                         options,
-                                     }: {
-    value: T;
-    onChange: (v: T) => void;
-    options: Array<{ key: T; label: string }>;
-}) {
-    return (
-        <div className="segmented" role="group">
-            {options.map((o) => (
-                <button
-                    key={o.key}
-                    type="button"
-                    className={`segBtn ${value === o.key ? "active" : ""}`}
-                    onClick={() => onChange(o.key)}
-                >
-                    {o.label}
-                </button>
-            ))}
-        </div>
-    );
-}
-
-function ChipGroup({
-                       title,
-                       items,
-                       selected,
-                       getCount,
-                       onToggle,
-                       onClear,
-                   }: {
-    title: string;
-    items: string[];
-    selected: string[];
-    getCount: (key: string) => number;
-    onToggle: (key: string) => void;
-    onClear: () => void;
-}) {
-    const hasSelected = selected.length > 0;
 
     return (
-        <div className="chipGroup">
-            <div className="chipGroupHeader">
-                <div className="chipGroupTitle">{title}</div>
-                <button
-                    type="button"
-                    className="chipClear"
-                    onClick={onClear}
-                    disabled={!hasSelected}
-                    title={`Clear ${title}`}
-                >
-                    Clear
-                </button>
-            </div>
-
-            <div className="chips chipsModern">
-                {items.map((k) => {
-                    const active = selected.includes(k);
-                    const c = getCount(k);
-                    return (
-                        <button
-                            key={k}
-                            type="button"
-                            className={`chip chipModern ${active ? "active" : ""}`}
-                            onClick={() => onToggle(k)}
+        <div className={`segmented segmentedMulti ${wrap ? "wrap" : ""}`} role="group">
+            {options.map((o) => {
+                const active = selected.includes(o.key);
+                const c = o.count ?? 0;
+                return (
+                    <button
+                        key={String(o.key)}
+                        type="button"
+                        className={`segBtn ${active ? "active" : ""}`}
+                        onClick={() => onToggle(o.key)}
+                        title={c > 0 ? `${c}` : undefined}
+                    >
+                        <span>{o.label}</span>
+                        <span
+                            className={`segCount ${c > 0 ? "show" : "isZero"}`}
+                            aria-label={`${o.label}: ${c}`}
                         >
-                            <span className="chipLabel">{k}</span>
-                            {c > 0 && <span className="chipCount">{c}</span>}
-                        </button>
-                    );
-                })}
-            </div>
+                          {c}
+                        </span>
+                    </button>
+                );
+            })}
         </div>
     );
 }

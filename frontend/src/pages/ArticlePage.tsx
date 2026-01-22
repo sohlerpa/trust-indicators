@@ -1,7 +1,8 @@
 import {useEffect, useState} from "react";
-import {Link, useParams} from "react-router-dom";
+import {Link} from "react-router-dom";
 import {fetchFactCheckResult, getArticle, startArticleFactCheck} from "../api/endpoints";
 import type {ArticleBase, FactCheckTrust} from "../api/types";
+import {useNavigate, useParams} from "react-router-dom";
 
 import FactCheckCard from "../components/FactCheckCard";
 import AuthorExpertiseCard from "../components/AuthorExpertiseCard";
@@ -12,6 +13,7 @@ import HighlightedArticleBody from "../components/HighlightedArticleBody";
 
 export default function ArticlePage() {
     const {id} = useParams();
+    const navigate = useNavigate();
     const [article, setArticle] = useState<ArticleBase | null>(null);
     const [fact, setFact] = useState<FactCheckTrust | null>(null);
     const [factRunId, setFactRunId] = useState<string | null>(null);
@@ -66,7 +68,9 @@ export default function ArticlePage() {
 
     return (
         <div className="page">
-            <Link to="/">← Back</Link>
+            <button type="button" className="backLink" onClick={() => navigate(-1)}>
+                ← Back
+            </button>
 
             <h2 style={{marginTop: 12}}>{article.title}</h2>
 
