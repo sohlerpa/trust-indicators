@@ -2,7 +2,13 @@ import {useEffect, useState} from "react";
 import {getArticleC2PA} from "../api/endpoints";
 import type {C2PATrust} from "../api/types";
 
-export default function C2PACard({articleId}: {articleId: string}) {
+export default function C2PACard({
+    articleId,
+    compact = false,
+}: {
+    articleId: string;
+    compact?: boolean;
+}) {
     const [data, setData] = useState<C2PATrust | null>(null);
 
     useEffect(() => {
@@ -14,6 +20,35 @@ export default function C2PACard({articleId}: {articleId: string}) {
             <div className="card metaCard">
                 <h2>C2PA</h2>
                 <p className="loading">Analyzing media provenance…</p>
+            </div>
+        );
+    }
+
+    if (compact) {
+        const first = data.c2pa_info?.[0];
+        if (!first) return null;
+
+        return (
+            <div className="c2paOverlay">
+                <div className="c2paMeta">
+                    {first.c2pa_present ? (
+                        <>
+                            <div className="c2paStatus ok">
+                                ✓ C2PA Manifest present
+                            </div>
+                            <div><strong>Title:</strong> {first.title ?? "-"}</div>
+                            <div><strong>Issuer:</strong> {first.issuer ?? "-"}</div>
+                            <div>
+                                <strong>AI generated:</strong>{" "}
+                                {first.is_ai_generated ? "yes" : "no"}
+                            </div>
+                        </>
+                    ) : (
+                        <div className="c2paStatus error">
+                            ✕ No C2PA data
+                        </div>
+                    )}
+                </div>
             </div>
         );
     }
