@@ -18,4 +18,12 @@ X_POSTS: list[XPostRecord] = [
         media_url=None,
         created_at=datetime(2025, 12, 21, 12, 34, 28)
     ),
+
+    XPostRecord(
+        id="x3",
+        url="https://x.com/atrupar/status/2013978220735950986",
+        text="""Trump on NATO: "We never ask for anything, and we never got anything. We probably won't get anything unless I decide to use excessive strength and force, where we would be frankly unstoppable. But I won't do that. Okay?""",
+        media_url=None,
+        created_at=datetime(2026, 1, 22, 12, 34, 28)
+    ),
 ]
