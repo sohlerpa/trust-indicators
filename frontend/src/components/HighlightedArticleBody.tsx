@@ -46,17 +46,14 @@ function findC2PAMatch(
 ) {
     const imgNorm = normalize(imgSrc);
 
-    // 1️⃣ exact match
     let match = list.find(i => i.src === imgSrc);
     if (match) return match;
 
-    // 2️⃣ normalized pathname match
     match = list.find(i =>
         normalize(i.src) === imgNorm
     );
     if (match) return match;
 
-    // 3️⃣ filename match
     const imgFile = imgNorm.split("/").pop();
     if (!imgFile) return null;
 
@@ -90,7 +87,6 @@ function enhanceInlineImages(
 
     const used = new Set<string>();
 
-    // images + iframes (videos)
     doc.querySelectorAll("img, iframe").forEach((el) => {
         const src = getMediaSrc(el);
         if (!src) return;
@@ -101,7 +97,6 @@ function enhanceInlineImages(
 
         used.add(match.src);
 
-        // 🔹 wrap the video wrapper if present
         const wrapTarget =
             el.closest(".videoWrapper") ?? el;
 
