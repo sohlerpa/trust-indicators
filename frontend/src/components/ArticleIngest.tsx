@@ -56,13 +56,13 @@ export default function ArticleIngest({onInserted}: { onInserted?: (id: string) 
                 </div>
 
                 <button
-                    className="btn"
+                    className="factButton"
                     onClick={() => {
                         setOpen(true);
                         reset();
                     }}
                 >
-                    Add article
+                    Add
                 </button>
             </div>
 
@@ -81,16 +81,15 @@ export default function ArticleIngest({onInserted}: { onInserted?: (id: string) 
 
                         <div style={{display: "flex", gap: 8}}>
                             <button
-                                className="btn"
+                                className="factButton"
                                 onClick={submit}
                                 disabled={submitting}
-                                title="Fetch HTML and insert into DB"
                             >
-                                {submitting ? "Inserting…" : "Insert into Article Database"}
+                                {submitting ? "Inserting…" : "Insert article"}
                             </button>
 
                             <button
-                                className="btn secondary"
+                                className="factButton"
                                 onClick={() => {
                                     setOpen(false);
                                     reset();
