@@ -72,15 +72,15 @@ export default function HomePage() {
                     <FilterBar value={filters} onChange={setFilters}/>
                 </header>
 
-                <ArticleIngest onInserted={() => setReloadToken(t => t + 1)} />
-
-                {err && <div className="error">Error: {err}</div>}
-                {loading && <div className="hint">Loading…</div>}
-
-                <DiversityScore domains={filtered_domains} />
-
                 <div className="grid">
-                    <main className="main">
+                    <main className="main stack">
+                        <ArticleIngest onInserted={() => setReloadToken(t => t + 1)} />
+
+                        {err && <div className="error">Error: {err}</div>}
+                        {loading && <div className="hint">Loading…</div>}
+
+                        <DiversityScore domains={filtered_domains} />
+
                         <ArticleList articles={data.articles}/>
                     </main>
 

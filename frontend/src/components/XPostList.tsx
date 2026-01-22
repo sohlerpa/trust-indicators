@@ -6,8 +6,6 @@ export default function XPostList({ posts }: { posts: XPost[] }) {
     console.log("x posts", posts)
     return (
         <div className="card">
-            <h3>X</h3>
-
             <div className="list">
                 {posts.map((p) => (
                     <div key={p.id} className="post">
@@ -20,7 +18,9 @@ export default function XPostList({ posts }: { posts: XPost[] }) {
                             />
 
                             <div className="factCheckWrapper">
-                                <span className="factBadge">✓</span>
+                                <button className="factButton">
+                                    Fact check
+                                </button>
 
                                 <div className="factPopover">
                                     <FactCheckCard id={p.id} type="x" />
@@ -29,15 +29,8 @@ export default function XPostList({ posts }: { posts: XPost[] }) {
                         </div>
 
                         {/* REAL X POST */}
-                        <div style={{ margin: "8px 0 12px" }}>
+                        <div className="xEmbed">
                             <XEmbed url={p.url} />
-                        </div>
-
-                        {/* LOCAL METADATA */}
-                        <div className="metaSmall">
-                            {new Date(p.created_at).toLocaleString()}
-                            URL {p.url}
-
                         </div>
                     </div>
                 ))}

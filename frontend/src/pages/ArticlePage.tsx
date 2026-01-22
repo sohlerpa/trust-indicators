@@ -89,9 +89,20 @@ export default function ArticlePage() {
 
             <div className="articleLayout">
                 <div>
-                    {article.image_url && <img className="hero" src={article.image_url} alt=""/>}
+                    {article.image_url && (
+                        <div className="heroWrap">
+                            <img className="hero" src={article.image_url} />
 
-                    <HighlightedArticleBody html={article.content_html} claims={fact?.claims}/>
+                            <div className="c2paOverlay">
+                                <C2PACard articleId={article.id} compact />
+                            </div>
+                        </div>
+                    )}
+                    <HighlightedArticleBody
+                        html={article.content_html}
+                        claims={fact?.claims}
+                        articleId={article.id}
+                    />
                 </div>
 
                 <div className="card">
