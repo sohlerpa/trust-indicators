@@ -1,35 +1,30 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { FactCheckTrust } from "../api/types";
+import type { FactCheckTrust, C2PATrust } from "../api/types";
 import { getArticleC2PA } from "../api/endpoints";
-import type { C2PATrust } from "../api/types";
 
 type Claim = FactCheckTrust["claims"][number];
 
-function clamp(n: number, min: number, max: number) {
-    return Math.max(min, Math.min(max, n));
+// --- Helpers from OLD Code (Text & Date Formatting) ---
+
+function formatReviewDate(date?: string) {
+    if (!date) return null;
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return date;
+    return d.toLocaleDateString("en-US", {
+        month: "short",
+        year: "numeric",
+    });
 }
 
-function computePopoverPos(anchor: DOMRect, popW = 420, popH = 360) {
-    const margin = 10;
-
-    let left = anchor.left;
-    let top = anchor.bottom + 8;
-
-    if (top + popH > window.innerHeight - margin) {
-        top = anchor.top - 8 - popH;
-    }
-
-    left = clamp(left, margin, window.innerWidth - margin - popW);
-    top = clamp(top, margin, window.innerHeight - margin - popH);
-
-    return { left, top };
+function escapeRegExp(s: string) {
+    return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function verdictClass(verdict: string) {
-    if (verdict === "true") return "factSpan isTrue";
-    if (verdict === "false") return "factSpan isFalse";
-    return "factSpan isUnclear";
+function normalizeWs(s: string) {
+    return s.replace(/\s+/g, " ").trim();
 }
+
+// --- Helpers from NEW Code (Image C2PA) ---
 
 function normalize(url: string) {
     try {
@@ -40,22 +35,19 @@ function normalize(url: string) {
     }
 }
 
-function findC2PAMatch(
-    src: string,
-    list: NonNullable<C2PATrust["c2pa_info"]>
-) {
+function findC2PAMatch(src: string, list: NonNullable<C2PATrust["c2pa_info"]>) {
     const norm = normalize(src);
 
-    let m = list.find(i => i.src === src);
+    let m = list.find((i) => i.src === src);
     if (m) return m;
 
-    m = list.find(i => normalize(i.src) === norm);
+    m = list.find((i) => normalize(i.src) === norm);
     if (m) return m;
 
     const file = norm.split("/").pop();
     if (!file) return null;
 
-    return list.find(i => normalize(i.src).endsWith(file)) ?? null;
+    return list.find((i) => normalize(i.src).endsWith(file)) ?? null;
 }
 
 function getMediaSrc(el: Element): string | null {
@@ -70,7 +62,7 @@ function enhanceInlineImages(html: string, c2pa: C2PATrust | null) {
     const doc = new DOMParser().parseFromString(html, "text/html");
     const used = new Set<string>();
 
-    doc.querySelectorAll("img, iframe").forEach(el => {
+    doc.querySelectorAll("img, iframe").forEach((el) => {
         const src = getMediaSrc(el);
         if (!src) return;
 
@@ -80,7 +72,6 @@ function enhanceInlineImages(html: string, c2pa: C2PATrust | null) {
         used.add(match.src);
 
         const wrapTarget = el.closest(".videoWrapper") ?? el;
-
         const wrapper = doc.createElement("div");
         wrapper.className = "inlineImageWrap";
 
@@ -111,6 +102,37 @@ function enhanceInlineImages(html: string, c2pa: C2PATrust | null) {
     return doc.body.innerHTML;
 }
 
+// --- Shared Helpers (Math & DOM) ---
+
+function clamp(n: number, min: number, max: number) {
+    return Math.max(min, Math.min(max, n));
+}
+
+function computePopoverPos(anchor: DOMRect, popW = 420, popH = 360) {
+    const margin = 10;
+
+    // Aligned to left edge of highlight, below text
+    let left = anchor.left;
+    let top = anchor.bottom + 8;
+
+    // Flip to top if it would overflow bottom
+    if (top + popH > window.innerHeight - margin) {
+        top = anchor.top - 8 - popH;
+    }
+
+    left = clamp(left, margin, window.innerWidth - margin - popW);
+    top = clamp(top, margin, window.innerHeight - margin - popH);
+
+    return { left, top };
+}
+
+function verdictClass(verdict: string) {
+    if (verdict === "true") return "factSpan isTrue";
+    if (verdict === "false") return "factSpan isFalse";
+    return "factSpan isUnclear";
+}
+
+// Used the OLD version of wrapRange as it handles node boundaries/offsets more robustly
 function wrapRange(
     root: HTMLElement,
     start: number,
@@ -118,11 +140,12 @@ function wrapRange(
     className: string,
     claimId: string
 ) {
-    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    if (end <= start) return;
 
-    let pos = 0;
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
     let node: Text | null = walker.nextNode() as Text | null;
 
+    let pos = 0;
     let startNode: Text | null = null;
     let endNode: Text | null = null;
     let startOffset = 0;
@@ -130,20 +153,19 @@ function wrapRange(
 
     while (node) {
         const len = node.nodeValue?.length ?? 0;
-        const next = pos + len;
+        const nextPos = pos + len;
 
-        if (!startNode && start >= pos && start < next) {
+        if (!startNode && start >= pos && start < nextPos) {
             startNode = node;
             startOffset = start - pos;
         }
-
-        if (!endNode && end > pos && end <= next) {
+        if (!endNode && end > pos && end <= nextPos) {
             endNode = node;
             endOffset = end - pos;
             break;
         }
 
-        pos = next;
+        pos = nextPos;
         node = walker.nextNode() as Text | null;
     }
 
@@ -168,6 +190,8 @@ function wrapRange(
     }
 }
 
+// --- Main Component ---
+
 export default function HighlightedArticleBody({
     html,
     claims,
@@ -180,17 +204,20 @@ export default function HighlightedArticleBody({
     const articleRef = useRef<HTMLElement | null>(null);
     const popoverRef = useRef<HTMLDivElement | null>(null);
 
+    // 1. C2PA Image Logic
     const [c2pa, setC2pa] = useState<C2PATrust | null>(null);
-
-    const enhancedHtml = useMemo(
-        () => enhanceInlineImages(html, c2pa),
-        [html, c2pa]
-    );
 
     useEffect(() => {
         getArticleC2PA(articleId).then(setC2pa);
     }, [articleId]);
 
+    // Apply C2PA overlays to the HTML string
+    const enhancedHtml = useMemo(
+        () => enhanceInlineImages(html, c2pa),
+        [html, c2pa]
+    );
+
+    // 2. Fact Check Logic Setup
     const claimById = useMemo(() => {
         const m = new Map<string, Claim>();
         for (const c of claims ?? []) m.set(c.id, c);
@@ -202,91 +229,268 @@ export default function HighlightedArticleBody({
         left: number;
         top: number;
         claim: Claim | null;
-    }>({ open: false, left: 0, top: 0, claim: null });
+    }>({
+        open: false,
+        left: 0,
+        top: 0,
+        claim: null,
+    });
 
+    // 3. Highlighting Effect (Restored from OLD code)
+    // This now watches `enhancedHtml` so highlighting applies *after* images are wrapped
     useEffect(() => {
         const root = articleRef.current;
-        if (!root || !claims?.length) return;
+        if (!root) return;
 
-        root.querySelectorAll("mark.factSpan").forEach(m => {
-            const p = m.parentNode;
-            if (!p) return;
-            while (m.firstChild) p.insertBefore(m.firstChild, m);
-            p.removeChild(m);
-            p.normalize();
+        // Cleanup existing marks
+        root.querySelectorAll("mark.factSpan").forEach((m) => {
+            const parent = m.parentNode;
+            if (!parent) return;
+            while (m.firstChild) parent.insertBefore(m.firstChild, m);
+            parent.removeChild(m);
+            parent.normalize();
         });
 
-        const text = root.textContent ?? "";
+        if (!claims || claims.length === 0) return;
 
-        for (const c of claims) {
-            if (!c.sourceText) continue;
+        const fullText = root.textContent ?? "";
+
+        // Sort claims by length (longest first) to prevent nested overlap issues
+        const sorted = [...claims].sort(
+            (a, b) => (b.sourceText?.length ?? 0) - (a.sourceText?.length ?? 0)
+        );
+
+        for (const c of sorted) {
+            const source = c.sourceText?.trim();
+            if (!source) continue;
 
             let idx = 0;
+            // 3a. Exact match attempt
             while (true) {
-                const found = text.indexOf(c.sourceText, idx);
+                const found = fullText.indexOf(source, idx);
                 if (found === -1) break;
 
                 wrapRange(
                     root,
                     found,
-                    found + c.sourceText.length,
+                    found + source.length,
                     verdictClass(c.verdict),
                     c.id
                 );
 
-                idx = found + c.sourceText.length;
+                idx = found + source.length;
+            }
+
+            // 3b. Regex/Whitespace normalized fallback attempt
+            if (!fullText.includes(source)) {
+                const pattern = escapeRegExp(normalizeWs(source)).replace(/\s+/g, "\\s+");
+                const re = new RegExp(pattern, "g");
+
+                let m: RegExpExecArray | null;
+                while ((m = re.exec(fullText)) !== null) {
+                    wrapRange(
+                        root,
+                        m.index,
+                        m.index + m[0].length,
+                        verdictClass(c.verdict),
+                        c.id
+                    );
+                }
             }
         }
     }, [enhancedHtml, claims]);
 
+    // 4. Interaction/Hover Logic (Restored from OLD code)
     useEffect(() => {
         const root = articleRef.current;
         if (!root) return;
 
-        const over = (e: MouseEvent) => {
-            const mark = (e.target as HTMLElement | null)
-                ?.closest("mark.factSpan") as HTMLElement | null;
-            if (!mark) return;
+        let closeTimer: number | null = null;
 
-            const claim = claimById.get(mark.dataset.claimId!);
+        const clearCloseTimer = () => {
+            if (closeTimer !== null) {
+                window.clearTimeout(closeTimer);
+                closeTimer = null;
+            }
+        };
+
+        const scheduleClose = () => {
+            clearCloseTimer();
+            closeTimer = window.setTimeout(() => {
+                setHover((h) => ({ ...h, open: false, claim: null }));
+            }, 120);
+        };
+
+        const openForMark = (mark: HTMLElement) => {
+            const claimId = mark.dataset.claimId;
+            if (!claimId) return;
+
+            const claim = claimById.get(claimId);
             if (!claim) return;
 
-            const rect = mark.getBoundingClientRect();
-            const pos = computePopoverPos(rect);
+            const popW = Math.min(420, window.innerWidth - 24);
+            const popH = Math.min(360, window.innerHeight - 24);
 
-            setHover({ open: true, left: pos.left, top: pos.top, claim });
+            const rect = mark.getBoundingClientRect();
+            const pos = computePopoverPos(rect, popW, popH);
+
+            setHover({
+                open: true,
+                left: pos.left,
+                top: pos.top,
+                claim,
+            });
         };
 
-        const out = () => setHover(h => ({ ...h, open: false }));
+        const onOver = (e: MouseEvent) => {
+            const mark = (e.target as HTMLElement | null)?.closest("mark.factSpan") as HTMLElement | null;
+            if (!mark) return;
+            clearCloseTimer();
+            openForMark(mark);
+        };
 
-        root.addEventListener("mouseover", over);
-        root.addEventListener("mouseout", out);
+        const onOut = (e: MouseEvent) => {
+            const leavingMark = (e.target as HTMLElement | null)?.closest("mark.factSpan");
+            if (!leavingMark) return;
+
+            const entering = e.relatedTarget as HTMLElement | null;
+            if (entering?.closest(".factHoverPopover")) return;
+
+            scheduleClose();
+        };
+
+        root.addEventListener("mouseover", onOver);
+        root.addEventListener("mouseout", onOut);
+
+        const onScrollOrResize = () => {
+            setHover((h) => {
+                if (!h.open || !h.claim) return h;
+                const mark = root.querySelector(`mark.factSpan[data-claim-id="${h.claim.id}"]`) as HTMLElement | null;
+                if (!mark) return h;
+
+                const popW = Math.min(420, window.innerWidth - 24);
+                const popH = Math.min(360, window.innerHeight - 24);
+
+                const rect = mark.getBoundingClientRect();
+                const pos = computePopoverPos(rect, popW, popH);
+                return { ...h, left: pos.left, top: pos.top };
+            });
+        };
+
+        window.addEventListener("scroll", onScrollOrResize, true);
+        window.addEventListener("resize", onScrollOrResize);
 
         return () => {
-            root.removeEventListener("mouseover", over);
-            root.removeEventListener("mouseout", out);
+            root.removeEventListener("mouseover", onOver);
+            root.removeEventListener("mouseout", onOut);
+            window.removeEventListener("scroll", onScrollOrResize, true);
+            window.removeEventListener("resize", onScrollOrResize);
+            clearCloseTimer();
         };
     }, [claimById]);
+
+    // 5. Popover Position Refinement (Restored from OLD code)
+    useEffect(() => {
+        if (!hover.open || !hover.claim) return;
+        const root = articleRef.current;
+        const pop = popoverRef.current;
+        if (!root || !pop) return;
+
+        const mark = root.querySelector(
+            `mark.factSpan[data-claim-id="${hover.claim.id}"]`
+        ) as HTMLElement | null;
+
+        if (!mark) return;
+
+        const anchor = mark.getBoundingClientRect();
+        const popRect = pop.getBoundingClientRect();
+
+        const isAbove = popRect.bottom <= anchor.top + 2;
+        if (!isAbove) return;
+
+        const margin = 10;
+        const gap = 8;
+
+        const desiredTop = anchor.top - gap - popRect.height;
+        const clampedTop = clamp(desiredTop, margin, window.innerHeight - margin - popRect.height);
+
+        if (Math.abs(clampedTop - hover.top) > 1) {
+            setHover((h) => ({ ...h, top: clampedTop }));
+        }
+    }, [hover.open, hover.claim?.id, hover.left, hover.top]);
 
     return (
         <>
             <article
-                ref={articleRef}
+                ref={articleRef as any}
                 className="articleBody card"
+                // Uses enhancedHtml which includes the Image Overlays
                 dangerouslySetInnerHTML={{ __html: enhancedHtml }}
             />
 
+            {/* Restored Detailed Popover Structure */}
             <div
                 ref={popoverRef}
                 className={`factHoverPopover ${hover.open ? "isOpen" : ""}`}
                 style={{ left: hover.left, top: hover.top }}
+                onMouseEnter={() => {
+                    // prevent closing when moving from mark to popover
+                    null;
+                }}
+                onMouseLeave={() =>
+                    setHover((h) => ({ ...h, open: false, claim: null }))
+                }
             >
                 {hover.claim && (
                     <div className="card metaCard">
-                        <strong className={`verdictText verdictText-${hover.claim.verdict}`}>
-                            {hover.claim.verdict}
-                        </strong>
-                        <p>{hover.claim.summary}</p>
+                        <div className="verdictLine">
+                            <span className="arrow">→</span>{" "}
+                            <strong className={`verdictText verdictText-${hover.claim.verdict}`}>
+                                {hover.claim.verdict}
+                            </strong>{" "}
+                            <span className="confidenceText">
+                                ({Math.round(hover.claim.confidence * 100)}%)
+                            </span>
+                        </div>
+
+                        <p className="summary" style={{ marginTop: 8 }}>
+                            {hover.claim.summary}
+                        </p>
+
+                        {hover.claim.sources?.length ? (
+                            <>
+                                <div className="sourceSectionLabel" style={{ marginTop: 10 }}>
+                                    Sources
+                                </div>
+                                <ul className="tooltipList" style={{ marginTop: 6 }}>
+                                    {hover.claim.sources.map((s, i) => (
+                                        <li
+                                            key={`${s.url ?? s.title ?? "src"}-${i}`}
+                                            className="tooltipItem"
+                                        >
+                                            <span className="tooltipPublisher">
+                                                {s.publisher}{" "}
+                                                {formatReviewDate((s as any).review_date) && (
+                                                    <span className="tooltipDate">
+                                                        · {formatReviewDate((s as any).review_date)}
+                                                    </span>
+                                                )}
+                                            </span>
+                                            {s.url && (
+                                                <a
+                                                    className="tooltipLink"
+                                                    href={s.url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                >
+                                                    {s.url}
+                                                </a>
+                                            )}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </>
+                        ) : null}
                     </div>
                 )}
             </div>
