@@ -23,6 +23,9 @@ export default function HomePage() {
         tone: [],
         content_type: [],
         publisher_type: [],
+        no_false_facts: undefined,
+        author_expert: undefined,
+        c2pa_present: undefined,
     });
 
     const [data, setData] = useState<FeedResponse>({articles: [], x_posts: []});

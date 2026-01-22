@@ -156,6 +156,9 @@ export type FeedFilters = {
     tone?: string[];
     content_type?: string[];
     publisher_type?: string[];
+    no_false_facts?: boolean; // true = only articles with fact-check result and no "false" verdict
+    author_expert?: "field_expert" | "not_field_expert" | "unknown";
+    c2pa_present?: boolean;
 };
 
 export type IngestArticleResponse = {
