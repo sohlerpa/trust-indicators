@@ -172,6 +172,11 @@ export default function HomePage() {
                     <main className="main stack">
                         <ArticleIngest onInserted={() => setReloadToken(t => t + 1)}/>
 
+                        <div className="topRow">
+                            <DiversityScore domains={filtered_domains} />
+                            <ArticleIngest onInserted={() => setReloadToken(t => t + 1)} />
+                        </div>
+
                         {err && <div className="error">Error: {err}</div>}
                         {loading && <div className="hint">Loading…</div>}
 

@@ -284,6 +284,49 @@ body {
     display: block;
 }
 
+.topRow {
+    display: grid;
+    grid-template-columns: 1fr 260px;
+    gap: 14px;
+    align-items: stretch;
+}
+
+/* stack on small screens */
+@media (max-width: 900px) {
+    .topRow {
+        grid-template-columns: 1fr;
+    }
+}
+
+.factButton {
+    cursor: pointer;
+
+    padding: 6px 10px;
+    border-radius: 8px;
+
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    background: #222;
+    color: #fff;
+
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+
+    transition:
+        background 0.12s ease,
+        border-color 0.12s ease,
+        transform 0.08s ease;
+}
+
+.factButton:hover {
+    background: #000;
+}
+
+.factButton:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
 /* image wrapper created by DOMParser */
 .articleBody div[style*="position: relative"] {
     display: inline-block;
