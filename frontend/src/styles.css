@@ -1124,3 +1124,403 @@ mark.factSpan.isUnclear {
     font-size: 12px;
     opacity: 0.7;
 }
+
+
+/* ---------------------------
+   Modern compact filter bar
+---------------------------- */
+
+.filtersModern {
+    padding: 12px;
+}
+
+.filtersHeader {
+    display: grid;
+    gap: 10px;
+}
+
+.filtersTitleRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.filtersTitle {
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.02em;
+    color: #111;
+    opacity: 0.9;
+}
+
+.filtersActions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.filtersCountPill {
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: rgba(0,0,0,0.06);
+    border: 1px solid rgba(0,0,0,0.10);
+    font-variant-numeric: tabular-nums;
+}
+
+.filtersReset {
+    font-size: 12px;
+    font-weight: 650;
+    padding: 6px 10px;
+    border-radius: 10px;
+    border: 1px solid rgba(0,0,0,0.12);
+    background: #fff;
+    cursor: pointer;
+    transition: transform 0.12s ease, background 0.12s ease, opacity 0.12s ease;
+}
+
+.filtersReset:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
+.filtersReset:not(:disabled):hover {
+    background: rgba(0,0,0,0.03);
+}
+
+.filtersReset:not(:disabled):active {
+    transform: scale(0.98);
+}
+
+/* Grid for the top compact rows */
+.filtersGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 14px;
+}
+
+@media (max-width: 900px) {
+    .filtersGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.filterRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 10px;
+    border-radius: 12px;
+    background: rgba(0,0,0,0.02);
+    border: 1px solid rgba(0,0,0,0.06);
+}
+
+.filterRowLabel {
+    font-size: 13px;
+    font-weight: 650;
+    color: #111;
+    opacity: 0.85;
+    white-space: nowrap;
+}
+
+.filterRowControl {
+    display: flex;
+    justify-content: flex-end;
+    min-width: 180px;
+}
+
+/* Segmented buttons */
+.segmented {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px;
+    border-radius: 999px;
+    background: rgba(0,0,0,0.06);
+    border: 1px solid rgba(0,0,0,0.10);
+    gap: 3px;
+}
+
+.segBtn {
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    color: rgba(0,0,0,0.70);
+    transition: transform 0.12s ease, background 0.12s ease, color 0.12s ease;
+}
+
+.segBtn:hover {
+    background: rgba(255,255,255,0.55);
+}
+
+.segBtn:active {
+    transform: scale(0.98);
+}
+
+.segBtn.active {
+    background: #fff;
+    color: #111;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+}
+
+/* Advanced toggle */
+.advancedToggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 10px;
+    border-radius: 12px;
+    border: 1px solid rgba(0,0,0,0.10);
+    background: #fff;
+    cursor: pointer;
+    transition: background 0.12s ease, transform 0.12s ease;
+}
+
+.advancedToggle:hover {
+    background: rgba(0,0,0,0.02);
+}
+
+.advancedToggle:active {
+    transform: scale(0.99);
+}
+
+.advancedLabel {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 650;
+    color: #111;
+    opacity: 0.85;
+}
+
+.advancedDot {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: #111;
+    opacity: 0.6;
+}
+
+.advancedChevron {
+    transition: transform 0.18s ease;
+    opacity: 0.7;
+}
+
+.advancedToggle.open .advancedChevron {
+    transform: rotate(180deg);
+}
+
+/* Collapsible panel with animation */
+.advancedPanel {
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transform: translateY(-4px);
+    transition: max-height 0.22s ease, opacity 0.18s ease, transform 0.18s ease;
+}
+
+.advancedPanel.open {
+    max-height: 1200px; /* plenty */
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.advancedInner {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(0,0,0,0.08);
+    display: grid;
+    gap: 14px;
+}
+
+/* Chip groups */
+.chipGroup {
+    display: grid;
+    gap: 8px;
+}
+
+.chipGroupHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.chipGroupTitle {
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(0,0,0,0.55);
+}
+
+.chipClear {
+    font-size: 12px;
+    font-weight: 700;
+    padding: 6px 10px;
+    border-radius: 10px;
+    border: 1px solid rgba(0,0,0,0.12);
+    background: #fff;
+    cursor: pointer;
+    transition: transform 0.12s ease, background 0.12s ease, opacity 0.12s ease;
+}
+
+.chipClear:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
+.chipClear:not(:disabled):hover {
+    background: rgba(0,0,0,0.03);
+}
+
+.chipClear:not(:disabled):active {
+    transform: scale(0.98);
+}
+
+/* Modern chips (override your existing .chip) */
+.chipsModern {
+    gap: 8px;
+}
+
+.chipModern {
+    border: 1px solid rgba(0,0,0,0.12);
+    background: #fff;
+    padding: 7px 10px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: transform 0.12s ease, background 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.chipModern:hover {
+    background: rgba(0,0,0,0.02);
+}
+
+.chipModern:active {
+    transform: scale(0.98);
+}
+
+.chipModern.active {
+    border-color: rgba(0,0,0,0.45);
+    box-shadow: 0 1px 8px rgba(0,0,0,0.08);
+}
+
+.chipModern .chipCount {
+    font-size: 12px;
+    opacity: 0.7;
+    font-variant-numeric: tabular-nums;
+}
+
+
+/* Article page back button */
+.backLink {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    padding: 6px 10px;
+    border-radius: 10px;
+
+    font-size: 12px;
+    font-weight: 650;
+
+    border: 1px solid rgba(0,0,0,0.12);
+    background: #fff;
+    color: #111;
+
+    cursor: pointer;
+    transition: transform 0.12s ease, background 0.12s ease, opacity 0.12s ease;
+}
+
+.backLink:hover {
+    background: rgba(0,0,0,0.03);
+}
+
+.backLink:active {
+    transform: scale(0.98);
+}
+
+.segmentedMulti.wrap {
+    flex-wrap: wrap;
+    border-radius: 14px;
+}
+
+.segmentedMulti.wrap .segBtn {
+    border-radius: 999px;
+}
+
+/* Count slot is always there (stable width) */
+.segCount {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    margin-left: 2px;
+
+    /* stable width (fits up to 3 digits) */
+    width: 2.6ch;
+    flex: 0 0 2.6ch;
+
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    pointer-events: none;
+
+    /* default: subtle */
+    opacity: 0.18;
+    transform: translateY(0) scale(1);
+    transition: opacity 0.14s ease, transform 0.14s ease;
+}
+
+/* real counts: a bit stronger + tiny pop */
+.segCount.show {
+    opacity: 0.65;
+    transform: translateY(0) scale(1);
+}
+
+/* zero counts: even more subtle */
+.segCount.isZero {
+    opacity: 0.12;
+}
+
+.segBtn:hover .segCount.isZero {
+    opacity: 0.03;
+}
+
+/* Optional: prevent button width from jittering even if label wraps */
+.segBtn {
+    white-space: nowrap;
+}
+
+.segClear {
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+    color: rgba(0,0,0,0.55);
+    transition: background 0.12s ease, transform 0.12s ease, opacity 0.12s ease;
+}
+
+.segClear:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.segClear:not(:disabled):hover {
+    background: rgba(255,255,255,0.55);
+}
+
+.segClear:not(:disabled):active {
+    transform: scale(0.98);
+}

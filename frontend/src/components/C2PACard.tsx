@@ -16,6 +16,8 @@ export default function C2PACard({
     }, [articleId]);
 
     if (!data) {
+        if (compact) return null;
+
         return (
             <div className="card metaCard">
                 <h2>C2PA</h2>

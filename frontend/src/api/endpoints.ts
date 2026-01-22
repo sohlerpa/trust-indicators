@@ -19,6 +19,10 @@ function qs(filters: FeedFilters): string {
     for (const t of filters.tone ?? []) p.append("tone", t);
     for (const ct of filters.content_type ?? []) p.append("content_type", ct);
     for (const pt of filters.publisher_type ?? []) p.append("publisher_type", pt);
+    if (filters.no_false_facts !== undefined) p.set("no_false_facts", String(filters.no_false_facts));
+    if (filters.author_expert !== undefined) p.set("author_expert", filters.author_expert);
+    if (filters.c2pa_present !== undefined) p.set("c2pa_present", String(filters.c2pa_present));
+
 
     const s = p.toString();
     return s ? `?${s}` : "";
