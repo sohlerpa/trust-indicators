@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Query, Depends
 from typing import List, Optional
 
+from fastapi import APIRouter, Query, Depends
 from sqlalchemy.orm import Session
 
 from src.app.api.schemas import FeedResponse, ArticleSummaryOut, XPostOut
@@ -20,7 +20,6 @@ def get_feed(
         publisher_type: Optional[List[str]] = Query(default=None),
         db: Session = Depends(get_db)
 ):
-    # TODO maybe we can filter for something already or do some pre processing that we don't have to run everything on all posts/articles?
 
     articles_raw = get_all_articles(db)
     x_raw = X_POSTS
@@ -29,18 +28,18 @@ def get_feed(
     articles: list[ArticleSummaryOut] = [to_article_summary_out(a, db, feed_mode=True) for a in articles_raw]
     x_posts: list[XPostOut] = [to_xpost_out(p) for p in x_raw]
 
-    def matches(ind) -> bool:
-        if fact_checked is not None and ind.fact_checked != fact_checked:
+    def matches(article: ArticleSummaryOut) -> bool:
+        if fact_checked is not None and article.trust_indicators.fact_checked != fact_checked:
             return False
-        if tone and (ind.tone not in tone):
+        if tone and (article.trust_indicators.tone not in tone):
             return False
-        if content_type and (ind.content_type not in content_type):
+        if content_type and (article.trust_indicators.content_type not in content_type):
             return False
-        if publisher_type and (ind.publisher_type not in publisher_type):
+        if publisher_type and (article.trust_indicators.publisher_type not in publisher_type):
             return False
         return True
 
     return FeedResponse(
-        articles=[a for a in articles if matches(a.trust_indicators)],
-        x_posts=[p for p in x_posts if matches(p.indicators)],
+        articles=[a for a in articles if matches(a)],
+        x_posts=[p for p in x_posts],
     )
