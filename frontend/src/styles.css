@@ -1458,6 +1458,27 @@ mark.factSpan.isUnclear {
     border-radius: 999px;
 }
 
+.segmentedMulti {
+    display: inline-flex;
+    align-items: center;
+}
+
+.segmentedMulti .segBtn {
+    position: relative;
+}
+
+/* separator */
+.segmentedMulti .segBtn + .segBtn::before {
+    content: "│";
+    position: absolute;
+    left: -1.5px;
+    transform: translateX(-50%) translateY(-50%);
+    top: 50%;
+    color: rgba(0, 0, 0, 0.25);
+    font-weight: 600;
+    pointer-events: none;
+}
+
 /* Count slot is always there (stable width) */
 .segCount {
     display: inline-flex;
