@@ -1336,8 +1336,6 @@ mark.factSpan.isUnclear {
 
 .advancedInner {
     margin-top: 10px;
-    padding-top: 10px;
-    border-top: 1px solid rgba(0,0,0,0.08);
     display: grid;
     gap: 14px;
 }
@@ -1448,7 +1446,11 @@ mark.factSpan.isUnclear {
 .backLink:active {
     transform: scale(0.98);
 }
-
+.segmentedMulti {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
 .segmentedMulti.wrap {
     flex-wrap: wrap;
     border-radius: 14px;
