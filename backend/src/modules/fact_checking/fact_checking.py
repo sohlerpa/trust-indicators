@@ -480,15 +480,19 @@ def _facts_to_llm_evidence(
 
 def extract_keywords_from_claim(
         claim: str,
+        context_text: str,
         *,
         gemini_api_key: str,
         model: str = "gemini-2.5-flash-lite",
 ) -> FactCheckQuery:
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 
+    safe_context = (context_text or "")[:2000]
+
     system_instruction = (
         "You generate search queries for the Google Fact Check Tools API (claims:search).\n"
-        "Goal: HIGH RECALL. Prefer broad topic queries that are likely to match existing fact-check entries.\n"
+        "You are provided with the CLAIM and a surrounding CONTEXT text.\n"
+        "Goal: HIGH RECALL, but specific enough to avoid irrelevant matches. Prefer broad topic queries that are likely to match existing fact-check entries.\n"
         "The index often does NOT match exact claim wording, numbers, or specific time phrases.\n\n"
         "Output JSON only:\n"
         "- primary: best high-recall query\n"
@@ -531,6 +535,7 @@ def extract_keywords_from_claim(
                         "text": json.dumps(
                             {
                                 "claim": claim,
+                                "context_snippet": safe_context,
                                 "task": (
                                     "Return 3–5 SHORT high-recall keyword queries (2–4 words preferred) to find matching fact-check entries.\n"
                                     "Be broader/open rather than specific. Avoid years, rankings, and abstract/meta wording.\n"
@@ -671,6 +676,7 @@ def assert_claims_to_facts_batch(
     system_instruction = (
         "You are a fact-checking assistant.\n"
         "You must ONLY use the provided evidence for EACH claim.\n"
+        "Search results can be noisy. You must check if the Evidence actually discusses the SAME Topic/Person/Event as the Claim.\n"
         "Do NOT use external knowledge.\n"
         "Do NOT invent sources.\n\n"
         "VERY IMPORTANT SELECTION RULE:\n"
@@ -694,6 +700,7 @@ def assert_claims_to_facts_batch(
             {
                 "claim_id": it.claim_id,
                 "input_claim": it.span.claim_text,
+                "context_snippet": it.span.source_text,
                 "evidence": evidence_payloads[it.claim_id],
             }
             for it in items
@@ -845,7 +852,7 @@ def check_facts_for_html(content_html: str, *, article_id: str, progress: Progre
         claim_id = _claim_id(article_id, span.start_char, span.end_char, span.claim_text)
 
         try:
-            query = extract_keywords_from_claim(span.claim_text, gemini_api_key=api_key)
+            query = extract_keywords_from_claim(span.claim_text, extracted.plain_text, gemini_api_key=api_key)
         except (httpx.ReadTimeout, httpx.ConnectTimeout, httpx.HTTPStatusError) as e:
             dropped_keyword_failed += 1
             _dbg(f"drop keywordExtractionFailed: {type(e).__name__}", claim_id=claim_id)
@@ -878,7 +885,7 @@ def check_facts_for_html(content_html: str, *, article_id: str, progress: Progre
         )
 
     if progress:
-        progress("asserting_claims", 0.75)
+        progress("asserting_claims", 0.80)
 
     assertions_by_id: Dict[str, FactAssertionResult] = {}
     try:

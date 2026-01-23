@@ -1053,26 +1053,18 @@ body {
 
 
 mark.factSpan {
-    padding: 0.08em 0.2em;
-    border-radius: 6px;
-    box-decoration-break: clone;
-    -webkit-box-decoration-break: clone;
+    padding: 2px 4px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s;
+    background: transparent;
+    border-bottom: 2px solid transparent;
 }
+mark.factSpan.isTrue { background: rgba(34, 197, 94, 0.15); border-color: #22c55e; }
+mark.factSpan.isFalse { background: rgba(239, 68, 68, 0.15); border-color: #ef4444; }
+mark.factSpan.isUnclear { background: rgba(234, 179, 8, 0.15); border-color: #eab308; }
 
-mark.factSpan.isTrue {
-    background: rgba(46, 204, 113, 0.22);
-    outline: 1px solid rgba(46, 204, 113, 0.35);
-}
-
-mark.factSpan.isFalse {
-    background: rgba(231, 76, 60, 0.20);
-    outline: 1px solid rgba(231, 76, 60, 0.35);
-}
-
-mark.factSpan.isUnclear {
-    background: rgba(241, 196, 15, 0.22);
-    outline: 1px solid rgba(241, 196, 15, 0.35);
-}
+mark.factSpan:hover { filter: brightness(0.95); }
 
 
 .factHoverPopover {
@@ -1336,8 +1328,6 @@ mark.factSpan.isUnclear {
 
 .advancedInner {
     margin-top: 10px;
-    padding-top: 10px;
-    border-top: 1px solid rgba(0,0,0,0.08);
     display: grid;
     gap: 14px;
 }
@@ -1448,7 +1438,11 @@ mark.factSpan.isUnclear {
 .backLink:active {
     transform: scale(0.98);
 }
-
+.segmentedMulti {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
 .segmentedMulti.wrap {
     flex-wrap: wrap;
     border-radius: 14px;
@@ -1456,6 +1450,27 @@ mark.factSpan.isUnclear {
 
 .segmentedMulti.wrap .segBtn {
     border-radius: 999px;
+}
+
+.segmentedMulti {
+    display: inline-flex;
+    align-items: center;
+}
+
+.segmentedMulti .segBtn {
+    position: relative;
+}
+
+/* separator */
+.segmentedMulti .segBtn + .segBtn::before {
+    content: "│";
+    position: absolute;
+    left: -1.5px;
+    transform: translateX(-50%) translateY(-50%);
+    top: 50%;
+    color: rgba(0, 0, 0, 0.25);
+    font-weight: 600;
+    pointer-events: none;
 }
 
 /* Count slot is always there (stable width) */

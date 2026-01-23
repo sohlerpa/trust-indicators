@@ -110,8 +110,9 @@ export default function ArticlePage() {
                 </div>
 
                 <div className="card">
+                    <OwnershipPublisherCard articleId={article.id} source={article.source}/>
                     <StyleCard articleId={article.id}/>
-
+                    <AuthorExpertiseCard articleId={article.id}/>
                     <FactCheckCard
                         id={article.id}
                         type="article"
@@ -119,9 +120,6 @@ export default function ArticlePage() {
                         runId={factRunId}
                         error={factError}
                     />
-
-                    <AuthorExpertiseCard articleId={article.id}/>
-                    <OwnershipPublisherCard articleId={article.id} source={article.source}/>
                     <C2PACard articleId={article.id}/>
                 </div>
             </div>
