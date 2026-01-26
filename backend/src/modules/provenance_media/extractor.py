@@ -25,33 +25,34 @@ def detect_ai_generation(store: dict) -> Tuple[bool, List[str]]:
     Scans the C2PA store for indicators of Generative AI usage.
     Returns (is_ai_generated, list_of_evidence_strings).
     """
-    evidence = []
+    evidence: List[str] = []
     is_ai = False
 
     manifests = store.get("manifests", {})
 
     for manifest_id, mf in manifests.items():
-        assertions = mf.get("assertions", [])
-
-        for assertion in assertions:
+        for assertion in mf.get("assertions", []):
             if assertion.get("label") != "c2pa.actions.v2":
                 continue
 
             actions_data = assertion.get("data", {}).get("actions", [])
             for act in actions_data:
-                # Check 1: digitalSourceType
-                if act.get("action") == "c2pa.created":
-                    dst = (act.get("digitalSourceType") or "").lower()
-                    if "trainedalgorithmicmedia" in dst:
-                        is_ai = True
-                        evidence.append(
-                            f"Manifest[{manifest_id}]: digitalSourceType='{dst}'"
-                        )
+                action_name = (act.get("action") or "").lower()
 
-                    # Check 2: Software Agent
-                    software_agent = act.get("softwareAgent", {}).get("name")
-                    if software_agent:
-                        evidence.append(f"Manifest[{manifest_id}]: softwareAgent='{software_agent}'")
+                dst = (act.get("digitalSourceType") or "").lower()
+                if "trainedalgorithmicmedia" in dst:
+                    is_ai = True
+                    evidence.append(
+                        f"Manifest[{manifest_id}]: action='{action_name}', digitalSourceType='{dst}'"
+                    )
+
+                sa = act.get("softwareAgent")
+                if isinstance(sa, str) and sa:
+                    evidence.append(f"Manifest[{manifest_id}]: softwareAgent='{sa}'")
+                elif isinstance(sa, dict):
+                    name = sa.get("name")
+                    if name:
+                        evidence.append(f"Manifest[{manifest_id}]: softwareAgent='{name}'")
 
     return is_ai, evidence
 

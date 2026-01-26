@@ -75,6 +75,7 @@ function writeFiltersToSearchParams(filters: FeedFilters): URLSearchParams {
 
 export default function HomePage() {
     const [searchParams, setSearchParams] = useSearchParams();
+    const [ingestOpen, setIngestOpen] = useState(false);
 
     // init from URL once
     const [filters, setFilters] = useState<FeedFilters>(() => readFiltersFromSearchParams(searchParams));
@@ -190,9 +191,14 @@ export default function HomePage() {
 
                 <div className="grid">
                     <main className="main stack">
-                        <div className="topRow">
-                            <DiversityScore domains={filtered_domains} />
-                            <ArticleIngest onInserted={() => setReloadToken(t => t + 1)} />
+                        <div className="topRowWrap">
+                            <div className={`topRow ${ingestOpen ? "ingestOpen" : ""}`}>
+                                <DiversityScore domains={filtered_domains} />
+                                <ArticleIngest
+                                    onInserted={() => setReloadToken(t => t + 1)}
+                                    onOpenChange={setIngestOpen}
+                                />
+                            </div>
                         </div>
 
                         {err && <div className="error">Error: {err}</div>}

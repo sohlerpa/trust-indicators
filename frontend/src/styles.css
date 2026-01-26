@@ -286,16 +286,78 @@ body {
 
 .topRow {
     display: grid;
-    grid-template-columns: 1fr 260px;
+    grid-template-columns: 1fr 300px;
     gap: 14px;
     align-items: stretch;
 }
 
-/* stack on small screens */
-@media (max-width: 900px) {
-    .topRow {
-        grid-template-columns: 1fr;
-    }
+.topRow.ingestOpen {
+    align-items: start;
+}
+
+.ingestCard {
+    display: flex;
+    flex-direction: column;
+}
+
+/* ---- Ingest animation ---- */
+.ingestHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+/* animate open/close */
+.ingestPanel {
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transform: translateY(-6px);
+    pointer-events: none;
+
+    transition:
+            max-height 0.26s ease,
+            opacity 0.18s ease,
+            transform 0.18s ease;
+}
+
+.ingestPanel.open {
+    max-height: 280px;
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+/* inner spacing */
+.ingestInner {
+    margin-top: 12px;
+}
+
+.ingestToggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+
+    white-space: nowrap;
+    line-height: 1;
+
+    height: 30px;
+    min-width: 60px;
+    padding: 0 12px;
+}
+
+.ingestChevron {
+    font-size: 11px;
+    line-height: 1;
+    transform-origin: 50% 50%;
+    margin-left: 2px;
+    opacity: 0.75;
+}
+
+.ingestToggle.open .ingestChevron {
+    transform: rotate(180deg);
 }
 
 .factButton {

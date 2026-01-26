@@ -1,6 +1,9 @@
+from sqlalchemy.orm import Session
+
 from src.app.api.schemas import ArticleSummaryOut, XPostOut, ArticleBaseOut
-from src.app.models.article import get_or_create_db_trust_indicators
+from src.app.models.article import get_or_create_db_trust_indicators, get_fact_check_cache, compute_has_false_facts
 from src.app.models.models import ArticleRecord, TrustIndicators, XPostRecord
+from src.app.service.trust.badge import compute_badge
 from src.modules.tone.tone_classifier import ToneClassification
 
 
@@ -107,15 +110,18 @@ from src.modules.tone.tone_classifier import ToneClassification
 #     return ti
 
 
-def compute_trust_indicators_for_xpost(p: XPostRecord) -> TrustIndicators:
+def compute_trust_indicators_for_xpost(p: XPostRecord, db: Session) -> TrustIndicators:
     tone_classification = ToneClassification(content_type="news", tone="neutral", confidence=0.0, rationale="rationale text") #classify_tone(p.text) TODO
+    fact_check_cache = get_fact_check_cache(db, p.id)
+    has_false_facts = compute_has_false_facts(fact_check_cache)
+
     return TrustIndicators(
-        badge="red",  # TODO
-        fact_checked=False,  # TODO
+        badge=compute_badge(has_false_facts, None, None, None, x_mode=True, fact_dto=fact_check_cache),
+        fact_checked=False,
         tone=tone_classification.tone,
         content_type=tone_classification.content_type,
         tone_type_rationale=tone_classification.rationale,
-        publisher_type="unknown",  # TODO
+        publisher_type="unknown",
     )
 
 def to_article_summary_out(
@@ -152,12 +158,12 @@ def to_article_base_out(a) -> ArticleBaseOut:
     )
 
 
-def to_xpost_out(p: XPostRecord) -> XPostOut:
+def to_xpost_out(p: XPostRecord, db: Session) -> XPostOut:
     return XPostOut(
         id=p.id,
         url=p.url,
         text=p.text,
         media_url=p.media_url,
         created_at=p.created_at,
-        indicators=compute_trust_indicators_for_xpost(p),
+        indicators=compute_trust_indicators_for_xpost(p, db),
     )

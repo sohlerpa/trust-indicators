@@ -1,5 +1,7 @@
 from typing import Literal, Optional
 
+from src.modules.fact_checking.fact_checking import FactCheckTrustDTO
+
 Badge = Literal["green", "orange", "red", "grey"]
 
 def compute_badge(
@@ -7,9 +9,14 @@ def compute_badge(
         author_label: Optional[str],
         c2pa_present: Optional[bool],
         publisher_type: Optional[str],
+        x_mode: bool = False,
+        fact_dto: FactCheckTrustDTO = None,
 ) -> Badge:
     # fail is not enough data is present
-    if not has_false_facts and not author_label and not c2pa_present:
+    if not has_false_facts and not author_label and not c2pa_present and not x_mode:
+        return "grey"
+
+    if x_mode and not fact_dto:
         return "grey"
 
     # hard fail

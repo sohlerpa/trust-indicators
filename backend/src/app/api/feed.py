@@ -1,11 +1,11 @@
-from typing import List, Optional, Literal, Dict
+from typing import List, Optional, Literal
 
 from fastapi import APIRouter, Query, Depends
 from sqlalchemy.orm import Session
 
 from src.app.api.schemas import FeedResponse, ArticleSummaryOut, XPostOut
 from src.app.data.sample_data import X_POSTS
-from src.app.models.article import get_all_articles, get_fact_check_cache
+from src.app.models.article import get_all_articles
 from src.app.service.article_mapper import to_article_summary_out, to_xpost_out
 from src.app.service.db_connector import get_db
 
@@ -30,7 +30,7 @@ def get_feed(
 
     # enrich with trust indicators
     articles: list[ArticleSummaryOut] = [to_article_summary_out(a, db, feed_mode=True) for a in articles_raw]
-    x_posts: list[XPostOut] = [to_xpost_out(p) for p in x_raw]
+    x_posts: list[XPostOut] = [to_xpost_out(p, db) for p in x_raw]
 
     def matches(article: ArticleSummaryOut) -> bool:
         ti = article.trust_indicators
