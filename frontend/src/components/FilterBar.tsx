@@ -8,6 +8,9 @@ type Props = {
         tone: Record<string, number>;
         content_type: Record<string, number>;
         publisher_type: Record<string, number>;
+        c2pa_present: { true: number; false: number };
+        has_false_facts: { true: number; false: number };
+        author_expert: { field_expert: number; not_field_expert: number; unknown: number };
     };
 };
 
@@ -172,8 +175,8 @@ export default function FilterBar({ value, onChange, counts }: Props) {
                             <SegMulti
                                 selected={factSel}
                                 options={[
-                                    { key: true as const, label: "No false facts" },
-                                    { key: false as const, label: "False facts" },
+                                    { key: true as const, label: "No false facts", count: counts.has_false_facts.false },
+                                    { key: false as const, label: "False facts", count: counts.has_false_facts.true },
                                 ]}
                                 onToggle={(k) => {
                                     const next = toggleIn(factSel, k);
@@ -190,9 +193,9 @@ export default function FilterBar({ value, onChange, counts }: Props) {
                             <SegMulti
                                 selected={authorSel}
                                 options={[
-                                    { key: "field_expert" as const, label: "Expert" },
-                                    { key: "not_field_expert" as const, label: "Not expert" },
-                                    { key: "unknown" as const, label: "Unknown" },
+                                    { key: "field_expert" as const, label: "Expert", count: counts.author_expert.field_expert},
+                                    { key: "not_field_expert" as const, label: "Not expert", count: counts.author_expert.not_field_expert },
+                                    { key: "unknown" as const, label: "Unknown", count: counts.author_expert.unknown },
                                 ]}
                                 onToggle={(k) => {
                                     const next = toggleIn(authorSel, k);
@@ -209,8 +212,8 @@ export default function FilterBar({ value, onChange, counts }: Props) {
                             <SegMulti
                                 selected={c2paSel}
                                 options={[
-                                    { key: true as const, label: "Has C2PA" },
-                                    { key: false as const, label: "No C2PA" },
+                                    { key: true as const, label: "Has C2PA", count: counts.c2pa_present.true},
+                                    { key: false as const, label: "No C2PA", count: counts.c2pa_present.false},
                                 ]}
                                 onToggle={(k) => {
                                     const next = toggleIn(c2paSel, k);

@@ -1,44 +1,7 @@
-from urllib.parse import urljoin
-
-from bs4 import BeautifulSoup
-from sqlalchemy.orm import Session
-
 from src.app.api.schemas import ArticleSummaryOut, XPostOut, ArticleBaseOut
 from src.app.models.article import get_or_create_db_trust_indicators
-from src.app.models.models import ArticleRecord, TrustIndicators, XPostRecord, OwnerInfo, ImageProvenance
-from src.modules.author_expertise.author_expertise_classifier import assess_author_expertise
-from src.modules.provenance_media.extractor import c2pa_for_image_url
-from src.modules.source_funding.queries import GET_DOMAIN_OWNERS, GET_DOMAIN_PUBLISHER_TYPE
-from src.modules.tone.tone_classifier import classify_tone, ToneClassification
-
-
-def extract_img_srcs(content_html: str, article_url: str, api_base_url: str, main_image_url: str=None) -> list[str]:
-    """
-    - Absolute URLs (https://...) stay as-is
-    - Root-relative paths are resolved against api_base_url
-      (so /assets/... -> http://localhost:8000/assets/...)
-    """
-    soup = BeautifulSoup(content_html or "", "html.parser")
-    srcs: list[str] = []
-
-    if main_image_url:
-        srcs.append(main_image_url)
-
-    for img in soup.find_all(["img", "iframe"]):
-        src = (img.get("src") or "").strip()
-        if not src:
-            continue
-
-        if src.startswith(("http://", "https://")):
-            resolved = src
-        elif src.startswith("/"):
-            resolved = urljoin(api_base_url, src)
-        else:
-            resolved = urljoin(article_url, src)
-
-        srcs.append(resolved)
-
-    return srcs
+from src.app.models.models import ArticleRecord, TrustIndicators, XPostRecord
+from src.modules.tone.tone_classifier import ToneClassification
 
 
 # def compute_trust_indicators_for_article(a: ArticleRecord, db: Session, feed_mode=True) -> TrustIndicators:

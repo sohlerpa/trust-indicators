@@ -1098,6 +1098,63 @@ mark.factSpan:hover { filter: brightness(0.95); }
     pointer-events: auto;
 }
 
+/* Badge tooltip */
+.badgeWrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;          /* makes hover easier */
+    margin: -12px;          /* keeps layout same */
+}
+
+.badgePopover {
+    position: absolute;
+    top: -10px;
+    right: 0;
+    transform: translateY(-100%) translateX(8px);
+    z-index: 2000;
+
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.14s ease, transform 0.14s ease;
+}
+
+.badgeWrap:hover .badgePopover {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(-100%) translateX(0);
+}
+
+.badgeTooltip {
+    display: block;
+    width: min(320px, calc(100vw - 24px));
+    padding: 10px 12px;
+    border-radius: 12px;
+
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid rgba(0,0,0,0.12);
+    box-shadow: 0 10px 24px rgba(0,0,0,0.18);
+
+    font-size: 13px;
+    line-height: 1.35;
+    color: #111;
+}
+
+/* little arrow */
+.badgeTooltip::after {
+    content: "";
+    position: absolute;
+    right: 14px;
+    bottom: -6px;
+    width: 12px;
+    height: 12px;
+    background: rgba(255, 255, 255, 0.96);
+    border-right: 1px solid rgba(0,0,0,0.12);
+    border-bottom: 1px solid rgba(0,0,0,0.12);
+    transform: rotate(45deg);
+}
+
 .xEmbed {
     margin: 0;
 }

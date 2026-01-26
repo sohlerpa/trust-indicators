@@ -12,6 +12,9 @@ type FilterCounts = {
     tone: Record<string, number>;
     content_type: Record<string, number>;
     publisher_type: Record<string, number>;
+    c2pa_present: { true: number; false: number };
+    has_false_facts: { true: number; false: number };
+    author_expert: { field_expert: number; not_field_expert: number; unknown: number };
 };
 
 function initCounts(keys: string[]) {
@@ -34,6 +37,7 @@ function readFiltersFromSearchParams(sp: URLSearchParams): FeedFilters {
 
     const no_false_facts = parseBoolTri(sp.get("no_false_facts"));
     const c2pa_present = parseBoolTri(sp.get("c2pa_present"));
+    console.log("c2pa_present: ", c2pa_present)
 
     const author_expert_raw = sp.get("author_expert");
     const author_expert =
@@ -122,6 +126,9 @@ export default function HomePage() {
         ]);
         const content_type = initCounts(["news", "opinion", "analysis", "satire", "gossip", "review", "sponsored", "other", "error"]);
         const publisher_type = initCounts(["public", "private", "unknown"]);
+        const c2pa_present = { true: 0, false: 0 };
+        const author_expert = { field_expert: 0, not_field_expert: 0, unknown: 0 };
+        const has_false_facts = { true: 0, false: 0 };
 
         for (const a of data.articles) {
             const ti = a.trust_indicators;
@@ -134,9 +141,22 @@ export default function HomePage() {
 
             const pt = ti.publisher_type ?? "unknown";
             publisher_type[pt] = (publisher_type[pt] ?? 0) + 1;
+
+            const v = ti.c2pa_present; // boolean | null | undefined
+            if (v === true) c2pa_present.true += 1;
+            else if (v === false) c2pa_present.false += 1;
+
+            const ae = ti.author_expertise?.label ?? "unknown";
+            if (ae === "field_expert") author_expert.field_expert += 1;
+            else if (ae === "not_field_expert") author_expert.not_field_expert += 1;
+            else author_expert.unknown += 1;
+
+            const hf = ti.has_false_facts; // boolean | null | undefined
+            if (hf === true) has_false_facts.true += 1;
+            else if (hf === false) has_false_facts.false += 1;
         }
 
-        return {tone, content_type, publisher_type};
+        return {tone, content_type, publisher_type, c2pa_present, author_expert, has_false_facts};
     }, [data.articles]);
 
     useEffect(() => {

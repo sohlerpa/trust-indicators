@@ -9,10 +9,11 @@ export type TrustIndicators = {
     tone_type_rationale?: string | null;
     publisher_type: PublisherType;
     publisher_country?: string;
-    c2pa_present: boolean;
+    c2pa_present: boolean | null | undefined;
     owners?: OwnerInfo[];
     c2pa_info?: ImageProvenance[];
     author_expertise?: AuthorExpertise;
+    has_false_facts: boolean | null | undefined;
 };
 
 export type OwnerInfo = {

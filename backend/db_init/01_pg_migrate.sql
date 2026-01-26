@@ -39,8 +39,7 @@ CREATE TABLE articles (
 );
 
 CREATE TABLE article_llm_analysis (
-    article_id TEXT PRIMARY KEY
-        REFERENCES articles(id) ON DELETE CASCADE,
+    article_id TEXT PRIMARY KEY,
 
     badge TEXT NOT NULL DEFAULT 'grey',
     fact_checked BOOLEAN,
@@ -53,6 +52,8 @@ CREATE TABLE article_llm_analysis (
     author_name TEXT,
     author_field TEXT,
     author_explanation TEXT,
+    c2pa_present BOOLEAN,
+    has_false_facts BOOLEAN,
 
     created_at TIMESTAMP NOT NULL DEFAULT now(),
     updated_at TIMESTAMP NOT NULL DEFAULT now()
