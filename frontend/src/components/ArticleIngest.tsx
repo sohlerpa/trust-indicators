@@ -50,7 +50,19 @@ export default function ArticleIngest({
                 scheduleParentClosed();
             }, 5000);
         } catch (e: unknown) {
-            setErr(e instanceof Error ? e.message : "Insert failed");
+            const msg = e instanceof Error ? e.message : "";
+
+            if (
+                msg.includes("403") ||
+                msg.includes("Forbidden")
+            ) {
+                setErr(
+                    "This website does not allow automated access. " +
+                    "The article cannot be fetched due to access restrictions."
+                );
+            } else {
+                setErr(msg || "Insert failed");
+            }
         } finally {
             setSubmitting(false);
         }
@@ -122,7 +134,12 @@ export default function ArticleIngest({
                         </button>
                     </div>
 
-                    {err && <div className="error">Error: {err}</div>}
+                    {err && (
+                        <div className="error">
+                            <strong>Unable to fetch article</strong>
+                            <div style={{ marginTop: 4 }}>{err}</div>
+                        </div>
+                    )}
                     {okMsg && <div className="hint">{okMsg}</div>}
                 </div>
             </div>
