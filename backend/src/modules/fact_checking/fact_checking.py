@@ -195,7 +195,13 @@ def post_with_retry(
                 continue
             raise
         except httpx.HTTPStatusError as e:
-            if e.response.status_code >= 500 and attempt < retries - 1:
+            # Surface the real API error message for 4xx (esp. 400 INVALID_ARGUMENT)
+            if e.response.status_code < 500:
+                raise RuntimeError(
+                    f"HTTP {e.response.status_code} from {url}: {e.response.text}"
+                ) from e
+
+            if attempt < retries - 1:
                 sleep = base_delay * (2 ** attempt) + random.uniform(0, 0.3)
                 time.sleep(sleep)
                 continue
@@ -321,7 +327,7 @@ def extract_claims_from_html(
     }
 
     with LLM_SEMAPHORE:
-        with httpx.Client(timeout=35) as client:
+        with httpx.Client(timeout=35, limits=httpx.Limits(max_keepalive_connections=0, max_connections=10),) as client:
             resp = post_with_retry(
                 client,
                 url,
@@ -558,7 +564,7 @@ def extract_keywords_from_claim(
     headers = {"Content-Type": "application/json", "x-goog-api-key": gemini_api_key}
 
     with LLM_SEMAPHORE:
-        with httpx.Client(timeout=30) as client:
+        with httpx.Client(timeout=30, limits=httpx.Limits(max_keepalive_connections=0, max_connections=10),) as client:
             resp = client.post(url, headers=headers, json=body)
             resp.raise_for_status()
             data = resp.json()
@@ -579,7 +585,7 @@ def search_for_keywords(keywords: str, api_key: str) -> List[FactCheckClaim]:
     time.sleep(0.8)  # REQUIRED
 
     with LLM_SEMAPHORE:
-        with httpx.Client(timeout=10) as client:
+        with httpx.Client(timeout=10, limits=httpx.Limits(max_keepalive_connections=0, max_connections=10),) as client:
             params = {"query": keywords, "pageSize": 30, "key": api_key}
             resp = client.get(FACTCHECK_ENDPOINT, params=params)
 
@@ -679,10 +685,10 @@ def assert_claims_to_facts_batch(
         "Search results can be noisy. You must check if the Evidence actually discusses the SAME Topic/Person/Event as the Claim.\n"
         "Do NOT use external knowledge.\n"
         "Do NOT invent sources.\n\n"
-        "VERY IMPORTANT SELECTION RULE:\n"
-        "- If evidence is non-empty for a claim, you MUST select at least ONE review_id in used_source_ids.\n"
-        "- Even if the verdict is 'unclear', pick the SINGLE closest matching review_id.\n"
-        "- Only return used_source_ids = [] when the evidence list is empty.\n\n"
+        "SELECTION RULE:\n"
+        "- ONLY include review_id values that are actually about the SAME topic/person/event as the claim.\n"
+        "- If none of the evidence matches the claim, set used_source_ids = [] and verdict='unclear' with low confidence (<= 0.35).\n"
+        "- Do NOT select a source just because evidence exists.\n\n"
         "Return results with the SAME claim_id you received.\n"
     )
 
@@ -692,7 +698,6 @@ def assert_claims_to_facts_batch(
             "Return JSON matching the schema.\n"
             "Important:\n"
             "- If evidence is about a different claim or not close, choose 'unclear' (low confidence).\n"
-            "- STILL you MUST include >=1 used_source_id whenever evidence is non-empty.\n"
             "- Put ONLY review_id values you relied on into used_source_ids.\n"
             "- Keep summary 1-2 sentences. Keep reasoning concise but specific.\n"
         ),
@@ -720,7 +725,7 @@ def assert_claims_to_facts_batch(
     headers = {"Content-Type": "application/json", "x-goog-api-key": gemini_api_key}
 
     with LLM_SEMAPHORE:
-        with httpx.Client(timeout=timeout_s) as client:
+        with httpx.Client(timeout=timeout_s, limits=httpx.Limits(max_keepalive_connections=0, max_connections=10),) as client:
             resp = client.post(url, headers=headers, json=body)
             if resp.status_code >= 400:
                 raise RuntimeError(f"{resp.status_code}: {resp.text}")
@@ -765,15 +770,12 @@ def assert_claims_to_facts_batch(
         if dropped:
             notes = (notes or "") + f" | dropped_unknown_source_ids={dropped}"
 
-        # Fallback: if model returned no valid sources but evidence exists, pick 1 best-effort source
-        # (This prevents "0 checked, everything dropped" while still surfacing uncertainty.)
-        if not sources and id_map:
-            fallback_rid = next(iter(id_map.keys()))
-            sources = [id_map[fallback_rid]]
-            notes = (notes or "") + " | fallback_source_selected"
-            verdict = Verdict.UNCLEAR if verdict != Verdict.FALSE and verdict != Verdict.TRUE else verdict
-            confidence = min(confidence, 0.35)  # keep it clearly low if we had to fallback
-            _dbg(f"fallback picked review_id={fallback_rid}", claim_id=claim_id)
+        # If the model couldn't identify a matching source, keep it as "no matching evidence".
+        # (Don't attach unrelated sources.)
+        if not sources:
+            confidence = min(confidence, 0.35)
+            verdict = Verdict.UNCLEAR
+            notes = (notes or "") + " | no_matching_evidence_in_results"
 
         out[claim_id] = FactAssertionResult(
             input_claim="",  # filled in below from original item (safer than trusting model)
@@ -919,11 +921,12 @@ def check_facts_for_html(content_html: str, *, article_id: str, progress: Progre
             _dbg("drop noEvidence: fallback_source_selected (no close match)", claim_id=c.claim_id)
             continue
 
-        # keep but annotate if no sources (optional)
+        # If no sources were selected, we treat it as "no evidence" and skip the claim.
         if not a.sources:
+            dropped_no_evidence += 1
             checked_with_no_sources += 1
-            a.notes = (a.notes or "") + " | no_sources_selected"
-            _dbg("kept but no sources selected", claim_id=c.claim_id)
+            _dbg("drop noEvidence: no matching sources selected", claim_id=c.claim_id)
+            continue
 
         c.assertion = a
         checked.append(c)

@@ -12,16 +12,16 @@ def compute_badge(
         x_mode: bool = False,
         fact_dto: FactCheckTrustDTO = None,
 ) -> Badge:
+    # hard fail
+    if has_false_facts is True:
+        return "red"
+
     # fail is not enough data is present
     if not has_false_facts and not author_label and not c2pa_present and not x_mode:
         return "grey"
 
     if x_mode and not fact_dto:
         return "grey"
-
-    # hard fail
-    if has_false_facts is True:
-        return "red"
 
     score = 0
 
