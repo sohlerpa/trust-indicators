@@ -19,14 +19,6 @@ export default function XPostList({ posts }: { posts: XPost[] }) {
 
                         {/* HEADER */}
                         <div className="postHeader itemTitle">
-                            <span className="badgeWrap">
-                              <span className={`badge ${p.indicators.badge}`}/>
-                              <span className="badgePopover">
-                                <span className="badgeTooltip">
-                                  {BADGE_HINT[p.indicators.badge]}
-                                </span>
-                              </span>
-                            </span>
 
                             <div className="factCheckWrapper">
                                 <button className="factButton">

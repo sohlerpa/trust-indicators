@@ -1,3 +1,3 @@
 import threading
 
-LLM_SEMAPHORE = threading.Semaphore(3)
+LLM_SEMAPHORE = threading.Semaphore(5)
