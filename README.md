@@ -3,21 +3,35 @@ This is the repository for the AMT project "Personalized Media Streams Through T
 
 ## Configuration
 
-To run the service, you need a Google Gemini API key.
+To run the service, you need a Google Gemini API key and a Google Fact Checking API key.
 
-1. Get an API key from [Google AI Studio](https://aistudio.google.com/).
-2. Create a file named `.env` in the project root.
-3. Add your key to the file:
+1. Create two API keys from [Google Console](https://console.cloud.google.com/apis/dashboard).
+   a) Create one for: Generative Language API
+   b) Create one for: Fact Check Tools API
+
+## Run the application with Docker
+
+1. set your two API keys in docker-compose.yml
+2. `docker compose up`
+3. go to http://localhost:5173
+
+   
+## Run the application locally
+
+1. Create a file named `.env` in the project root.
+2. Add your key to the file:
    ```env
    GEMINI_API_KEY=your_api_key_here
-   
-## Run the application
+   FACT_CHECKING_API_KEY=your_api_key_here
+   ```
 
 To run the application, you have to start both the backend and the frontend separately:
 
-1. start the docker `docker compose up -d`
+1. start the database with docker `docker compose up db -d`
 2. start the backend `cd backend` & `pip install -e .` & `python run.py`
 3. start the frontend `cd frontend` & `npm install` & `npm run dev`
+
+
    
 ## Architecture
 

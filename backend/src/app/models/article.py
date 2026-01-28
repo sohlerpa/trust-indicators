@@ -108,6 +108,7 @@ def insert_article_llm_analysis(db: Session, article_id: str, ti: TrustIndicator
             :content_type,
             :rationale
         )
+        ON CONFLICT (article_id) DO NOTHING
         """),
         {
             "article_id": article_id,
