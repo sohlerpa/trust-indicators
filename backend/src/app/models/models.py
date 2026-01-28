@@ -38,8 +38,9 @@ class TrustIndicators(BaseModel):
     tone_type_rationale: str | None = None
 
     author_expertise: Optional[AuthorExpertise] = None
-
+    has_false_facts: bool | None = None
     c2pa_info: list[ImageProvenance] = []
+    c2pa_present: bool | None = None
     owners: list[OwnerInfo] = []
     publisher_type: str | None = None
     publisher_country: str | None = None

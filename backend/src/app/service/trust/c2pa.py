@@ -1,5 +1,5 @@
+from src.app.service.media_html import extract_img_srcs
 from src.modules.provenance_media.extractor import c2pa_for_image_url
-from src.app.service.article_mapper import extract_img_srcs
 from src.app.models.models import ImageProvenance
 
 

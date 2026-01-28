@@ -1,6 +1,13 @@
 import {Link} from "react-router-dom";
 import type {ArticleSummary} from "../api/types";
 
+const BADGE_HINT: Record<string, string> = {
+    grey: "There is not enough data about this article yet to compute the trust score. Open it to start computation.",
+    green: "This article is likely to be trusted.",
+    orange: "Handle this article with care.",
+    red: "This article does not seem trustworthy.",
+};
+
 export default function ArticleList({articles}: { articles: ArticleSummary[] }) {
     return (
         <div className="card">
@@ -12,7 +19,14 @@ export default function ArticleList({articles}: { articles: ArticleSummary[] }) 
                         <div className="itemBody">
                             <div className="itemTitle">
                                 {a.title}
-                                <span className={`badge ${a.trust_indicators.badge}`} title={a.trust_indicators.badge}/>
+                                <span className="badgeWrap">
+                                  <span className={`badge ${a.trust_indicators.badge}`} />
+                                  <span className="badgePopover">
+                                    <span className="badgeTooltip">
+                                      {BADGE_HINT[a.trust_indicators.badge]}
+                                    </span>
+                                  </span>
+                                </span>
                             </div>
                             <div className="metaSmall">
                                 {a.source} · {new Date(a.published_at).toLocaleString()}

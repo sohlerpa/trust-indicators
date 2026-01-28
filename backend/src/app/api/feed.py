@@ -1,11 +1,11 @@
-from typing import List, Optional, Literal, Dict
+from typing import List, Optional, Literal
 
 from fastapi import APIRouter, Query, Depends
 from sqlalchemy.orm import Session
 
 from src.app.api.schemas import FeedResponse, ArticleSummaryOut, XPostOut
 from src.app.data.sample_data import X_POSTS
-from src.app.models.article import get_all_articles, get_fact_check_cache
+from src.app.models.article import get_all_articles
 from src.app.service.article_mapper import to_article_summary_out, to_xpost_out
 from src.app.service.db_connector import get_db
 
@@ -30,21 +30,7 @@ def get_feed(
 
     # enrich with trust indicators
     articles: list[ArticleSummaryOut] = [to_article_summary_out(a, db, feed_mode=True) for a in articles_raw]
-    x_posts: list[XPostOut] = [to_xpost_out(p) for p in x_raw]
-
-    # Precompute "has false verdict"
-    has_false_by_id: Dict[str, Optional[bool]] = {}
-    if no_false_facts is not None:
-        for a in articles:
-            dto = get_fact_check_cache(db, a.id)
-            if dto is None:
-                has_false_by_id[a.id] = None
-            else:
-                claims = getattr(dto, "claims", None) or []
-                has_false_by_id[a.id] = any(
-                    ((c.get("verdict") if isinstance(c, dict) else getattr(c, "verdict", None)) == "false")
-                    for c in claims
-                )
+    x_posts: list[XPostOut] = [to_xpost_out(p, db) for p in x_raw]
 
     def matches(article: ArticleSummaryOut) -> bool:
         ti = article.trust_indicators
@@ -60,12 +46,12 @@ def get_feed(
 
         # no_false_facts
         if no_false_facts is not None:
-            has_false = has_false_by_id.get(article.id)
-            if has_false is None:
+            hf = getattr(ti, "has_false_facts", None)
+            if hf is None:
                 return False
-            if no_false_facts is True and has_false is True:
+            if no_false_facts is True and hf is True:
                 return False
-            if no_false_facts is False and has_false is False:
+            if no_false_facts is False and hf is False:
                 return False
 
         # author expert
@@ -79,7 +65,10 @@ def get_feed(
 
         # c2pa_present
         if c2pa_present is not None:
-            if bool(getattr(ti, "c2pa_present", False)) != c2pa_present:
+            v = getattr(ti, "c2pa_present", None)  # True/False/None
+            if v is None:
+                return False
+            if v != c2pa_present:
                 return False
 
         return True

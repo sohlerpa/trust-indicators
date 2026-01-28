@@ -10,6 +10,7 @@ from sqlalchemy.orm import declarative_base
 
 from src.app.models.models import ArticleRecord, AuthorExpertise
 from src.app.models.models import TrustIndicators
+from src.app.service.trust.badge import compute_badge
 from src.app.service.trust.publisher import analyze_publisher
 from src.modules.fact_checking.fact_checking import FactCheckTrustDTO
 from src.modules.tone.tone_classifier import classify_tone
@@ -129,10 +130,12 @@ def get_or_create_db_trust_indicators(
     publisher_country = getattr(publisher, "publisher_country", None)
 
     # FAST PATH — tone already cached
-    print("getting data from db...")
     if row and row.tone and row.content_type:
+        print("getting data from db...")
+        has_false_facts = getattr(row, "has_false_facts", None)
+
         return TrustIndicators(
-            badge=row.badge,
+            badge=compute_badge(has_false_facts, row.author_label, row.c2pa_present, publisher_type),
             fact_checked=row.fact_checked,
             tone=row.tone,
             content_type=row.content_type,
@@ -148,7 +151,8 @@ def get_or_create_db_trust_indicators(
                     explanation=row.author_explanation,
                 )
             ),
-            c2pa_info=[],
+            has_false_facts=has_false_facts,
+            c2pa_present=row.c2pa_present,
             publisher_type=publisher_type,
             publisher_country=publisher_country,
         )
@@ -168,7 +172,7 @@ def get_or_create_db_trust_indicators(
         )
 
     ti = TrustIndicators(
-        badge="red",
+        badge=compute_badge(None, None, None, publisher_type),
         fact_checked=False,
         tone=tone.tone,
         content_type=tone.content_type,
@@ -265,6 +269,20 @@ def save_tone_analysis(
     db.commit()
 
 
+def save_c2pa_present(db: Session, article_id: str, c2pa_present: bool | None):
+    print("saving c2pa analysis in db for ", article_id)
+    db.execute(
+        text("""
+             INSERT INTO article_llm_analysis (article_id, c2pa_present)
+             VALUES (:id, :present)
+             ON CONFLICT (article_id) DO UPDATE SET c2pa_present = EXCLUDED.c2pa_present,
+                                                    updated_at   = now()
+             """),
+        {"id": article_id, "present": c2pa_present},
+    )
+    db.commit()
+
+
 def get_fact_check_cache(db: Session, article_id: str) -> Optional[FactCheckTrustDTO]:
     row = db.execute(
         text(
@@ -285,6 +303,14 @@ def get_fact_check_cache(db: Session, article_id: str) -> Optional[FactCheckTrus
         payload = json.loads(payload)
 
     return FactCheckTrustDTO(**payload)
+
+
+def compute_has_false_facts(dto: FactCheckTrustDTO) -> bool:
+    claims = getattr(dto, "claims", None) or []
+    return any(
+        ((c.get("verdict") if isinstance(c, dict) else getattr(c, "verdict", None)) == "false")
+        for c in claims
+    )
 
 
 def upsert_fact_check_cache(
@@ -352,6 +378,20 @@ def upsert_fact_check_cache(
             "model": model,
         },
     )
+
+    has_false = compute_has_false_facts(dto)
+
+    db.execute(
+        text("""
+             INSERT INTO article_llm_analysis (article_id, has_false_facts)
+             VALUES (:article_id, :has_false)
+             ON CONFLICT (article_id) DO UPDATE SET
+                                                    has_false_facts = EXCLUDED.has_false_facts,
+                                                    updated_at = now()
+             """),
+        {"article_id": article_id, "has_false": has_false},
+    )
+
     db.commit()
 
 

@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
 from sqlalchemy.orm import Session
 
 from src.app.api.schemas import ArticleBaseOut, ArticleIngestIn, ArticleIngestOut
-from src.app.models.article import get_article_by_id, insert_article
+from src.app.models.article import get_article_by_id, insert_article, save_c2pa_present
 from src.app.service.article_ingest import preprocess_article_from_url
 from src.app.service.article_mapper import to_article_base_out
 from src.app.service.db_connector import get_db
@@ -95,7 +95,9 @@ def get_owners(article_id: str, db: Session = Depends(get_db)):
 @router.get("/articles/{article_id}/trust/c2pa")
 def get_c2pa(article_id: str, db: Session = Depends(get_db)):
     article = get_article_by_id(db, article_id)
-    return analyze_c2pa(article)
+    result = analyze_c2pa(article)
+    save_c2pa_present(db, article.id, result.get("c2pa_present"))
+    return result
 
 @router.post("/articles/ingest", response_model=ArticleIngestOut)
 def ingest_article(payload: ArticleIngestIn, db: Session = Depends(get_db)):
