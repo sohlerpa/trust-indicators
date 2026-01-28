@@ -1135,9 +1135,16 @@ mark.factSpan:hover { filter: brightness(0.95); }
 
     opacity: 0;
     transform: translateY(-4px);
-    pointer-events: none;
 
     transition: opacity 0.12s ease, transform 0.12s ease;
+}
+
+.factHoverPopover .hoverBuffer {
+    position: absolute;
+    inset: -12px;
+    background: transparent;
+    pointer-events: auto;
+    z-index: 0;
 }
 
 .factHoverPopover.isOpen {
@@ -1146,18 +1153,13 @@ mark.factSpan:hover { filter: brightness(0.95); }
     pointer-events: auto;
 }
 
-.factHoverPopover.isOpen::before {
-    content: "";
-    position: absolute;
-    inset: -12px;
-    background: transparent;
-}
-
 .factHoverPopover .metaCard {
     width: min(420px, calc(100vw - 24px));
     max-height: min(360px, calc(100vh - 24px));
     overflow: auto;
     pointer-events: auto;
+    position: relative;
+    z-index: 1;
 }
 
 /* Badge tooltip */
