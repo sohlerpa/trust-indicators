@@ -318,7 +318,7 @@ export default function HighlightedArticleBody({
             clearCloseTimer();
             closeTimer = window.setTimeout(() => {
                 setHover((h) => ({ ...h, open: false, claim: null }));
-            }, 120);
+            }, 300);
         };
 
         const openForMark = (mark: HTMLElement) => {
@@ -441,6 +441,7 @@ export default function HighlightedArticleBody({
                     setHover((h) => ({ ...h, open: false, claim: null }))
                 }
             >
+                <div className="hoverBuffer" aria-hidden />
                 {hover.claim && (
                     <div className="card metaCard">
                         <div className="verdictLine">
