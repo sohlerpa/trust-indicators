@@ -28,10 +28,9 @@ const TONES = [
     "humorous",
     "ironic",
     "promotional",
-    "error",
 ];
 
-const TYPES = ["news", "opinion", "analysis", "satire", "gossip", "review", "sponsored", "other", "error"];
+const TYPES = ["news", "opinion", "analysis", "satire", "gossip", "review", "sponsored", "other"];
 const PUBLISHERS = ["public", "private", "unknown"] as const;
 
 type Publisher = (typeof PUBLISHERS)[number];
