@@ -14,5 +14,5 @@ This will possibly be the same key for both APIs.
 ## Run the application with Docker
 
 1. set your two API keys in docker-compose.yml
-2. run `docker compose up` from the root of the project.
+2. run `docker compose up` in your terminal from the root of the project.
 3. go to http://localhost:5173
