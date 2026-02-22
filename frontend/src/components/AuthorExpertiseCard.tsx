@@ -11,9 +11,6 @@ export default function AuthorExpertiseCard({
     const [data, setData] = useState<AuthorExpertiseTrust | null>(null);
     const [error, setError] = useState<string | null>(null);
 
-    // ----------------------------------
-    // start analysis
-    // ----------------------------------
     useEffect(() => {
         setRunId(null);
         setData(null);
@@ -29,9 +26,6 @@ export default function AuthorExpertiseCard({
             .catch(() => setError("Author analysis failed."));
     }, [articleId]);
 
-    // ----------------------------------
-    // poll result
-    // ----------------------------------
     useEffect(() => {
         if (!runId) return;
 
@@ -68,9 +62,6 @@ export default function AuthorExpertiseCard({
         };
     }, [runId]);
 
-    // ----------------------------------
-    // render
-    // ----------------------------------
     if (error) {
         return (
             <div className="card metaCard">
@@ -92,7 +83,6 @@ export default function AuthorExpertiseCard({
     );
 }
 
-/* ------------------------------------------------ */
 
 function AuthorResult({ data }: { data: AuthorExpertiseTrust }) {
     const label =

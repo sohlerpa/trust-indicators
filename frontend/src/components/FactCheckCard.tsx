@@ -4,13 +4,14 @@ import type {FactCheckTrust} from "../api/types";
 import ProgressBar from "./ProgressBar";
 import ClaimSourcesTooltip from "./ClaimSourcesTooltip";
 
-export default function FactCheckCard({
-                                          id,
-                                          type,
-                                          data: externalData,
-                                          runId: externalRunId,
-                                          error: externalError,
-                                      }: {
+export default function FactCheckCard(
+    {
+      id,
+      type,
+      data: externalData,
+      runId: externalRunId,
+      error: externalError,
+    }: {
     id: string;
     type: "article" | "x";
     data?: FactCheckTrust | null;

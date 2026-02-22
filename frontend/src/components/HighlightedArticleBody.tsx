@@ -106,11 +106,9 @@ function clamp(n: number, min: number, max: number) {
 function computePopoverPos(anchor: DOMRect, popW = 420, popH = 360) {
     const margin = 10;
 
-    // Aligned to left edge of highlight, below text
     let left = anchor.left;
     let top = anchor.bottom + 8;
 
-    // Flip to top if it would overflow bottom
     if (top + popH > window.innerHeight - margin) {
         top = anchor.top - 8 - popH;
     }

@@ -269,12 +269,13 @@ function FilterRow({ label, right }: { label: string; right: React.ReactNode }) 
     );
 }
 
-function SegMulti<T extends string | boolean>({
-                                                  selected,
-                                                  options,
-                                                  onToggle,
-                                                  wrap = false,
-                                              }: {
+function SegMulti<T extends string | boolean>(
+    {
+      selected,
+      options,
+      onToggle,
+      wrap = false,
+    }: {
     selected: T[];
     options: Array<{ key: T; label: string; count?: number }>;
     onToggle: (k: T) => void;
