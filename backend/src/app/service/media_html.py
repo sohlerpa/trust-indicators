@@ -1,7 +1,20 @@
 from urllib.parse import urljoin
 from bs4 import BeautifulSoup
 
-def extract_img_srcs(content_html: str, article_url: str, api_base_url: str, main_image_url: str | None = None) -> list[str]:
+
+def extract_img_srcs(
+    content_html: str,
+    article_url: str,
+    api_base_url: str,
+    main_image_url: str | None = None,
+) -> list[str]:
+    """
+    Extract and resolve image and iframe source URLs from article HTML.
+
+    Returns:
+        list[str]: Absolute URLs for all discovered <img> and <iframe> sources,
+        including the optional main_image_url if provided.
+    """
     soup = BeautifulSoup(content_html or "", "html.parser")
     srcs: list[str] = []
 

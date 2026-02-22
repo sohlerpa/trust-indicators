@@ -1,6 +1,6 @@
 from sqlalchemy import text
 
-# "Which owners together own >50% of a company behind a domain?"
+# "Which owners together own >70% of a company behind a domain?"
 GET_DOMAIN_OWNERS = text("""
 WITH owner_data AS (
     SELECT 
@@ -52,6 +52,7 @@ GROUP BY owner_name
 ORDER BY total_influence DESC;
 """)
 
+# Retrieve publisher type and country for a domain.
 GET_DOMAIN_PUBLISHER_TYPE = text("""
 SELECT
     c.publisherType AS publisher_type,

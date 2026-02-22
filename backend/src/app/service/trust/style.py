@@ -8,6 +8,17 @@ from src.app.models.article import (
 
 
 def analyze_article_style(article, db: Session):
+    """
+    Analyze and cache tone and content type for an article.
+
+    Returns:
+        dict: {
+            "tone": str | None,
+            "content_type": str | None,
+            "tone_type_rationale": str | None
+        }
+        Cached values are returned if available; otherwise newly computed values.
+    """
     row = get_article_llm_analysis(db, article.id)
 
     if row and row.tone and row.content_type:

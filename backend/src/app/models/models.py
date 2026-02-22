@@ -3,9 +3,6 @@ from typing import Optional, Literal
 
 from pydantic import BaseModel, HttpUrl
 
-from src.modules.author_expertise.author_expertise_classifier import AuthorExpertiseResult
-from src.modules.tone.tone_classifier import ToneType, ContentType
-
 PublisherType = Literal["public", "private", "unknown"]
 Badge = Literal["green", "orange", "red", "grey"]
 

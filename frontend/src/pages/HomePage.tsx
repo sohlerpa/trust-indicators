@@ -98,7 +98,6 @@ export default function HomePage() {
         const curStr = searchParams.toString();
 
         if (nextStr !== curStr) {
-            // replace so we don't spam history entries when toggling chips
             setSearchParams(next, {replace: true});
         }
     }, [filters, searchParams, setSearchParams]);

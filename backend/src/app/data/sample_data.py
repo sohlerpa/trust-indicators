@@ -14,9 +14,11 @@ X_POSTS: list[XPostRecord] = [
     XPostRecord(
         id="x2",
         url="https://x.com/F_W_Steingeier/status/1870387777201913901",
-        text="""Die tatbegehende Person in #Magdeburg war rechtsradikal. Das zeigt ein doppeltes Versagen der Gesellschaft: 
-Wir waren unfähig, diese Person in Deutschland willkommen zu heißen und sie von demokratischen Werten zu überzeugen. 
-Der Kampf gegen Rechts muss weitergehen.""",
+        text="""
+        Die tatbegehende Person in #Magdeburg war rechtsradikal. Das zeigt ein doppeltes Versagen der Gesellschaft: 
+        Wir waren unfähig, diese Person in Deutschland willkommen zu heißen und sie von demokratischen Werten zu überzeugen. 
+        Der Kampf gegen Rechts muss weitergehen.
+        """,
         media_url="https://pbs.twimg.com/media/GfTzsGDWoAECX42?format=jpg&name=900x900",
         created_at=datetime(2025, 12, 21, 12, 34, 28)
     ),

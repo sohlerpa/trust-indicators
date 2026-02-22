@@ -13,10 +13,10 @@ from pydantic import BaseModel
 
 NORMALIZE_ARTICLE_PROMPT = """
     You are a careful article extraction and normalization system.
-    
+
     You receive raw HTML of a single web page that contains an article PLUS possible surrounding clutter
     (header/nav/footer, cookie banners, “related articles”, comments, newsletter boxes, paywall prompts, etc.).
-    
+
     Your job:
     1) Extract ONLY the main article content from the HTML.
     2) Return a STRICT JSON object with:
@@ -24,7 +24,7 @@ NORMALIZE_ARTICLE_PROMPT = """
        - author: string | null
        - preview: string  (1–2 sentences, plain text, no quotes, no markdown)
        - content_html: string  (HTML fragment of ONLY the article WITHOUT title)
-    
+
     Hard rules for content_html:
     - Allowed tags ONLY: h1, h2, p, img, iframe, strong
     - No other tags. No div/span/a/ul/li/br/etc.
@@ -41,20 +41,20 @@ NORMALIZE_ARTICLE_PROMPT = """
     - Keep the original order of the article. Preserve headings and paragraphs.
     - Do NOT invent facts or add anything that is not present in the input HTML.
     - The content_html MUST be a coherent article-only fragment (no surrounding page chrome).
-    
+
     Output format requirements:
     - Output MUST be valid JSON.
     - Output MUST match exactly this schema and keys:
       { "title": ..., "author": ..., "preview": ..., "content_html": ... }
     - No extra keys. No surrounding text. No markdown code fences.
-    
+
     Selection guidance:
     - Title: Prefer the article headline (often <h1> or og:title). Exclude site name.
     - Author: Prefer the human author name. Exclude organizations and “By Staff” if a real name exists.
       If no author is reliably present, use null.
     - Preview: 1–2 sentences summarizing the main point(s) of the article.
       It must be grounded in the article text and not contain speculation.
-    
+
     Input HTML starts after this line.
     HTML:
     """
@@ -68,6 +68,12 @@ class NormalizedArticle(BaseModel):
 
 
 def preprocess_article_from_url(url: str) -> dict[str, Any]:
+    """
+    Fetch an article URL and produce normalized article fields.
+
+    Returns:
+        dict[str, Any]: Title, author, published_at, image_url, preview, and content_html.
+    """
     print("Extracting article for ", url)
     html = fetch_html(url)
 
@@ -79,12 +85,10 @@ def preprocess_article_from_url(url: str) -> dict[str, Any]:
     article_tag = soup.find("article")
     content_node = article_tag if article_tag else soup.body
 
-    # remove scripts/styles
     if content_node:
         for bad in content_node.find_all(["script", "style", "noscript"]):
             bad.decompose()
 
-    # published time if present
     published_at = datetime.now(timezone.utc)
     meta_time = soup.find("meta", property="article:published_time") or soup.find("meta", attrs={"name": "pubdate"})
     if meta_time and meta_time.get("content"):
@@ -108,6 +112,12 @@ def preprocess_article_from_url(url: str) -> dict[str, Any]:
 
 
 def fetch_html(url: str) -> str:
+    """
+    Fetch raw HTML content for a URL.
+
+    Returns:
+        str: HTML document content.
+    """
     headers = {
         "User-Agent": "Mozilla/5.0 (compatible; TrustIndicatorsBot/1.0; +https://example.local)",
         "Accept": "text/html,application/xhtml+xml",
@@ -125,7 +135,12 @@ def fetch_html(url: str) -> str:
 
 
 def normalize_html(content: Tag | str) -> dict[str, Any]:
-    # Convert bs4 Tag into string HTML
+    """
+    Normalize article HTML via an LLM into title/author/preview/content_html.
+
+    Returns:
+        dict[str, Any]: Normalized article fields.
+    """
     html = str(content) if not isinstance(content, str) else content
 
     print("Normalizing html content with LLM for: ", html[:20])
@@ -161,7 +176,10 @@ def normalize_html(content: Tag | str) -> dict[str, Any]:
 
 def _pick_from_srcset(srcset: str) -> str | None:
     """
-    Return the highest-resolution URL from a srcset string.
+    Select the highest-resolution URL from a srcset string.
+
+    Returns:
+        str | None: Best candidate URL, or None if no candidates exist.
     """
     if not srcset:
         return None
@@ -194,6 +212,12 @@ def _pick_from_srcset(srcset: str) -> str | None:
 
 
 def materialize_images(raw_html: str, *, base_url: str) -> str:
+    """
+    Convert image URLs in HTML to absolute URLs and resolve lazy-loading sources.
+
+    Returns:
+        str: Updated HTML with materialized <img> tags and absolute URLs.
+    """
     soup = BeautifulSoup(raw_html, "html.parser")
 
     for img in soup.find_all("img"):
@@ -257,9 +281,14 @@ def materialize_images(raw_html: str, *, base_url: str) -> str:
 
 
 def materialize_jwplayer_iframes(raw_html: str) -> str:
+    """
+    Replace JW Player placeholders with embeddable iframe tags.
+
+    Returns:
+        str: Updated HTML with JW Player iframes inserted.
+    """
     soup = BeautifulSoup(raw_html, "html.parser")
 
-    # Look for JW player settings blobs
     for el in soup.find_all(attrs={"data-settings": True}):
         ds = el.get("data-settings")
         if not ds:

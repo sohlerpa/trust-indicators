@@ -8,6 +8,12 @@ from src.modules.fact_checking.fact_checking import FactCheckTrustDTO, check_fac
 
 
 def run_fact_check(article, db: Session, progress: ProgressFn | None = None) -> FactCheckTrustDTO:
+    """
+    Run fact-checking for an article, using cached results when available.
+
+    Returns:
+        FactCheckTrustDTO: Cached or newly computed fact-check result.
+    """
     cached = get_fact_check_cache(db, article.id)
     if cached is not None:
         print(f"Using cached fact check for {article.id}")
@@ -27,8 +33,21 @@ def run_fact_check(article, db: Session, progress: ProgressFn | None = None) -> 
     upsert_fact_check_cache(db, article.id, dto, model="gemini-2.5-flash")
     return dto
 
-def run_fact_check_for_text(*, text: str, source_id: str, db: Session, x_post_id: str, progress: ProgressFn | None = None,):
 
+def run_fact_check_for_text(
+    *,
+    text: str,
+    source_id: str,
+    db: Session,
+    x_post_id: str,
+    progress: ProgressFn | None = None,
+):
+    """
+    Run fact-checking for plain text, using cached results when available.
+
+    Returns:
+        FactCheckTrustDTO: Cached or newly computed fact-check result.
+    """
     cached = get_fact_check_cache(db, x_post_id)
     if cached is not None:
         print(f"Using cached fact check for {x_post_id}")
