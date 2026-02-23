@@ -13,8 +13,11 @@ from pydantic import BaseModel, Field
 load_dotenv()
 
 
-# Output structure
 class AuthorExpertiseResult(BaseModel):
+    """
+    Final author expertise result returned by the pipeline.
+    """
+
     author: str
     article_url: str
     publisher_domain: str
@@ -25,32 +28,49 @@ class AuthorExpertiseResult(BaseModel):
 
 
 class Step1_FieldMap(BaseModel):
+    """
+    Step 1 output: inferred field + search plan for verifying author credentials.
+    """
+
     primary_field: str = Field(description="Main field of expertise implied by the article (e.g., Climate science).")
     subfields: List[str] = Field(description="More specific subfields (e.g., climate attribution, carbon cycle).")
     key_terms: List[str] = Field(description="Key technical terms present / expected for the topic.")
     author_disambiguation_hints: List[str] = Field(
-        description="Hints to disambiguate the author in search (orgs, locations, middle initial, etc.).")
+        description="Hints to disambiguate the author in search (orgs, locations, middle initial, etc.)."
+    )
     suggested_search_queries: List[str] = Field(
-        description="8-14 search queries to verify whether the author is a credentialed expert in this field.")
+        description="8-14 search queries to verify whether the author is a credentialed expert in this field."
+    )
 
 
 class EvidenceItem(BaseModel):
+    """
+    A single evidence item supporting or refuting author expertise.
+    """
+
     claim: str = Field(description="A concrete claim about the author's expertise (affiliation, degree, publications).")
     support_summary: str = Field(description="Why the source supports the claim.")
     source_title: Optional[str] = Field(default=None, description="Title of the supporting source or page.")
     source_url: Optional[str] = Field(default=None, description="URL of the supporting source or page.")
     credibility: Literal["high", "medium", "low"] = Field(
-        description="Credibility of the source (e.g., university page=high; random blog=low).")
+        description="Credibility of the source (e.g., university page=high; random blog=low)."
+    )
     confidence: float = Field(ge=0.0, le=1.0, description="Confidence this item is correct.")
 
 
 class Step3_CredentialCheck(BaseModel):
+    """
+    Step 3 output: structured credential check grounded in web evidence.
+    """
+
     author: str
     field: str
     found_person_matches: List[str] = Field(
-        description="Possible matches for the author identity (e.g., 'Dr. X at University Y').")
+        description="Possible matches for the author identity (e.g., 'Dr. X at University Y')."
+    )
     is_same_person_likely: Literal["yes", "no", "uncertain"] = Field(
-        description="Whether evidence likely refers to the same author (name collisions are common).")
+        description="Whether evidence likely refers to the same author (name collisions are common)."
+    )
     evidence: List[EvidenceItem] = Field(description="Evidence items grounded in search.")
     gaps: List[str] = Field(description="What information is missing to be confident (e.g., no verified affiliation).")
     credentialed_expert_assessment: Literal["yes", "no", "uncertain"]
@@ -58,34 +78,49 @@ class Step3_CredentialCheck(BaseModel):
 
 
 class Step2_GroundedNotes(BaseModel):
+    """
+    Step 2 output: free-form grounded memo with URLs inline.
+    """
+
     notes: str = Field(description="Grounded findings with citations and URLs included inline.")
 
 
 class Step4_FinalAssessment(BaseModel):
+    """
+    Step 4 output: final decision combining credential evidence and text-only quality signals.
+    """
+
     author: str
     field: str
     credentialed_expert: Literal["yes", "no", "uncertain"]
     credentialed_confidence: float = Field(ge=0.0, le=1.0)
 
-    # Text-only quality signals
     article_expert_like: Literal["yes", "no", "uncertain"] = Field(
-        description="Whether the article reads like it was written by a domain expert (text-only signals).")
+        description="Whether the article reads like it was written by a domain expert (text-only signals)."
+    )
     article_quality_confidence: float = Field(ge=0.0, le=1.0)
     rubric_scores: dict = Field(
-        description="A dict of rubric scores 0..1, e.g. {'accuracy':0.8,'use_of_uncertainty':0.6,'use_of_sources':0.4}")
+        description="Rubric scores 0..1, e.g. {'accuracy':0.8,'use_of_uncertainty':0.6,'use_of_sources':0.4}"
+    )
     red_flags: List[str] = Field(
         description="Potential misconceptions, overclaims, bad reasoning, missing nuance, etc.")
     strengths: List[str] = Field(
         description="Signals of competence: correct framing, good uncertainty, good sourcing, etc.")
 
-    # Combined decision
     final_label: Literal["field_expert", "not_field_expert", "uncertain"] = Field(
-        description="Combined judgment: field_expert requires external credential evidence; otherwise uncertain.")
+        description="field_expert requires external credential evidence; otherwise uncertain."
+    )
     final_confidence: float = Field(ge=0.0, le=1.0)
     explanation: str = Field(description="Short, user-facing explanation of why.")
 
 
 def _response_text(resp) -> str:
+    """
+    Extract plain text from a Gemini response object.
+
+    Returns:
+        str: Extracted response text, or an empty string if no text exists.
+    """
     txt = getattr(resp, "text", None)
     if isinstance(txt, str):
         txt = txt.strip()
@@ -115,9 +150,10 @@ def _generate_with_retry(
         max_sleep_s: float = 12.0,
 ):
     """
-    Synchronous call that waits for a response.
-    Retries transient errors (503 overloaded, 5xx, 429) with exponential backoff + jitter.
-    Returns None if all retries fail.
+    Call Gemini synchronously with retries for transient errors.
+
+    Returns:
+        Any | None: The response object if successful, otherwise None.
     """
     last_exc: Exception | None = None
 
@@ -128,7 +164,6 @@ def _generate_with_retry(
                 contents=contents,
                 config=config,
             )
-            # Sometimes you can get an "empty" response object; treat as failure
             if not _response_text(resp):
                 last_exc = RuntimeError("Empty response text from Gemini")
             else:
@@ -137,7 +172,6 @@ def _generate_with_retry(
         except (genai_errors.ServerError, genai_errors.APIError) as e:
             last_exc = e
             status = getattr(e, "status_code", None)
-            # don't retry non-transient 4xx (except 429)
             if status is not None and status < 500 and status != 429:
                 break
 
@@ -158,6 +192,12 @@ def assess_author_expertise(
         model: str = "gemini-2.5-flash",
         api_key_env: str = "GEMINI_API_KEY",
 ) -> AuthorExpertiseResult | None:
+    """
+    Assess whether an article author is a field expert using a multi-step Gemini workflow.
+
+    Returns:
+        AuthorExpertiseResult | None: Final expertise assessment, or None on failure.
+    """
     if not isinstance(text, str) or not text.strip():
         print("text must be a non-empty string")
         return None
@@ -183,11 +223,10 @@ def assess_author_expertise(
         raise EnvironmentError(f"Missing environment variable {api_key_env}")
     client = genai.Client()
 
-    # ---- Step 1: Field map + search queries
     print("Author expertise: step 1")
     prompt1 = f"""
     You are helping determine whether an article's author is an expert in the article's field.
-    
+
     Given:
     - Author name: {author}
     - Publisher domain (derived): {publisher_domain}
@@ -195,19 +234,19 @@ def assess_author_expertise(
     - Article text: <<<BEGIN TEXT
     {text}
     END TEXT>>>
-    
+
     Task:
     1) Identify the primary field and 2-6 plausible subfields.
     2) Extract 8-20 key technical terms you would expect in expert writing on this topic.
     3) Provide 3-8 author disambiguation hints that would help identify the correct person online.
     4) Provide 8-14 Google search queries to verify whether this author is credentialed in the identified field.
-    
+
     Rules for queries:
     - Include at least 4 queries that are site-restricted to the publisher domain:
       e.g., site:{publisher_domain} "{author}", author page, Autoren, Redaktion, Impressum.
     - Include queries for author profile pages, author archives, and byline pages.
     - Include ORCID / Google Scholar queries only if the author seems academic; otherwise prioritize journalist bio evidence.
-    
+
     Return ONLY valid JSON that matches the schema.
     """.strip()
 
@@ -227,34 +266,33 @@ def assess_author_expertise(
     except Exception:
         return None
 
-    # ---- Step 2: Grounded evidence memo
     print("Author expertise: step 2")
     grounding_tool = types.Tool(google_search=types.GoogleSearch())
 
     prompt2 = f"""
     You are verifying whether an author is a credentialed expert in a field, using web evidence.
-    
+
     Author: {author}
     Field: {step1.primary_field}
     Subfields: {step1.subfields}
     Publisher domain: {publisher_domain}
     Article URL: {article_url}
-    
+
     Priority order:
     1) Find the article URL and extract any author bio/byline info and links to author profile pages.
     2) Find author archive/profile pages on the publisher domain:
        site:{publisher_domain} "{author}", Autoren, Redaktion, Impressum.
     3) Then expand to broader web sources (LinkedIn, ORCID, university pages, etc.) ONLY if needed.
-    
+
     Rules:
     - Name collisions are common: explicitly discuss whether results refer to the same person.
     - Prefer high-credibility sources.
     - Include URLs whenever possible.
     - If you cannot verify credentials, say so (don't guess).
-    
+
     Suggested queries (you may use or adapt):
     {step1.suggested_search_queries}
-    
+
     Write a concise evidence memo with bullet points and URLs.
     """.strip()
 
@@ -271,21 +309,20 @@ def assess_author_expertise(
     if not grounded_notes:
         return None
 
-    # ---- Step 3: Memo into strict JSON
     print("Author expertise: step 3")
     prompt3 = f"""
     Convert the following evidence memo into JSON that matches the schema precisely.
-    
+
     Author: {author}
     Field: {step1.primary_field}
     Publisher domain: {publisher_domain}
     Article URL: {article_url}
-    
+
     EVIDENCE MEMO:
     <<<BEGIN MEMO
     {grounded_notes}
     END MEMO>>>
-    
+
     Instructions:
     - Treat matches on the publisher domain (author page / editorial staff page / author archive) as strong identity evidence.
     - Fill found_person_matches with short disambiguating descriptors.
@@ -311,25 +348,24 @@ def assess_author_expertise(
     except Exception:
         return None
 
-    # ---- Step 4: Final assessment
     print("Author expertise: step 4")
     prompt4 = f"""
     You are producing a final assessment: Is the author an expert in the field?
-    
+
     Separate:
     (A) "Credentialed expert" (verified external evidence)
     (B) "Expert-like article" (text-only signals)
-    
+
     Inputs:
     - Author: {author}
     - Field: {step1.primary_field}
     - Article text: <<<BEGIN TEXT
     {text}
     END TEXT>>>
-    
+
     Credential evidence summary:
     {step3.model_dump_json(indent=2)}
-    
+
     Rubric (score each 0..1, put into rubric_scores):
     - accuracy_and_correct_framing
     - handling_of_uncertainty_and_limits
@@ -337,14 +373,14 @@ def assess_author_expertise(
     - domain_specificity_and_precision
     - avoidance_of_common_misconceptions
     - internal_consistency
-    
+
     Rules:
     - If credential evidence is "yes" with decent confidence, final_label can be "field_expert".
     - If credential evidence is "no" BUT there is strong evidence the author is the publisher's specialist reporter/editor
       for this field (e.g., author page shows beat like finance/pensions), final_label may be "field_expert" (journalistic expertise).
       Otherwise keep "not_field_expert".
     - If credential evidence is "uncertain", final_label should usually be "uncertain" (unless the text clearly indicates non-expertise).
-    
+
     Keep explanation short and practical.
     Return ONLY valid JSON that matches the schema.
     """.strip()
@@ -367,7 +403,13 @@ def assess_author_expertise(
 
     print(f"Results of author assessment:\n{step4}\n")
 
-    confidence = step4.final_confidence if step4.final_label == "field_expert" else 1 - step4.final_confidence if step4.final_label == "not_field_expert" else 0
+    confidence = (
+        step4.final_confidence
+        if step4.final_label == "field_expert"
+        else 1 - step4.final_confidence
+        if step4.final_label == "not_field_expert"
+        else 0
+    )
 
     return AuthorExpertiseResult(
         author=author,
@@ -376,5 +418,5 @@ def assess_author_expertise(
         field=step4.field,
         label=step4.final_label,
         confidence=confidence,
-        explanation=step4.explanation
+        explanation=step4.explanation,
     )

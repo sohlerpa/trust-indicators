@@ -2,13 +2,6 @@ import {XEmbed} from "react-social-media-embed";
 import type {XPost} from "../api/types";
 import FactCheckCard from "./FactCheckCard";
 
-const BADGE_HINT: Record<string, string> = {
-    grey: "There is not enough data about this post yet to compute the trust score. Wait until it is computed",
-    green: "This post is likely to be trusted.",
-        orange: "Handle this post with care.",
-    red: "This post does not seem trustworthy.",
-};
-
 export default function XPostList({ posts }: { posts: XPost[] }) {
     console.log("x posts", posts)
     return (

@@ -7,7 +7,6 @@ import time
 from dataclasses import dataclass, asdict
 from enum import Enum
 from typing import List, Optional, Any, Dict, Tuple
-
 import httpx
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
@@ -28,10 +27,6 @@ def _dbg(msg: str, *, claim_id: str | None = None):
     prefix = f"[factcheck]{'[' + claim_id + ']' if claim_id else ''}"
     print(f"{prefix} {msg}")
 
-
-# =========================
-# Data Models
-# =========================
 
 @dataclass
 class FactCheckTrustStats:
@@ -142,16 +137,24 @@ class CheckedClaim:
     assertion: FactAssertionResult
 
 
-# =========================
-# Utilities
-# =========================
-
 def _claim_id(article_id: str, start: int, end: int, claim_text: str) -> str:
+    """
+    Create a stable identifier for a claim span.
+
+    Returns:
+        str: SHA-1 hash based on article_id, offsets, and claim text.
+    """
     raw = f"{article_id}:{start}:{end}:{claim_text}".encode("utf-8")
     return hashlib.sha1(raw).hexdigest()
 
 
 def _to_claim_dto(article_id: str, checked: CheckedClaim) -> FactCheckTrustClaimDTO:
+    """
+    Convert an internal CheckedClaim into a serializable DTO.
+
+    Returns:
+        FactCheckTrustClaimDTO: DTO representation of the checked claim.
+    """
     return FactCheckTrustClaimDTO(
         id=_claim_id(article_id, checked.span.start_char, checked.span.end_char, checked.span.claim_text),
         claimText=checked.span.claim_text,
@@ -172,15 +175,13 @@ def _to_claim_dto(article_id: str, checked: CheckedClaim) -> FactCheckTrustClaim
     )
 
 
-def post_with_retry(
-        client: httpx.Client,
-        url: str,
-        *,
-        headers: dict,
-        json_body: dict,
-        retries: int = 3,
-        base_delay: float = 1.0,
-):
+def post_with_retry(client: httpx.Client, url: str, *, headers: dict, json_body: dict, retries: int = 3, base_delay: float = 1.0):
+    """
+    POST a JSON request with retries for timeouts and transient server errors.
+
+    Returns:
+        httpx.Response: Successful response with status < 400.
+    """
     for attempt in range(retries):
         if attempt != 0:
             print(f"Retrying: Attempt {attempt + 1}/{retries}")
@@ -209,6 +210,12 @@ def post_with_retry(
 
 
 def html_to_plain_text(html: str) -> str:
+    """
+    Convert HTML into normalized plain text used for claim offset indexing.
+
+    Returns:
+        str: Plain text with empty lines removed.
+    """
     soup = BeautifulSoup(html, "html.parser")
     for tag in soup(["script", "style", "img"]):
         tag.decompose()
@@ -216,21 +223,14 @@ def html_to_plain_text(html: str) -> str:
     return "\n".join(line.strip() for line in text.splitlines() if line.strip())
 
 
-# =========================
-# Evidence packing + stable IDs (Option C)
-# =========================
+def extract_claims_from_html(html: str, *, gemini_api_key: str, model: str = "gemini-2.5-flash-lite") -> ExtractedClaims:
+    """
+    Extract up to 10 atomic, searchable factual claims from HTML using Gemini.
 
-def extract_claims_from_html(
-        html: str,
-        *,
-        gemini_api_key: str,
-        model: str = "gemini-2.5-flash-lite",
-) -> ExtractedClaims:
-    import json
-    import httpx
-
+    Returns:
+        ExtractedClaims: Plain text plus claim spans with exact character offsets.
+    """
     plain_text = html_to_plain_text(html)
-
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 
     system_instruction = (
@@ -364,18 +364,13 @@ def extract_claims_from_html(
     return extracted_claims
 
 
-def search_for_claim_multi(
-        query: FactCheckQuery,
-        *,
-        api_key: str,
-        max_searches: int = 5,
-) -> Tuple[List[FactCheckClaim], List[str]]:
+def search_for_claim_multi(query: FactCheckQuery, *, api_key: str, max_searches: int = 5) -> Tuple[List[FactCheckClaim], List[str]]:
     """
-    Runs up to max_searches searches (primary + alternatives),
-    merges results, de-dupes, and returns:
-      (merged_claims, used_queries)
+    Search Fact Check Tools using primary and alternative queries.
+
+    Returns:
+        tuple[list[FactCheckClaim], list[str]]: (merged claims, used query strings).
     """
-    # Build ordered unique list of query strings
     all_q = [query.primary] + list(query.alternatives or [])
     seen = set()
     queries: List[str] = []
@@ -427,9 +422,7 @@ def _canonical_source_id(*, url: Optional[str], title: Optional[str], publisher:
     return hashlib.sha1(key.encode("utf-8")).hexdigest()
 
 
-def _facts_to_llm_evidence(
-        fact_check_claims: List[FactCheckClaim],
-) -> Tuple[List[dict[str, Any]], Dict[str, SourceRef]]:
+def _facts_to_llm_evidence(fact_check_claims: List[FactCheckClaim]) -> Tuple[List[dict[str, Any]], Dict[str, SourceRef]]:
     """
     Returns:
       - evidence payload for the LLM, where EACH review includes a review_id
@@ -480,19 +473,14 @@ def _facts_to_llm_evidence(
     return evidence, id_to_source
 
 
-# =========================
-# Gemini: keywords + assertion
-# =========================
+def extract_keywords_from_claim(claim: str, context_text: str, *, gemini_api_key: str, model: str = "gemini-2.5-flash-lite") -> FactCheckQuery:
+    """
+    Generate short keyword queries for searching the Fact Check Tools API.
 
-def extract_keywords_from_claim(
-        claim: str,
-        context_text: str,
-        *,
-        gemini_api_key: str,
-        model: str = "gemini-2.5-flash-lite",
-) -> FactCheckQuery:
+    Returns:
+        FactCheckQuery: Primary query plus alternative queries.
+    """
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
-
     safe_context = (context_text or "")[:2000]
 
     system_instruction = (
@@ -582,6 +570,12 @@ def extract_keywords_from_claim(
 
 
 def search_for_keywords(keywords: str, api_key: str) -> List[FactCheckClaim]:
+    """
+    Search the Fact Check Tools API for matching claims.
+
+    Returns:
+        list[FactCheckClaim]: Claims with attached review entries.
+    """
     time.sleep(0.8)  # REQUIRED
 
     with LLM_SEMAPHORE:
@@ -625,16 +619,12 @@ def search_for_keywords(keywords: str, api_key: str) -> List[FactCheckClaim]:
     return claims
 
 
-def assert_claims_to_facts_batch(
-        items: List[CheckedClaim],
-        *,
-        gemini_api_key: str,
-        model: str = "gemini-2.5-flash-lite",
-        timeout_s: int = 100,
-) -> Dict[str, FactAssertionResult]:
+def assert_claims_to_facts_batch(items: List[CheckedClaim], *, gemini_api_key: str, model: str = "gemini-2.5-flash-lite", timeout_s: int = 100) -> Dict[str, FactAssertionResult]:
     """
-    Returns dict: claim_id -> FactAssertionResult
-    (No more brittle list-index coupling.)
+    Assert multiple claims against provided evidence using Gemini.
+
+    Returns:
+        dict[str, FactAssertionResult]: Mapping claim_id -> assertion result.
     """
     if not items:
         return {}
@@ -813,11 +803,20 @@ def assert_claims_to_facts_batch(
     return out
 
 
-# =========================
-# Top-level function (PATCH THE CANDIDATES + ATTACHMENT PARTS)
-# =========================
-
 def check_facts_for_html(content_html: str, *, article_id: str, progress: ProgressFn | None = None) -> FactCheckTrustDTO:
+    """
+    Run the full fact-check pipeline for an HTML article.
+
+    Steps:
+        1) Extract checkable claims (Gemini).
+        2) Generate search keywords per claim (Gemini).
+        3) Search Fact Check Tools for evidence.
+        4) Assert each claim using only the collected evidence (Gemini batch).
+        5) Return a structured FactCheckTrustDTO.
+
+    Returns:
+        FactCheckTrustDTO containing checked claims and telemetry.
+    """
     api_key = os.environ["GEMINI_API_KEY"]
     fact_api_key = os.environ["FACT_CHECKING_API_KEY"]
 
@@ -835,7 +834,6 @@ def check_facts_for_html(content_html: str, *, article_id: str, progress: Progre
     dropped_keyword_failed = 0
     dropped_assertion_failed = 0
 
-    # NEW: richer counters for debugging / telemetry
     dropped_missing_batch_result = 0
     checked_with_no_sources = 0
 
@@ -948,7 +946,6 @@ def check_facts_for_html(content_html: str, *, article_id: str, progress: Progre
                 "noEvidence": dropped_no_evidence,
                 "keywordExtractionFailed": dropped_keyword_failed,
                 "assertionFailed": dropped_assertion_failed,
-                # NEW: debugging breakdown
                 "missingBatchResult": dropped_missing_batch_result,
                 "checkedButNoSources": checked_with_no_sources,
             },

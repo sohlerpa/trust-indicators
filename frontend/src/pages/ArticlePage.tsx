@@ -1,5 +1,4 @@
 import {useEffect, useState} from "react";
-import {Link} from "react-router-dom";
 import {fetchFactCheckResult, getArticle, startArticleFactCheck} from "../api/endpoints";
 import type {ArticleBase, FactCheckTrust} from "../api/types";
 import {useNavigate, useParams} from "react-router-dom";

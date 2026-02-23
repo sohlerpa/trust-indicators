@@ -1,3 +1,5 @@
+import threading
+import time
 from sqlalchemy.orm import Session
 
 from src.app.models.article import get_article_llm_analysis, save_author_expertise
@@ -6,12 +8,17 @@ from src.app.service.progress import ProgressFn
 from src.modules.author_expertise.author_expertise_classifier import assess_author_expertise
 
 
-import threading
-import time
+def analyze_author(
+    article,
+    db: Session,
+    progress: ProgressFn | None = None,
+) -> AuthorExpertise | None:
+    """
+    Analyze and cache author expertise for an article.
 
-
-def analyze_author(article, db: Session, progress: ProgressFn | None = None):
-
+    Returns:
+        AuthorExpertise | None: Cached or newly computed expertise, or None on failure.
+    """
     if progress:
         progress("start", 0.05)
 
@@ -20,6 +27,7 @@ def analyze_author(article, db: Session, progress: ProgressFn | None = None):
     if row and row.author_label:
         if progress:
             progress("done", 1.0)
+
         return AuthorExpertise(
             label=row.author_label,
             confidence=float(row.author_confidence or 0),
@@ -30,7 +38,13 @@ def analyze_author(article, db: Session, progress: ProgressFn | None = None):
 
     stop_flag = False
 
-    def progress_ticker():
+    def progress_ticker() -> None:
+        """
+        Periodically increase progress while classification runs.
+
+        Returns:
+            None
+        """
         pct = 0.35
         while not stop_flag and pct < 0.80:
             time.sleep(3)

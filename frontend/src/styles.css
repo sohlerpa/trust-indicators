@@ -20,7 +20,6 @@ body {
     color: var(--text-main);
 }
 
-/* Base surfaces */
 .card,
 .filters {
     background: var(--bg-card);
@@ -67,7 +66,6 @@ body {
     margin: 12px 0;
 }
 
-/* Feed items */
 .item {
     display: grid;
     grid-template-columns: 110px 1fr;
@@ -131,7 +129,6 @@ body {
     margin: 10px 0;
 }
 
-/* Filters */
 .filterGroup {
     display: grid;
     gap: 6px;
@@ -155,7 +152,6 @@ body {
     border-color: #111;
 }
 
-/* Generic indicator dot */
 .badge {
     width: 10px;
     height: 10px;
@@ -180,7 +176,6 @@ body {
     background: #444444;
 }
 
-/* Posts */
 .post {
     background: #fafafa;
     border-radius: 10px;
@@ -196,7 +191,6 @@ body {
     padding-bottom: 4px;
 }
 
-/* Article page */
 .hero {
     width: 100%;
     max-height: 320px;
@@ -268,7 +262,6 @@ body {
     border: 0;
 }
 
-/* C2PA */
 .c2paThumbWrap {
     position: relative;
     width: 56px;
@@ -300,7 +293,6 @@ body {
     flex-direction: column;
 }
 
-/* ---- Ingest animation ---- */
 .ingestHeader {
     display: flex;
     align-items: center;
@@ -308,7 +300,6 @@ body {
     gap: 12px;
 }
 
-/* animate open/close */
 .ingestPanel {
     overflow: hidden;
     max-height: 0;
@@ -329,7 +320,6 @@ body {
     pointer-events: auto;
 }
 
-/* inner spacing */
 .ingestInner {
     margin-top: 12px;
 }
@@ -389,13 +379,11 @@ body {
     cursor: not-allowed;
 }
 
-/* image wrapper created by DOMParser */
 .articleBody div[style*="position: relative"] {
     display: inline-block;
     max-width: 100%;
 }
 
-/* keep original green/red look */
 .c2paOverlay .c2paStatus.ok {
     color: #2e7d32;
     font-weight: 600;
@@ -439,6 +427,15 @@ body {
     pointer-events: none;
 }
 
+.c2paOverlay .c2paMeta {
+    background: rgba(255, 255, 255, 0.96);
+    padding: 10px 12px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+    font-size: 13px;
+    line-height: 1.35;
+    max-width: 260px;
+}
 
 .c2paOverlay .c2paMeta {
     background: rgba(255, 255, 255, 0.96);
@@ -450,18 +447,6 @@ body {
     max-width: 260px;
 }
 
-/* reuse original C2PA look */
-.c2paOverlay .c2paMeta {
-    background: rgba(255, 255, 255, 0.96);
-    padding: 10px 12px;
-    border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
-    font-size: 13px;
-    line-height: 1.35;
-    max-width: 260px;
-}
-
-/* same colors as before */
 .c2paOverlay .c2paStatus {
     font-weight: 700;
     margin-bottom: 4px;
@@ -538,7 +523,6 @@ body {
     color: #c62828;
 }
 
-/* Diversity */
 .diversityCard {
     display: grid;
     gap: 8px;
@@ -604,17 +588,11 @@ body {
     background: #d0021b;
 }
 
-/* ------------------------------
-   Shared "Meta block" system
-   ------------------------------ */
-
-/* Container for a meta section body */
 .metaBox {
     display: grid;
     gap: 10px;
 }
 
-/* One row: left label group + right pill */
 .metaRow {
     display: flex;
     align-items: center;
@@ -622,7 +600,6 @@ body {
     gap: 12px;
 }
 
-/* Left group: icon/dot + label */
 .metaLeft {
     display: flex;
     align-items: center;
@@ -644,7 +621,6 @@ body {
     line-height: 1.5;
 }
 
-/* Generic pill */
 .pill {
     padding: 6px 10px;
     border-radius: 999px;
@@ -656,7 +632,6 @@ body {
     white-space: nowrap;
 }
 
-/* Generic black dot */
 .metaDot {
     width: 10px;
     height: 10px;
@@ -666,7 +641,6 @@ body {
     flex: 0 0 10px;
 }
 
-/* Style-specific tweak */
 .metaLabel.capitalize {
     text-transform: capitalize;
 }
@@ -684,9 +658,6 @@ body {
     gap: 10px;
 }
 
-/* ------------------------------
-   Expertise-specific
-   ------------------------------ */
 
 .expertMeta {
     display: grid;
@@ -1162,14 +1133,13 @@ mark.factSpan:hover { filter: brightness(0.95); }
     z-index: 1;
 }
 
-/* Badge tooltip */
 .badgeWrap {
     position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 12px;          /* makes hover easier */
-    margin: -12px;          /* keeps layout same */
+    padding: 12px;
+    margin: -12px;
 }
 
 .badgePopover {
@@ -1205,7 +1175,6 @@ mark.factSpan:hover { filter: brightness(0.95); }
     color: #111;
 }
 
-/* little arrow */
 .badgeTooltip::after {
     content: "";
     position: absolute;
@@ -1237,11 +1206,6 @@ mark.factSpan:hover { filter: brightness(0.95); }
     font-size: 12px;
     opacity: 0.7;
 }
-
-
-/* ---------------------------
-   Modern compact filter bar
----------------------------- */
 
 .filtersModern {
     padding: 12px;
@@ -1307,7 +1271,6 @@ mark.factSpan:hover { filter: brightness(0.95); }
     transform: scale(0.98);
 }
 
-/* Grid for the top compact rows */
 .filtersGrid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -1345,7 +1308,6 @@ mark.factSpan:hover { filter: brightness(0.95); }
     min-width: 180px;
 }
 
-/* Segmented buttons */
 .segmented {
     display: inline-flex;
     align-items: center;
@@ -1382,7 +1344,6 @@ mark.factSpan:hover { filter: brightness(0.95); }
     box-shadow: 0 1px 6px rgba(0,0,0,0.08);
 }
 
-/* Advanced toggle */
 .advancedToggle {
     display: flex;
     align-items: center;
@@ -1432,7 +1393,6 @@ mark.factSpan:hover { filter: brightness(0.95); }
     transform: rotate(180deg);
 }
 
-/* Collapsible panel with animation */
 .advancedPanel {
     overflow: hidden;
     max-height: 0;
@@ -1453,7 +1413,6 @@ mark.factSpan:hover { filter: brightness(0.95); }
     gap: 14px;
 }
 
-/* Chip groups */
 .chipGroup {
     display: grid;
     gap: 8px;
@@ -1498,7 +1457,6 @@ mark.factSpan:hover { filter: brightness(0.95); }
     transform: scale(0.98);
 }
 
-/* Modern chips (override your existing .chip) */
 .chipsModern {
     gap: 8px;
 }
@@ -1532,7 +1490,6 @@ mark.factSpan:hover { filter: brightness(0.95); }
 }
 
 
-/* Article page back button */
 .backLink {
     display: inline-flex;
     align-items: center;
@@ -1582,7 +1539,6 @@ mark.factSpan:hover { filter: brightness(0.95); }
     position: relative;
 }
 
-/* separator */
 .segmentedMulti .segBtn + .segBtn::before {
     content: "│";
     position: absolute;
@@ -1594,7 +1550,6 @@ mark.factSpan:hover { filter: brightness(0.95); }
     pointer-events: none;
 }
 
-/* Count slot is always there (stable width) */
 .segCount {
     display: inline-flex;
     align-items: center;
@@ -1602,7 +1557,6 @@ mark.factSpan:hover { filter: brightness(0.95); }
 
     margin-left: 2px;
 
-    /* stable width (fits up to 3 digits) */
     width: 2.6ch;
     flex: 0 0 2.6ch;
 
@@ -1610,19 +1564,16 @@ mark.factSpan:hover { filter: brightness(0.95); }
     font-variant-numeric: tabular-nums;
     pointer-events: none;
 
-    /* default: subtle */
     opacity: 0.18;
     transform: translateY(0) scale(1);
     transition: opacity 0.14s ease, transform 0.14s ease;
 }
 
-/* real counts: a bit stronger + tiny pop */
 .segCount.show {
     opacity: 0.65;
     transform: translateY(0) scale(1);
 }
 
-/* zero counts: even more subtle */
 .segCount.isZero {
     opacity: 0.12;
 }
@@ -1631,7 +1582,6 @@ mark.factSpan:hover { filter: brightness(0.95); }
     opacity: 0.03;
 }
 
-/* Optional: prevent button width from jittering even if label wraps */
 .segBtn {
     white-space: nowrap;
 }

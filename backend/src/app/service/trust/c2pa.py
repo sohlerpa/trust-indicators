@@ -3,7 +3,16 @@ from src.modules.provenance_media.extractor import c2pa_for_image_url
 from src.app.models.models import ImageProvenance
 
 
-def analyze_c2pa(article):
+def analyze_c2pa(article) -> dict:
+    """
+    Analyze C2PA metadata for all images in an article.
+
+    Returns:
+        dict: {
+            "c2pa_present": bool indicating if any image has C2PA metadata,
+            "c2pa_info": list[ImageProvenance] with per-image provenance details
+        }
+    """
     urls = extract_img_srcs(
         article.content_html,
         article_url=str(article.url),

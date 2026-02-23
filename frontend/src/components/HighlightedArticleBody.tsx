@@ -4,8 +4,6 @@ import { getArticleC2PA } from "../api/endpoints";
 
 type Claim = FactCheckTrust["claims"][number];
 
-// --- Helpers from OLD Code (Text & Date Formatting) ---
-
 function formatReviewDate(date?: string) {
     if (!date) return null;
     const d = new Date(date);
@@ -23,8 +21,6 @@ function escapeRegExp(s: string) {
 function normalizeWs(s: string) {
     return s.replace(/\s+/g, " ").trim();
 }
-
-// --- Helpers from NEW Code (Image C2PA) ---
 
 function normalize(url: string) {
     try {
@@ -102,7 +98,6 @@ function enhanceInlineImages(html: string, c2pa: C2PATrust | null) {
     return doc.body.innerHTML;
 }
 
-// --- Shared Helpers (Math & DOM) ---
 
 function clamp(n: number, min: number, max: number) {
     return Math.max(min, Math.min(max, n));
@@ -111,11 +106,9 @@ function clamp(n: number, min: number, max: number) {
 function computePopoverPos(anchor: DOMRect, popW = 420, popH = 360) {
     const margin = 10;
 
-    // Aligned to left edge of highlight, below text
     let left = anchor.left;
     let top = anchor.bottom + 8;
 
-    // Flip to top if it would overflow bottom
     if (top + popH > window.innerHeight - margin) {
         top = anchor.top - 8 - popH;
     }
@@ -132,7 +125,6 @@ function verdictClass(verdict: string) {
     return "factSpan isUnclear";
 }
 
-// Used the OLD version of wrapRange as it handles node boundaries/offsets more robustly
 function wrapRange(
     root: HTMLElement,
     start: number,
@@ -190,8 +182,6 @@ function wrapRange(
     }
 }
 
-// --- Main Component ---
-
 export default function HighlightedArticleBody({
     html,
     claims,
@@ -204,20 +194,17 @@ export default function HighlightedArticleBody({
     const articleRef = useRef<HTMLElement | null>(null);
     const popoverRef = useRef<HTMLDivElement | null>(null);
 
-    // 1. C2PA Image Logic
     const [c2pa, setC2pa] = useState<C2PATrust | null>(null);
 
     useEffect(() => {
         getArticleC2PA(articleId).then(setC2pa);
     }, [articleId]);
 
-    // Apply C2PA overlays to the HTML string
     const enhancedHtml = useMemo(
         () => enhanceInlineImages(html, c2pa),
         [html, c2pa]
     );
 
-    // 2. Fact Check Logic Setup
     const claimById = useMemo(() => {
         const m = new Map<string, Claim>();
         for (const c of claims ?? []) m.set(c.id, c);
@@ -236,13 +223,10 @@ export default function HighlightedArticleBody({
         claim: null,
     });
 
-    // 3. Highlighting Effect (Restored from OLD code)
-    // This now watches `enhancedHtml` so highlighting applies *after* images are wrapped
     useEffect(() => {
         const root = articleRef.current;
         if (!root) return;
 
-        // Cleanup existing marks
         root.querySelectorAll("mark.factSpan").forEach((m) => {
             const parent = m.parentNode;
             if (!parent) return;
@@ -255,7 +239,6 @@ export default function HighlightedArticleBody({
 
         const fullText = root.textContent ?? "";
 
-        // Sort claims by length (longest first) to prevent nested overlap issues
         const sorted = [...claims].sort(
             (a, b) => (b.sourceText?.length ?? 0) - (a.sourceText?.length ?? 0)
         );
@@ -265,7 +248,6 @@ export default function HighlightedArticleBody({
             if (!source) continue;
 
             let idx = 0;
-            // 3a. Exact match attempt
             while (true) {
                 const found = fullText.indexOf(source, idx);
                 if (found === -1) break;
@@ -281,7 +263,6 @@ export default function HighlightedArticleBody({
                 idx = found + source.length;
             }
 
-            // 3b. Regex/Whitespace normalized fallback attempt
             if (!fullText.includes(source)) {
                 const pattern = escapeRegExp(normalizeWs(source)).replace(/\s+/g, "\\s+");
                 const re = new RegExp(pattern, "g");
@@ -300,7 +281,6 @@ export default function HighlightedArticleBody({
         }
     }, [enhancedHtml, claims]);
 
-    // 4. Interaction/Hover Logic (Restored from OLD code)
     useEffect(() => {
         const root = articleRef.current;
         if (!root) return;
@@ -389,7 +369,6 @@ export default function HighlightedArticleBody({
         };
     }, [claimById]);
 
-    // 5. Popover Position Refinement (Restored from OLD code)
     useEffect(() => {
         if (!hover.open || !hover.claim) return;
         const root = articleRef.current;
@@ -424,11 +403,9 @@ export default function HighlightedArticleBody({
             <article
                 ref={articleRef as any}
                 className="articleBody card"
-                // Uses enhancedHtml which includes the Image Overlays
                 dangerouslySetInnerHTML={{ __html: enhancedHtml }}
             />
 
-            {/* Restored Detailed Popover Structure */}
             <div
                 ref={popoverRef}
                 className={`factHoverPopover ${hover.open ? "isOpen" : ""}`}

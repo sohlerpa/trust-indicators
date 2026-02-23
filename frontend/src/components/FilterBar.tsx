@@ -51,18 +51,6 @@ function uniq<T>(arr: T[]): T[] {
     return Array.from(new Set(arr));
 }
 
-/**
- * Store multi-select booleans in the existing backend shape (boolean | undefined)
- * by encoding multi selection as:
- *  - [] => undefined
- *  - [true] => true
- *  - [false] => false
- *  - [true,false] => undefined (treat as no filter OR "both")
- *
- * This is the only lossy part because your API currently supports only tri-state.
- * If you want true multi-select semantics on the backend, we should change the API
- * to accept repeated params (e.g. no_false_facts=true&no_false_facts=false).
- */
 function boolMultiToTri(xs: BoolMulti): boolean | undefined {
     const u = uniq(xs);
     if (u.length === 0) return undefined;
@@ -272,10 +260,6 @@ export default function FilterBar({ value, onChange, counts }: Props) {
     );
 }
 
-/* -----------------------------
-   Small presentational helpers
------------------------------- */
-
 function FilterRow({ label, right }: { label: string; right: React.ReactNode }) {
     return (
         <div className="filterRow">
@@ -285,12 +269,13 @@ function FilterRow({ label, right }: { label: string; right: React.ReactNode }) 
     );
 }
 
-function SegMulti<T extends string | boolean>({
-                                                  selected,
-                                                  options,
-                                                  onToggle,
-                                                  wrap = false,
-                                              }: {
+function SegMulti<T extends string | boolean>(
+    {
+      selected,
+      options,
+      onToggle,
+      wrap = false,
+    }: {
     selected: T[];
     options: Array<{ key: T; label: string; count?: number }>;
     onToggle: (k: T) => void;

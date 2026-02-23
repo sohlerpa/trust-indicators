@@ -19,6 +19,10 @@ Base = declarative_base()
 
 
 class ArticleDB(Base):
+    """
+    ORM model for the `articles` table.
+    """
+
     __tablename__ = "articles"
 
     id = Column(String, primary_key=True)
@@ -31,7 +35,14 @@ class ArticleDB(Base):
     content_html = Column(Text)
     created_at = Column(TIMESTAMP, nullable=False)
 
+
 def get_all_articles(db: Session) -> list[ArticleRecord]:
+    """
+    Retrieve all articles ordered by publication date (newest first).
+
+    Returns:
+        list[ArticleRecord]: Articles sorted by published_at descending.
+    """
     rows = db.query(ArticleDB).order_by(ArticleDB.published_at.desc()).all()
 
     return [
@@ -50,7 +61,14 @@ def get_all_articles(db: Session) -> list[ArticleRecord]:
         for r in rows
     ]
 
+
 def get_article_by_id(db: Session, article_id: str) -> ArticleRecord | None:
+    """
+    Fetch a single article by its ID.
+
+    Returns:
+        ArticleRecord | None: The article if found, otherwise None.
+    """
     row = db.execute(
         text("""
         SELECT
@@ -83,14 +101,27 @@ def get_article_by_id(db: Session, article_id: str) -> ArticleRecord | None:
         content_html=row.content_html,
     )
 
+
 def get_article_llm_analysis(db: Session, article_id: str):
+    """
+    Retrieve cached LLM analysis for an article.
+
+    Returns:
+        Any | None: The cached analysis row, or None if not present.
+    """
     return db.execute(
         text("SELECT * FROM article_llm_analysis WHERE article_id = :id"),
         {"id": article_id},
     ).fetchone()
 
+
 def insert_article_llm_analysis(db: Session, article_id: str, ti: TrustIndicators):
-    print("inserting analysis to db...")
+    """
+    Insert initial trust indicator analysis for an article.
+
+    Returns:
+        None
+    """
     db.execute(
         text("""
         INSERT INTO article_llm_analysis (
@@ -120,19 +151,21 @@ def insert_article_llm_analysis(db: Session, article_id: str, ti: TrustIndicator
         },
     )
 
-def get_or_create_db_trust_indicators(
-    article: ArticleRecord,
-    db: Session,
-) -> TrustIndicators:
+
+def get_or_create_db_trust_indicators(article: ArticleRecord, db: Session) -> TrustIndicators:
+    """
+    Retrieve trust indicators for an article, using cached results when possible.
+
+    Returns:
+        TrustIndicators: Cached indicators or newly computed ones.
+    """
     row = get_article_llm_analysis(db, article.id)
 
     publisher = analyze_publisher(article, db)
     publisher_type = publisher.get("publisher_type")
     publisher_country = getattr(publisher, "publisher_country", None)
 
-    # FAST PATH — tone already cached
     if row and row.tone and row.content_type:
-        print("getting data from db...")
         has_false_facts = getattr(row, "has_false_facts", None)
 
         return TrustIndicators(
@@ -158,8 +191,6 @@ def get_or_create_db_trust_indicators(
             publisher_country=publisher_country,
         )
 
-    # SLOW PATH (first time only)
-    print(f"generating new analysis for article {article.id}")
     tone = classify_tone(article.content_html)
 
     if tone.tone == "error" or tone.content_type == "error":
@@ -169,7 +200,7 @@ def get_or_create_db_trust_indicators(
             tone=None,
             content_type=None,
             tone_type_rationale=None,
-            c2pa_info=[]
+            c2pa_info=[],
         )
 
     ti = TrustIndicators(
@@ -191,17 +222,25 @@ def get_or_create_db_trust_indicators(
 
 
 def extract_source(url: str) -> str:
+    """
+    Extract and normalize the domain from a URL.
+
+    Returns:
+        str: The normalized domain (without leading 'www.').
+    """
     netloc = urlparse(url).netloc.lower()
     if netloc.startswith("www."):
         netloc = netloc[4:]
     return netloc
 
-def save_author_expertise(
-    db: Session,
-    article_id: str,
-    ae: AuthorExpertise,
-):
-    print("save autor expertise to db...")
+
+def save_author_expertise(db: Session, article_id: str, ae: AuthorExpertise):
+    """
+    Insert or update author expertise fields for an article.
+
+    Returns:
+        None
+    """
     db.execute(
         text("""
         INSERT INTO article_llm_analysis (
@@ -235,12 +274,14 @@ def save_author_expertise(
     )
     db.commit()
 
-def save_tone_analysis(
-    db: Session,
-    article_id: str,
-    tc,
-):
-    print("save tone analysis to db...")
+
+def save_tone_analysis(db: Session, article_id: str, tc):
+    """
+    Insert or update tone classification fields for an article.
+
+    Returns:
+        None
+    """
     db.execute(
         text("""
         INSERT INTO article_llm_analysis (
@@ -271,7 +312,12 @@ def save_tone_analysis(
 
 
 def save_c2pa_present(db: Session, article_id: str, c2pa_present: bool | None):
-    print("saving c2pa analysis in db for ", article_id)
+    """
+    Insert or update the C2PA presence flag for an article.
+
+    Returns:
+        None
+    """
     db.execute(
         text("""
              INSERT INTO article_llm_analysis (article_id, c2pa_present)
@@ -285,6 +331,12 @@ def save_c2pa_present(db: Session, article_id: str, c2pa_present: bool | None):
 
 
 def get_fact_check_cache(db: Session, article_id: str) -> Optional[FactCheckTrustDTO]:
+    """
+    Retrieve cached fact-check results for an article.
+
+    Returns:
+        FactCheckTrustDTO | None: Cached result if present, otherwise None.
+    """
     row = db.execute(
         text(
             """
@@ -307,6 +359,12 @@ def get_fact_check_cache(db: Session, article_id: str) -> Optional[FactCheckTrus
 
 
 def compute_has_false_facts(dto: FactCheckTrustDTO) -> bool:
+    """
+    Determine whether any claim has verdict "false".
+
+    Returns:
+        bool: True if any claim is marked false, otherwise False.
+    """
     claims = getattr(dto, "claims", None) or []
     return any(
         ((c.get("verdict") if isinstance(c, dict) else getattr(c, "verdict", None)) == "false")
@@ -315,26 +373,28 @@ def compute_has_false_facts(dto: FactCheckTrustDTO) -> bool:
 
 
 def upsert_fact_check_cache(
-        db: Session,
-        article_id: str,
-        dto: FactCheckTrustDTO,
-        *,
-        model: Optional[str] = None,
+    db: Session,
+    article_id: str,
+    dto: FactCheckTrustDTO,
+    *,
+    model: Optional[str] = None,
 ) -> None:
-        # 1) Turn dto into a JSON-serializable dict (deep)
+    """
+    Insert or update fact-check results for an article.
+
+    Returns:
+        None
+    """
     if hasattr(dto, "model_dump"):
-        payload = dto.model_dump(mode="json")  # <-- important: converts enums etc.
+        payload = dto.model_dump(mode="json")
     else:
-        # fallback if dto isn't pydantic
         payload = json.loads(json.dumps(dto, default=lambda o: getattr(o, "__dict__", str(o))))
 
-    # 2) Stats extraction now works on dict
     stats = payload.get("stats") or {}
     extracted = int(stats.get("extractedClaims", 0))
     checked = int(stats.get("checkedClaims", 0))
     dropped = int(stats.get("droppedClaims", 0))
 
-    # 3) Store JSON
     result_json = json.dumps(payload, ensure_ascii=False)
 
     db.execute(
@@ -397,18 +457,23 @@ def upsert_fact_check_cache(
 
 
 def insert_article(
-        db: Session,
-        *,
-        article_id: str,
-        title: str,
-        url: str,
-        published_at: datetime,
-        image_url: str | None,
-        author: str | None,
-        preview: str,
-        content_html: str,
+    db: Session,
+    *,
+    article_id: str,
+    title: str,
+    url: str,
+    published_at: datetime,
+    image_url: str | None,
+    author: str | None,
+    preview: str,
+    content_html: str,
 ) -> None:
-    print(f"Inserting article {article_id} into db")
+    """
+    Insert a new article into the database.
+
+    Returns:
+        None
+    """
     db.execute(
         text("""
              INSERT INTO articles (

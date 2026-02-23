@@ -7,116 +7,34 @@ from src.app.service.trust.badge import compute_badge
 from src.modules.tone.tone_classifier import ToneClassification
 
 
-# def compute_trust_indicators_for_article(a: ArticleRecord, db: Session, feed_mode=True) -> TrustIndicators:
-#     tone_classification = classify_tone(a.content_html)
-#     owners_db_result = db.execute(GET_DOMAIN_OWNERS, {"domain": a.source}).fetchall()
-#     owners = [
-#         OwnerInfo(owner=row.name, percent=float(row.ownership_percent))
-#         for row in owners_db_result
-#     ]
-#
-#     publisher_type_db_result = db.execute(
-#         GET_DOMAIN_PUBLISHER_TYPE,
-#         {"domain": a.source}
-#     ).fetchone()
-#
-#     publisher_type = publisher_type_db_result.publisher_type if publisher_type_db_result else "unknown"
-#     publisher_country = publisher_type_db_result.country if publisher_type_db_result else None
-#
-#     img_urls = extract_img_srcs(a.content_html, article_url=str(a.url), api_base_url="http://localhost:8000", main_image_url=str(a.image_url))
-#     images: list[ImageProvenance] = []
-#     for u in img_urls:
-#         info = c2pa_for_image_url(u)
-#         if not info: continue
-#         images.append(
-#             ImageProvenance(
-#                 src=u,
-#                 c2pa_present=info.manifest_found,
-#                 issuer=info.issuer,
-#                 title=info.title,
-#                 is_ai_generated=info.is_ai_generated,
-#             )
-#         )
-#
-#     if feed_mode: # if called in the feed
-#         author_expertise = None
-#     else: # if called by a single article
-#         author_expertise = assess_author_expertise(a.content_html, a.author, str(a.url))
-#
-#     return TrustIndicators(
-#         badge="red",  # TODO
-#         fact_checked=False,  # TODO
-#         tone=tone_classification.tone,
-#         content_type=tone_classification.content_type,
-#         tone_type_rationale=tone_classification.rationale,
-#         publisher_type=publisher_type,
-#         publisher_country=publisher_country,
-#         c2pa_info=images,
-#         owners=owners,
-#         author_expertise=author_expertise,
-#     )
-
-# def enrich_trust_indicators_for_article(
-#     ti: TrustIndicators,
-#     a: ArticleRecord,
-#     db: Session,
-#     feed_mode: bool = True,
-# ) -> TrustIndicators:
-#     owners_db_result = db.execute(GET_DOMAIN_OWNERS, {"domain": a.source}).fetchall()
-#     ti.owners = [
-#         OwnerInfo(owner=row.name, percent=float(row.ownership_percent))
-#         for row in owners_db_result
-#     ]
-#
-#     publisher_type_db_result = db.execute(
-#         GET_DOMAIN_PUBLISHER_TYPE,
-#         {"domain": a.source}
-#     ).fetchone()
-#
-#     ti.publisher_type = (
-#         publisher_type_db_result.publisher_type
-#         if publisher_type_db_result
-#         else "unknown"
-#     )
-#     ti.publisher_country = (
-#         publisher_type_db_result.country
-#         if publisher_type_db_result
-#         else None
-#     )
-#
-#     img_urls = extract_img_srcs(
-#         a.content_html,
-#         article_url=str(a.url),
-#         api_base_url="http://localhost:8000",
-#     )
-#
-#     ti.c2pa_info = [
-#         ImageProvenance(
-#             src=u,
-#             c2pa_present=info.manifest_found,
-#             issuer=info.issuer,
-#             title=info.title,
-#             is_ai_generated=info.is_ai_generated,
-#         )
-#         for u in img_urls
-#         for info in [c2pa_for_image_url(u)]
-#     ]
-#
-#     if not feed_mode:
-#         ti.author_expertise = assess_author_expertise(
-#             a.content_html, a.author, str(a.url)
-#         )
-#
-#     return ti
-
-
 def compute_trust_indicators_for_xpost(p: XPostRecord, db: Session) -> TrustIndicators:
-    tone_classification = ToneClassification(content_type="news", tone="neutral", confidence=0.0, rationale="rationale text") #classify_tone(p.text) TODO
+    """
+    Compute trust indicators for an X post.
+
+    Returns:
+        TrustIndicators: Computed indicators derived from cached fact-check data
+        and a (currently placeholder) tone classification.
+    """
+    tone_classification = ToneClassification(
+        content_type="news",
+        tone="neutral",
+        confidence=0.0,
+        rationale="rationale text",
+    )  # classify_tone(p.text) TODO
+
     fact_check_cache = get_fact_check_cache(db, p.id)
-    has_false_facts = compute_has_false_facts(fact_check_cache)
+
+    has_false_facts = compute_has_false_facts(fact_check_cache) if fact_check_cache else None
 
     return TrustIndicators(
-        badge=compute_badge(has_false_facts, None, None, None, x_mode=True, fact_dto=fact_check_cache),
+        badge=compute_badge(
+            has_false_facts,
+            None,
+            None,
+            None,
+            x_mode=True,
+            fact_dto=fact_check_cache,
+        ),
         fact_checked=False,
         tone=tone_classification.tone,
         content_type=tone_classification.content_type,
@@ -124,12 +42,18 @@ def compute_trust_indicators_for_xpost(p: XPostRecord, db: Session) -> TrustIndi
         publisher_type="unknown",
     )
 
+
 def to_article_summary_out(
     a: ArticleRecord,
     db,
     feed_mode: bool = True,
 ) -> ArticleSummaryOut:
+    """
+    Convert an ArticleRecord into an ArticleSummaryOut with trust indicators.
 
+    Returns:
+        ArticleSummaryOut: Summary DTO including cached or computed trust indicators.
+    """
     ti = get_or_create_db_trust_indicators(a, db)
 
     return ArticleSummaryOut(
@@ -145,6 +69,12 @@ def to_article_summary_out(
 
 
 def to_article_base_out(a) -> ArticleBaseOut:
+    """
+    Convert an article record into an ArticleBaseOut.
+
+    Returns:
+        ArticleBaseOut: DTO containing the full article fields needed by the API.
+    """
     return ArticleBaseOut(
         id=a.id,
         title=a.title,
@@ -159,6 +89,12 @@ def to_article_base_out(a) -> ArticleBaseOut:
 
 
 def to_xpost_out(p: XPostRecord, db: Session) -> XPostOut:
+    """
+    Convert an XPostRecord into an XPostOut with computed trust indicators.
+
+    Returns:
+        XPostOut: DTO including indicators computed for this post.
+    """
     return XPostOut(
         id=p.id,
         url=p.url,
