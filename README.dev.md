@@ -1,5 +1,5 @@
 # trust-indicators
-This is the repository for the AMT project "Personalized Media Streams Through Trust Indicators"
+This is the repository for the AMT project "Personalized Media Streams Through Trust Indicators". With this README, you are guided more deeply on how to use this project.
 
 ## Configuration
 
