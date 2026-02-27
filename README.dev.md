@@ -11,12 +11,19 @@ To run the service, you need a Google Gemini API key and a Google Fact Checking 
 
 ## Run the application with Docker
 
-1. set your two API keys in docker-compose.yml
-2. `docker compose up`
+1. set your two API keys in `docker-compose.yml`
+2. `docker compose up` from repository root
 3. go to http://localhost:5173
 
    
 ## Run the application locally
+
+### Requirements
+
+To run the application locally, you need:
+- Python >= 3.11
+
+### API Keys
 
 1. Create a file named `.env` in the project root.
 2. Add your key to the file:
@@ -24,6 +31,8 @@ To run the service, you need a Google Gemini API key and a Google Fact Checking 
    GEMINI_API_KEY=your_api_key_here
    FACT_CHECKING_API_KEY=your_api_key_here
    ```
+
+### Run the application
 
 To run the application, you have to start both the backend and the frontend separately:
 
